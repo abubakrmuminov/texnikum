@@ -1,0 +1,76 @@
+:root {
+  --font-base: 1rem;
+  --letter-spacing: normal;
+  --line-height: 1.5;
+  --color-bg: #ffffff;
+  --color-text: #212529;
+  --color-primary: #0056b3;
+  --color-border: #dee2e6;
+  --color-focus: #0056b3;
+}
+
+html[data-a11y-font="medium"] { --font-base: 1.25rem; --line-height: 1.6; }
+html[data-a11y-font="large"] { --font-base: 1.5rem; --line-height: 1.8; }
+html[data-a11y-spacing="wide"] { --letter-spacing: 0.12em; --line-height: 1.8; }
+
+/* Черным по белому */
+html[data-a11y-theme="black-white"] {
+  --color-bg: #ffffff !important;
+  --color-text: #000000 !important;
+  --color-primary: #000000 !important;
+  --color-border: #000000 !important;
+  --color-focus: #000000 !important;
+}
+
+/* Белым по черному */
+html[data-a11y-theme="white-black"] {
+  --color-bg: #000000 !important;
+  --color-text: #ffffff !important;
+  --color-primary: #ffffff !important;
+  --color-border: #ffffff !important;
+  --color-focus: #ffffff !important;
+}
+
+/* Синий по светло-голубому */
+html[data-a11y-theme="blue"] {
+  --color-bg: #cbe2f8 !important;
+  --color-text: #063462 !important;
+  --color-primary: #063462 !important;
+  --color-border: #063462 !important;
+  --color-focus: #063462 !important;
+}
+
+/* Коричневый по бежевому */
+html[data-a11y-theme="brown"] {
+  --color-bg: #f7f3e8 !important;
+  --color-text: #4d2600 !important;
+  --color-primary: #4d2600 !important;
+  --color-border: #4d2600 !important;
+  --color-focus: #4d2600 !important;
+}
+
+html[data-a11y-img="grayscale"] img {
+  filter: grayscale(100%) !important;
+}
+
+html[data-a11y-img="off"] img,
+html[data-a11y-img="off"] svg:not(.icon-system) {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus) !important;
+  outline-offset: 3px !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

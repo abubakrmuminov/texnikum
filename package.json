@@ -1,0 +1,21 @@
+{
+  "name": "college-portal",
+  "private": true,
+  "author": "Abubakr Muminov <170409v@gmail.com> (https://github.com/abubakrmuminov)",
+  "packageManager": "pnpm@11.5.1",
+  "scripts": {
+    "build": "pnpm --filter \"@college/*\" run build",
+    "lint": "pnpm --filter \"@college/*\" run lint",
+    "dev": "pnpm --filter \"@college/web\" --filter \"@college/api\" --parallel run dev",
+    "dev:web": "pnpm --filter @college/web dev",
+    "dev:api": "pnpm --filter @college/api dev",
+    "clean": "pnpm -r exec rimraf dist .next node_modules",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:export": "powershell -ExecutionPolicy Bypass -File scripts/export-docker-images.ps1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

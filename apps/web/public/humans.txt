@@ -1,0 +1,21 @@
+/* TEAM */
+  System Architect & Lead Platform Engineer: Abubakr Muminov
+  Email: 170409v@gmail.com
+  Telegram: @abubakr_ai
+  GitHub: https://github.com/abubakrmuminov
+  Phone: +998 93 843 81 61
+  Location: Fergana / Tashkent, Uzbekistan
+
+/* THANKS & ATTRIBUTIONS */
+  Ministry of Higher Education, Science and Innovations of the Republic of Uzbekistan
+  Administration of Fargʻona 2-son texnikumi
+  Open-source community (Next.js, NestJS, Supabase, Tailwind, Radix UI)
+
+/* SITE & ARCHITECTURE */
+  Standards: HTML5, CSS3, ECMAScript 2024, TypeScript Strict Mode
+  Core Stack: Next.js 14 (App Router), NestJS 10, PostgreSQL 15 (Supabase RLS), Tailwind CSS
+  Accessibility: WCAG 2.1 Level AA, High-Contrast Modes, Law of RUz No. ZRU-641
+  Regulatory Compliance: Law of RUz No. ZRU-637 (Article 37), Presidential Decree UP-158
+  Security: Law of RUz No. ZRU-547 (Personal Data Protection), AES/JWT, Strict CSP & Headers
+  Language: Uzbek (Latin, Default) & Russian
+  Doctype: Modern Web Application Monorepo

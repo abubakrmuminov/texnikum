@@ -1,0 +1,46 @@
+# ==========================================
+# Production Deployment (Client / College Server)
+# Runs from pre-built loaded Docker images without any source code
+# Architect: Abubakr Muminov
+# ==========================================
+
+services:
+  # NestJS REST API Backend
+  api:
+    image: college-portal-api:latest
+    container_name: college-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Next.js Web Portal & CMS Frontend
+  web:
+    image: college-portal-web:latest
+    container_name: college-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+    depends_on:
+      api:
+        condition: service_started
+
+networks:
+  default:
+    name: college-network

@@ -1,0 +1,53 @@
+# ==========================================
+# Docker Compose: Fargʻona 2-son texnikumi
+# Build & Local Run Configuration
+# Architect: Abubakr Muminov
+# ==========================================
+
+services:
+  # NestJS REST API
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: college-portal-api:latest
+    container_name: college-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - CORS_ORIGIN=http://localhost:3000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Next.js Web Frontend & CMS
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: college-portal-web:latest
+    container_name: college-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+    depends_on:
+      api:
+        condition: service_started
+
+networks:
+  default:
+    name: college-network

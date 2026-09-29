@@ -1,0 +1,114 @@
+# Чек-лист разработки проекта (PROGRESS.md)
+
+## Done
+- Установлены и изучены навыки проекта: `shadcn`, `supabase`, `supabase-postgres-best-practices`, `supabase-backend-auth`, `admin-news-cms`, `educational-portal-designer`, `news-and-events-layout`, `educational-accessibility-a11y`.
+- Сформированы правила разработки в `GEMINI.md` и `AGENTS.md`, создана спецификация `docs/SPEC.md`.
+- **Инициализация монорепозитория и проектов**:
+  - Настроен монорепозиторий на базе `pnpm workspaces` (`apps/*`, `packages/*`).
+  - Создан пакет `@college/shared` (`packages/shared`): строгий TypeScript, перечисления (`UserRole`, `NewsStatus`), константы маршрутов (`API_ROUTES`, `WEB_ROUTES`), контракты API (`ApiResponse`, `PaginatedResponse`, `NewsItem`, `UserProfile`).
+  - Инициализировано приложение `@college/api` (`apps/api`): NestJS 10, TypeScript в strict-режиме, Swagger (`/api/docs`), глобальный `ValidationPipe` (class-validator), фильтр ошибок `AllExceptionsFilter`, контроллер мониторинга `HealthModule`.
+  - Инициализировано приложение `@college/web` (`apps/web`): Next.js 14 (App Router), TypeScript в strict-режиме, Tailwind CSS, конфигурация `shadcn/ui` (`components.json`), утилита `cn()`, семантический лейаут с a11y skip-link (`#main-content`), базовая страница в академическом стиле.
+  - Создан шаблон переменных окружения `.env.example` (параметры Supabase, NestJS API, Next.js Web).
+  - Настроен root `.gitignore` и правила сборки нативных зависимостей `pnpm`.
+  - Успешно проверена сборка (`pnpm build`) и линтинг (`pnpm lint`) для всех рабочих областей.
+- **База данных и хранилище (Database & Supabase Storage)**:
+  - Разработана базовая схема PostgreSQL (`supabase/migrations/20260929000001_create_schema.sql`): таблицы `roles`, `profiles`, `news_categories`, `departments`, `teachers`, `specialties`, `news`, `events`, `schedule`, `pages`, `media`, `audit_log`.
+  - Настроены RLS-политики и security definer функции (`supabase/migrations/20260929000002_rls_policies.sql`).
+  - Созданы индексы (`supabase/migrations/20260929000003_indexes.sql`).
+  - Подготовлены сид-данные (`supabase/migrations/20260929000004_seed_data.sql`).
+- **Серверный API (NestJS REST API)**:
+  - Разработаны и протестированы все 10 бизнес-модулей в `apps/api`: `auth`, `news`, `teachers`, `specialties`, `events`, `schedule`, `pages`, `media`, `users`, `audit`.
+  - Rate Limiting через `@nestjs/throttler` (120 req/min), CORS, class-validator, Swagger OpenAPI.
+- **Публичный образовательный портал (Next.js Web)**:
+  - Типизированный API-клиент `api-client.ts`, комплексная система a11y (6 тем, масштабирование, TTS), Header/Footer, страницы `home`, `news`, `teachers`, `specialties`, `schedule`, `events`, `contacts`, `settings`.
+- **Панель администратора (Admin CMS /admin)**:
+  - RBAC аутентификация (Admin, Editor, Moderator), дашборд с KPI, WYSIWYG редактор новостей, управление преподавателями, специальностями, расписанием, уставными страницами, медиатека, пользователи и аудит.
+- **Полировка и верификация (Polish & Verification)**:
+  - README, .env.example, sitemap.ts, robots.ts, сквозной тест сквозного сценария.
+- **Аудит нормативной базы РУз (RUz compliance audit)**:
+  - Изучены законы РУз: ЗРУ-637 (ст. 37), УП-158, ЗРУ-547, ЗРУ-641, Закон о госязыке.
+  - Разработаны [docs/UZ_COMPLIANCE.md](file:///c:/Users/Intel/Desktop/site/docs/UZ_COMPLIANCE.md) и [docs/LOCALIZATION_AUDIT.md](file:///c:/Users/Intel/Desktop/site/docs/LOCALIZATION_AUDIT.md).
+- **Адаптация под Республику Узбекистан (RUz adaptation — выполнено в полном объеме)**:
+  - **Двуязычный интерфейс (i18n)**:
+    - Интегрирован `next-intl` с клиентом `LocaleProvider` и переключателем языков `LanguageSwitcher` в шапке (Oʻzbekcha / Русский).
+    - Созданы словари локализации `apps/web/src/messages/uz.json` и `ru.json` (навигация, доступность, формы, статусы, фильтры).
+    - `uz` (узбекский на латинице) установлен языком по умолчанию (`lang="uz"`).
+  - **Институциональное позиционирование (УП-158)**:
+    - Образовательное учреждение адаптировано под техникум: «Fargʻona shahri 2-son texnikumi» («Ферганский техникум № 2»).
+    - Терминология СПО заменена на техникум, ECTS, государственный грант (`davlat granti`) и платный контракт (`to'lov-kontrakt`).
+  - **Нормативная структура (ст. 37 ЗРУ-637)**:
+    - Раздел `/sveden` переименован в `/info` (с сохранением редиректа со старых ссылок).
+    - 12 обязательных подразделов: `info-common`, `info-struct`, `info-documents`, `info-education`, `info-leadership`, `info-environment`, `info-material`, `info-grants`, `info-financial`, `info-vacant`, `info-international`, `info-employment`.
+    - Разметка микроданными Schema.org (`EducationalOrganization`).
+  - **База данных и миграции**:
+    - Создана миграция `supabase/migrations/20260929000005_uzbekistan_adaptation.sql` (не трогая предыдущие 000001–000004).
+    - Обновлен файл `supabase/seed.sql` с данными техникума Ферганы, валютой UZS (сум), кодами классификатора, телефонами `+998 (73)` и реквизитами (СТИР: 302987654, ЖШШИР: 31205851234567).
+  - **Серверный API (`apps/api`)**:
+    - Актуализированы модули `pages`, `specialties`, `teachers`, `main.ts` под стандарты РУз и валюту UZS.
+  - **Клиентское приложение (`apps/web`)**:
+    - Обновлены все публичные страницы (`/`, `/news`, `/events`, `/specialties`, `/teachers`, `/schedule`, `/contacts`, `/settings`, `/info`).
+    - Картографический сервис: встроен OpenStreetMap (`40.3864, 71.7864`, г. Фергана, ул. Б. Маргилоний, 42) без платных ключей.
+    - Форма обратной связи: согласие на обработку персональных данных в соответствии со статьей 27-1 Закона РУз № ЗРУ-547.
+    - Панель доступности и режим для слабовидящих: приведены в соответствие с Законом РУз № ЗРУ-641 и стандартом WCAG 2.1 AA.
+    - SEO: метаданные `sitemap.ts` и `robots.ts` адаптированы под домен `texnikum2.uz`.
+  - **Панель управления (`apps/web/src/app/admin`)**:
+    - Модули новостей, мероприятий, преподавателей, расписания, страниц (37-модда) и специальностей переведены на параметры техникума (сум/год, грант/контракт, классификатор 40610101).
+    - Авторизация адаптирована под аккаунты `@texnikum2.uz`.
+  - **Документация**:
+    - Актуализированы `README.md`, `docs/SPEC.md`, `.env.example`.
+  - **Верификация**:
+    - Проверено отсутствие недопустимых маркеров РФ в кодовой базе (скрипт `git grep`).
+    - Сборка (`pnpm build`) и линтинг (`pnpm lint`) монорепозитория завершены с 0 ошибок.
+- **Интеграция пасхалок и авторских водяных знаков (Easter Eggs & Author Watermarks Integration)**:
+  - Создан манифест команды и платформы `apps/web/public/humans.txt` с контактами и архитектурными спецификациями.
+  - Внедрены HTTP-заголовки `X-Platform-Architect: Abubakr Muminov` и `X-Engineered-By: Abubakr Muminov (github.com/abubakrmuminov)` в конфигурации Next.js (`apps/web/next.config.mjs`) и глобальном перехватчике NestJS (`apps/api/src/common/interceptors/author-watermark.interceptor.ts`).
+  - Добавлены водяные знаки в HTML-код (`apps/web/src/app/layout.tsx`): комментарии в `<head>`, авторские метаданные `authors` и `creator`, ссылка `<link rel="author" href="/humans.txt" />`.
+  - Разработан изолированный клиентский компонент `ArchitectSignature` (`apps/web/src/components/easter-eggs/architect-signature.tsx`): неоновый киберпанк ASCII-арт баннер в DevTools консоли с `useRef`-защитой от повторного рендера.
+  - Внедрена элегантная дискретная плашка авторства в футере сайта (`apps/web/src/components/layout/footer.tsx`) и в панели управления (`apps/web/src/app/admin/layout.tsx`).
+  - Указан автор во всех `package.json` файлах монорепозитория.
+- **Страница 404 (Not Found)**:
+  - Разработана двуязычная страница ошибки [`apps/web/src/app/not-found.tsx`](file:///c:/Users/Intel/Desktop/site/apps/web/src/app/not-found.tsx) (Oʻzbekcha / Русский) с поддержкой WCAG 2.1 AA.
+  - Добавлены словарь `notFound` в `uz.json` и `ru.json`.
+  - Реализованы интерактивные кнопки «Bosh sahifaga qaytish» и «Orqaga», а также блок быстрых ссылок (новости, программы, 37-модда, расписание, контакты).
+- **Многоуровневая архитектурная защита авторства (Anti-Tamper & Dead Man's Switch)**:
+  - **Уровень 1 (Build-time Gate)**: в `apps/web/next.config.mjs` интегрирован предварительный аудит исходного кода (`humans.txt`, `footer.tsx`, `integrity-guard.ts`). Попытка удалить или исказить автора (`Abubakr Muminov`) аварийно прерывает компиляцию и сборку (`process.exit(1)`).
+  - **Уровень 2 (Ядро криптографической валидации)**: разработан [`apps/web/src/lib/integrity-guard.ts`](file:///c:/Users/Intel/Desktop/site/apps/web/src/lib/integrity-guard.ts) с FNV-1a сигнатурой (`sig_80a5b2eb`), валидацией атрибутов (`id="platform-architect-badge"`, `data-signature`, `href`) и проверкой на попытки сокрытия стилями (`display: none`, `visibility: hidden`, `opacity: 0`, `font-size: 0`).
+  - **Уровень 3 (Рантайм-сторож DOM и MutationObserver)**: активный наблюдатель за изменениями дерева DOM в связке с циклическим heartbeat-таймером. При физическом удалении или скрытии плашки в футере немедленно разворачивается полноэкранный терминал блокировки, отключаются скролл и события мыши.
+  - **Уровень 4 (Каскадная блокировка React)**: `LocaleProvider` и `AccessibilityProvider` слушают события целостности. При фиксации взлома React-дерево заменяется на нативный двухъязычный экран блокировки [`LockdownScreen`](file:///c:/Users/Intel/Desktop/site/apps/web/src/components/easter-eggs/lockdown-screen.tsx) (Oʻzbekcha / Русский) с юридическим обоснованием по законам РУз (ЗРУ-42, ст. 18, 60).
+  - **Уровень 5 (Сетевой контракт API)**: `api-client.ts` контролирует наличие и неизменность заголовков `X-Platform-Architect` и `X-Platform-License` в ответах серверного бэкенда.
+- **Расширенный комплекс защит коммерческого уровня (1, 2, 4, 5)**:
+  - **1. Cryptographic Style Engine (Математическая связка стилей)**: функция `enforceStyleIntegrity` при повреждении хэша ломает токены оформления (`--primary`, `--radius`, `--card`, фильтр `grayscale(85%)`). Без оригинального имени сайт физически теряет цвета и вёрстку.
+  - **2. Защита на уровне БД (Supabase PostgreSQL RLS & Stored Function)**: миграция `20260929000006_architect_license_guard.sql` с таблицей `system_architect_license`, строгим RLS и security definer функцией `verify_platform_architect_license()`. Заголовок `X-Platform-License` включен в контракт API.
+  - **4. Closed Shadow DOM Shield**: веб-компонент [`ArchitectBadgeShadow`](file:///c:/Users/Intel/Desktop/site/apps/web/src/components/layout/architect-badge-shadow.tsx) монтирует плашку в изолированный теневой корень (`attachShadow({ mode: 'closed' })`), делая её недосягаемой для внешних CSS-селекторов и попыток сокрытия.
+  - **5. Обфускация байткода (XOR Bytecode Obfuscation)**: чувствительные константы переведены в байтовые массивы с динамической деобфускацией на лету, что предотвращает их нахождение простым поиском по скомпилированным чанкам.
+
+- **Защита панели администратора (Admin CMS Authentication & Hardening)**:
+  - Устранен dev auto-login: неавторизованные пользователи не имеют доступа к админ-панели и автоматически перенаправляются на `/admin/login`.
+  - Удалены все кнопки быстрого входа и обхода ролей («Быстрый вход для проверки ролей» и сайдбар-переключатель).
+  - Реализована строгая форма авторизации с пустыми полями по умолчанию, валидацией учетных данных (Admin, Editor, Moderator), защитой от отображения элементов CMS до проверки сессии и кнопкой выхода (Logout) в десктопном сайдбаре и мобильном меню.
+  - Оптимизировано вертикальное позиционирование карточки входа: убран избыточный `min-h-screen`, форма гармонично отцентрирована под навигацией без гигантских пустых отступов и лишней прокрутки.
+  - Все 76 статических/динамических маршрутов успешно собираются без предупреждений линтера и TypeScript-ошибок.
+- **Контейнеризация и защита исходного кода (Dockerization & Binary Image Delivery)**:
+  - Разработаны многоэтапные производственные `apps/api/Dockerfile` и `apps/web/Dockerfile` (Alpine Linux): на этапе builder код компилируется, а в финальный образ runner переносятся только бинарные артефакты (`dist/`, `.next/`, `public/`). В готовых образах полностью отсутствуют исходные файлы `.ts`, `.tsx`, документация и история Git.
+  - Настроен защитный `.dockerignore`, блокирующий попадание секретов (`.env*`), Git-репозитория и служебных папок в слои Docker.
+  - Создан основной `docker-compose.yml` для локальной оркестрации и сборки.
+  - Создан автономный `docker-compose.prod.yml` для передачи техникуму (запускает скомпилированные образы без необходимости компиляции на их сервере).
+  - Написаны скрипты автоматического экспорта в tar-архивы `scripts/export-docker-images.ps1` и `.sh`, генерирующие готовую к передаче папку `release/` с архивами образов, конфигуратором и инструкцией по развертыванию.
+  - Добавлены команды в `package.json`: `docker:build`, `docker:up`, `docker:down`, `docker:export`.
+
+## In Progress
+- Все поставленные задачи выполнены.
+
+## Next (Рекомендации для будущих улучшений)
+- [ ] Контентная многоязычность на уровне схемы БД (отдельные колонки `title_uz`, `title_ru` или таблица переводов при переходе на продакшн Supabase).
+- [ ] Интеграция с локальными SMS-шлюзами Узбекистана (PlayMobile/Eskiz) для отправки уведомлений абитуриентам.
+- [ ] Прямая синхронизация списков абитуриентов с API государственной системы `my.edu.uz`.
+
+## Assumptions
+- В качестве источника юридических и регуляторных требований используется национальная база законодательства Республики Узбекистан `lex.uz` и официальный портал Министерства высшего образования, науки и инноваций РУз `edu.uz`.
+- Базовым стандартом доступности выступает международный стандарт WCAG 2.1 Level AA в связке с Законом РУз № ЗРУ-641 «О правах лиц с инвалидностью».
+- Тип учреждения — Техникум (Fargʻona shahri 2-son texnikumi) в соответствии с Указом Президента РУз № УП-158 от 16.10.2024.
+- Языковая стратегия: основной язык по умолчанию — узбекский на латинице (`uz`), вспомогательный — русский (`ru`).
+- Валюта расчетов за обучение — сум (UZS).
+- Для отображения геопозиции кампусов используется открытый сервис OpenStreetMap без необходимости внешних платных API-ключей.
+- В демонстрационном автономном режиме сайт и панель администратора используют локализованные сид-данные Республики Узбекистан.

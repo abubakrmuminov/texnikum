@@ -1,0 +1,33 @@
+export const API_ROUTES = {
+  HEALTH: '/health',
+  AUTH: '/auth',
+  NEWS: '/news',
+  EVENTS: '/events',
+  TEACHERS: '/teachers',
+  SPECIALTIES: '/specialties',
+  SCHEDULE: '/schedule',
+  PAGES: '/pages',
+  USERS: '/users',
+  AUDIT_LOG: '/audit-log',
+} as const;
+
+export const WEB_ROUTES = {
+  HOME: '/',
+  NEWS: '/news',
+  EVENTS: '/events',
+  TEACHERS: '/teachers',
+  SPECIALTIES: '/specialties',
+  SCHEDULE: '/schedule',
+  ABOUT: '/about',
+  INFO: '/info',
+  CONTACTS: '/contacts',
+  SETTINGS: '/settings',
+  ADMIN_LOGIN: '/admin/login',
+  ADMIN_DASHBOARD: '/admin',
+  ADMIN_NEWS: '/admin/news',
+  ADMIN_TEACHERS: '/admin/teachers',
+  ADMIN_SPECIALTIES: '/admin/specialties',
+  ADMIN_SCHEDULE: '/admin/schedule',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_AUDIT: '/admin/audit',
+} as const;
