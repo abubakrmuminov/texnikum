@@ -15,6 +15,9 @@ import {
   UserRole,
   ContactsData,
 } from '@college/shared';
+import type { AdministratorMember } from '@college/shared';
+
+export type { AdministratorMember, AdministratorCategory } from '@college/shared';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -221,6 +224,189 @@ export const FALLBACK_TEACHERS: Teacher[] = [
     email: 'g.rahimova@texnikum2.uz',
     isActive: true,
     orderIndex: 4,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+];
+
+export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000001',
+    fullName: 'Karimov Jasur Alisherovich',
+    slug: 'karimov-jasur-alisherovich',
+    position: 'Texnikum direktori, dotsent, texnika fanlari nomzodi',
+    category: 'leadership',
+    receptionHours: 'Dushanba va Payshanba: 14:00 – 17:00',
+    phone: '+998 (73) 244-00-01',
+    email: 'direktor@texnikum2.uz',
+    roomNumber: 'Bosh bino, 201-xona',
+    duties: 'Texnikumning umumiy faoliyatiga rahbarlik qilish, taʼlim sifatini nazorat qilish, davlat taʼlim standartlari bajarilishini taʼminlash, xalqaro hamkorlik va moliyaviy barqarorlikni boshqarish.',
+    bio: 'Oliy maʼlumotli, texnika fanlari nomzodi. Oʻrta maxsus kasbiy taʼlim tizimida 20 yildan ortiq boshqaruv va ilmiy-pedagogik tajribasiga ega. Oʻzbekiston Respublikasi kasbiy taʼlim aʼlochisi.',
+    photoUrl: '/images/teachers/karimov.webp',
+    orderIndex: 1,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000002',
+    fullName: 'Yusupova Nilufar Rustamovna',
+    slug: 'yusupova-nilufar-rustamovna',
+    position: 'Oʻquv ishlari boʻyicha direktor oʻrinbosari, PhD',
+    category: 'leadership',
+    receptionHours: 'Seshanba va Juma: 10:00 – 13:00',
+    phone: '+998 (73) 244-00-02',
+    email: 'uquv@texnikum2.uz',
+    roomNumber: 'Bosh bino, 204-xona',
+    duties: 'Oʻquv rejalari va dasturlarini ishlab chiqish, ECTS kredit-modul tizimini joriy etish, dars taqsimoti, dars jadvallari va oʻquv jarayoni monitoringini tashkil qilish.',
+    bio: 'Toshkent axborot texnologiyalari universiteti bitiruvchisi. Tarmoq texnologiyalari va raqamli taʼlim metodikasi boʻyicha 25 dan ortiq ilmiy ishlar muallifi.',
+    photoUrl: '/images/teachers/yusupova.webp',
+    orderIndex: 2,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000003',
+    fullName: 'Ahmedov Sardor Baxtiyorovich',
+    slug: 'ahmedov-sardor-baxtiyorovich',
+    position: 'Yoshlar bilan ishlash va maʼnaviy-maʼrifiy ishlar boʻyicha direktor oʻrinbosari',
+    category: 'leadership',
+    receptionHours: 'Dushanba va Chorshanba: 15:00 – 17:00',
+    phone: '+998 (73) 244-00-03',
+    email: 'yoshlar@texnikum2.uz',
+    roomNumber: 'Bosh bino, 205-xona',
+    duties: 'Talabalar maʼnaviyatini yuksaltirish, «Besh muhim tashabbus» doirasidagi tadbirlar, toʻgaraklar faoliyati, talabalar turar joyi tartibi va ijtimoiy himoya tadbirlari.',
+    bio: 'WorldSkills Uzbekistan milliy eksperti. Yoshlar ittifoqi faoli, talabalar xakatonlari va startap tashabbuslari koordinatori.',
+    photoUrl: '/images/teachers/ahmedov.webp',
+    orderIndex: 3,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000004',
+    fullName: 'Gʻaniyev Botir Mamatovich',
+    slug: 'ganiyev-botir-mamatovich',
+    position: 'Ishlab chiqarish taʼlimi va amaliyot boʻyicha direktor oʻrinbosari',
+    category: 'leadership',
+    receptionHours: 'Seshanba va Shanba: 09:00 – 12:00',
+    phone: '+998 (73) 244-00-05',
+    email: 'amaliyot@texnikum2.uz',
+    roomNumber: 'Oʻquv-amaliyot binosi, 102-xona',
+    duties: 'Sanoat va IT-korxonalar bilan dual taʼlim shartnomalarini rasmiylashtirish, ishlab chiqarish amaliyotini tashkil qilish, bitiruvchilar bandligi va kasbiy koʻnikmalarni baholash.',
+    bio: 'Muhandislik va texnologik sohalarda 15 yillik amaliy tajribaga ega mutaxassis. Korxonalar bilan hamkorlik dasturlari kuratori.',
+    photoUrl: '/images/teachers/karimov.webp',
+    orderIndex: 4,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000005',
+    fullName: 'Rahimova Gulnora Tohirovna',
+    slug: 'rahimova-gulnora-tohirovna',
+    position: 'Oʻquv-uslubiy boʻlim boshligʻi, bosh metodist',
+    category: 'department_head',
+    receptionHours: 'Dushanba – Juma: 09:00 – 16:00',
+    phone: '+998 (73) 244-00-06',
+    email: 'metodika@texnikum2.uz',
+    roomNumber: 'Bosh bino, 108-xona',
+    duties: 'Oʻquv-uslubiy majmualar yaratish, pedagog xodimlar attestatsiyasi, ochiq darslar va ilgʻor xorijiy taʼlim metodikalarini oʻquv jarayoniga tatbiq qilish.',
+    bio: 'Xalq taʼlimi aʼlochisi, 24 yillik pedagogik va uslubiy faoliyat stajiga ega tajribali mutaxassis.',
+    photoUrl: '/images/teachers/rahimova.webp',
+    orderIndex: 5,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000006',
+    fullName: 'Ismoilova Dilnoza Hakimova',
+    slug: 'ismoilova-dilnoza-hakimova',
+    position: 'Kadrlar boʻlimi boshligʻi (Inson resurslarini boshqarish)',
+    category: 'department_head',
+    receptionHours: 'Dushanba – Juma: 14:00 – 17:00',
+    phone: '+998 (73) 244-00-07',
+    email: 'kadrlar@texnikum2.uz',
+    roomNumber: 'Bosh bino, 110-xona',
+    duties: 'Pedagog va xodimlarni ishga qabul qilish, mehnat qonunchiligi talablariga rioya etilishini taʼminlash, mehnat daftarchalarini yuritish va yillik hisobotlar tayyorlash.',
+    bio: 'Yuridik va inson resurslari sohasida 12 yillik tajribaga ega mutaxassis.',
+    photoUrl: '/images/teachers/yusupova.webp',
+    orderIndex: 6,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000007',
+    fullName: 'Toʻxtasinov Elyor Shavkatovich',
+    slug: 'toxtasinov-elyor-shavkatovich',
+    position: 'Bosh hisobchi (Buxgalteriya xizmati rahbari)',
+    category: 'administrative',
+    receptionHours: 'Seshanba va Payshanba: 14:00 – 16:30',
+    phone: '+998 (73) 244-00-04',
+    email: 'buxgalteriya@texnikum2.uz',
+    roomNumber: 'Bosh bino, 107-xona',
+    duties: 'Buxgalteriya hisobini yuritish, byudjet va toʻlov-kontrakt mablagʻlarining maqsadli sarflanishi nazorati, soliq va statistika hisobotlari, oylik maoshlar hisob-kitobi.',
+    bio: 'Iqtisodchi-moliyachi. Davlat moliya tizimida 14 yillik boshqaruv stajiga ega.',
+    photoUrl: '/images/teachers/ahmedov.webp',
+    orderIndex: 7,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000008',
+    fullName: 'Soliyeva Sayyora Nodirovna',
+    slug: 'soliyeva-sayyora-nodirovna',
+    position: 'Devonxona va ijro intizomi boʻlimi mudiri',
+    category: 'administrative',
+    receptionHours: 'Dushanba – Shanba: 08:30 – 17:00',
+    phone: '+998 (73) 244-00-08',
+    email: 'devonxona@texnikum2.uz',
+    roomNumber: 'Bosh bino, 104-xona',
+    duties: 'Hujjatlar aylanmasi (edo.ijro.uz), kiruvchi va chiquvchi rasmiy xatlar roʻyxati, fuqarolar murojaatlarini qabul qilish va texnikum arxivi faoliyatini yuritish.',
+    bio: 'Ish yuritish va elektron hujjat aylanishi tizimlari boʻyicha yetakchi mutaxassis.',
+    photoUrl: '/images/teachers/rahimova.webp',
+    orderIndex: 8,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000009',
+    fullName: 'Nazarov Farrux Erkinovich',
+    slug: 'nazarov-farrux-erkinovich',
+    position: 'Bosh yuriskonsult (Huquqiy taʼminot xizmati)',
+    category: 'administrative',
+    receptionHours: 'Chorshanba va Juma: 14:00 – 16:00',
+    phone: '+998 (73) 244-00-09',
+    email: 'yurist@texnikum2.uz',
+    roomNumber: 'Bosh bino, 112-xona',
+    duties: 'Texnikum qabul qilayotgan buyruqlar va normativ hujjatlarning qonuniyligini taʼminlash, mehnat shartnomalari ekspertizasi va huquqiy maslahatlar berish.',
+    bio: 'Fargʻona davlat universiteti huquqshunoslik fakulteti bitiruvchisi.',
+    photoUrl: '/images/teachers/karimov.webp',
+    orderIndex: 9,
+    isActive: true,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'adm-00000000-0000-0000-0000-000000000010',
+    fullName: 'Qodirova Mahbuba Zokirovna',
+    slug: 'qodirova-mahbuba-zokirovna',
+    position: 'Axborot-resurs markazi (ARM / Kutubxona) mudiri',
+    category: 'administrative',
+    receptionHours: 'Dushanba – Shanba: 09:00 – 18:00',
+    phone: '+998 (73) 244-00-14',
+    email: 'arm@texnikum2.uz',
+    roomNumber: 'Kutubxona zali, 2-qavat',
+    duties: 'Kutubxona fondini zamonaviy darsliklar va elektron kitoblar bilan boyitish, oʻquv zali xizmatlari va maʼnaviy-maʼrifiy kitobxonlik tadbirlarini tashkil qilish.',
+    bio: 'Kutubxona ishi va axborot tizimlari boʻyicha oliy toifali mutaxassis.',
+    photoUrl: '/images/teachers/yusupova.webp',
+    orderIndex: 10,
+    isActive: true,
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
   },
@@ -744,6 +930,36 @@ function getAllCurrentNews(): NewsItem[] {
   return [...local, ...FALLBACK_NEWS.filter((n) => !localIds.has(n.id))];
 }
 
+function getLocalAdministrators(): AdministratorMember[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('college_custom_administrators');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed as AdministratorMember[];
+    }
+  } catch {
+    // Ignore storage parse errors
+  }
+  return [];
+}
+
+function saveLocalAdministrators(items: AdministratorMember[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('college_custom_administrators', JSON.stringify(items));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+export function getAllCurrentAdministrators(): AdministratorMember[] {
+  const local = getLocalAdministrators();
+  if (!local.length) return FALLBACK_ADMINISTRATORS;
+  const localIds = new Set(local.map((a) => a.id));
+  return [...local, ...FALLBACK_ADMINISTRATORS.filter((a) => !localIds.has(a.id))];
+}
+
 export const FALLBACK_CONTACTS: ContactsData = {
   campuses: [
     {
@@ -909,6 +1125,34 @@ export const api = {
   getEventBySlug: async (slug: string) => {
     const fallback = FALLBACK_EVENTS.find((e) => e.slug === slug || e.id === slug) || null;
     return safeFetch<EventItem | null>(`/events/${slug}`, fallback);
+  },
+
+  // Руководство и администрация техникума
+  getAdministrators: async (params?: { category?: string; search?: string; page?: number; limit?: number }) => {
+    let list = getAllCurrentAdministrators().filter((a) => a.isActive !== false);
+    if (params?.category && params.category !== 'all') {
+      list = list.filter((a) => a.category === params.category);
+    }
+    if (params?.search) {
+      const q = params.search.toLowerCase();
+      list = list.filter((a) => a.fullName.toLowerCase().includes(q) || a.position.toLowerCase().includes(q) || (a.duties && a.duties.toLowerCase().includes(q)));
+    }
+    list.sort((a, b) => a.orderIndex - b.orderIndex);
+
+    const fallback = {
+      items: list,
+      total: list.length,
+      page: params?.page || 1,
+      limit: params?.limit || 50,
+      totalPages: 1,
+    };
+    return safeFetch('/administration', fallback, { cache: 'no-store' });
+  },
+
+  getAdministratorBySlug: async (slug: string) => {
+    const list = getAllCurrentAdministrators();
+    const fallback = list.find((a) => a.slug === slug || a.id === slug) || null;
+    return safeFetch<AdministratorMember | null>(`/administration/${slug}`, fallback, { cache: 'no-store' });
   },
 
   // Расписание
@@ -1117,6 +1361,90 @@ export const api = {
 
   deleteEvent: async (id: string, token?: string): Promise<{ success: boolean }> => {
     return safeMutation(`/events/${id}`, 'DELETE', undefined, token, { success: true });
+  },
+
+  // Администрация и руководство CRUD
+  createAdministrator: async (data: Partial<AdministratorMember>, token?: string): Promise<AdministratorMember> => {
+    const newAdmin: AdministratorMember = {
+      id: crypto.randomUUID(),
+      fullName: data.fullName || 'F.I.O.',
+      slug: data.slug || `admin-${Date.now()}`,
+      position: data.position || 'Lavozim',
+      category: data.category || 'leadership',
+      receptionHours: data.receptionHours || 'Dushanba – Juma: 14:00 – 17:00',
+      phone: data.phone || '+998 (73) 244-00-00',
+      email: data.email || 'info@texnikum2.uz',
+      roomNumber: data.roomNumber || '101-xona',
+      duties: data.duties || '',
+      bio: data.bio || '',
+      photoUrl: data.photoUrl || null,
+      orderIndex: data.orderIndex || 10,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const currentLocal = getLocalAdministrators();
+    saveLocalAdministrators([newAdmin, ...currentLocal]);
+    const fbIdx = FALLBACK_ADMINISTRATORS.findIndex((a) => a.id === newAdmin.id);
+    if (fbIdx !== -1) {
+      FALLBACK_ADMINISTRATORS[fbIdx] = newAdmin;
+    } else {
+      FALLBACK_ADMINISTRATORS.unshift(newAdmin);
+    }
+
+    try {
+      return await safeMutation<AdministratorMember>('/administration', 'POST', data, token, newAdmin);
+    } catch {
+      return newAdmin;
+    }
+  },
+
+  updateAdministrator: async (id: string, data: Partial<AdministratorMember>, token?: string): Promise<AdministratorMember> => {
+    const list = getAllCurrentAdministrators();
+    const existing = list.find((a) => a.id === id) || FALLBACK_ADMINISTRATORS[0]!;
+    const updated: AdministratorMember = {
+      ...existing,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const currentLocal = getLocalAdministrators();
+    const idx = currentLocal.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      currentLocal[idx] = updated;
+    } else {
+      currentLocal.unshift(updated);
+    }
+    saveLocalAdministrators(currentLocal);
+
+    const fbIdx = FALLBACK_ADMINISTRATORS.findIndex((a) => a.id === id);
+    if (fbIdx !== -1) {
+      FALLBACK_ADMINISTRATORS[fbIdx] = updated;
+    } else {
+      FALLBACK_ADMINISTRATORS.unshift(updated);
+    }
+
+    try {
+      return await safeMutation<AdministratorMember>(`/administration/${id}`, 'PATCH', data, token, updated);
+    } catch {
+      return updated;
+    }
+  },
+
+  deleteAdministrator: async (id: string, token?: string): Promise<{ success: boolean }> => {
+    const currentLocal = getLocalAdministrators();
+    saveLocalAdministrators(currentLocal.filter((a) => a.id !== id));
+    const fbIdx = FALLBACK_ADMINISTRATORS.findIndex((a) => a.id === id);
+    if (fbIdx !== -1) {
+      FALLBACK_ADMINISTRATORS.splice(fbIdx, 1);
+    }
+
+    try {
+      return await safeMutation(`/administration/${id}`, 'DELETE', undefined, token, { success: true });
+    } catch {
+      return { success: true };
+    }
   },
 
   // Расписание CRUD

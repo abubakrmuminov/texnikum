@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Calendar,
-  Clock,
   ExternalLink,
   FileText,
   GraduationCap,
@@ -17,6 +16,7 @@ import {
   Menu,
   Newspaper,
   Shield,
+  ShieldCheck,
   UserCheck,
   X,
 } from 'lucide-react';
@@ -36,8 +36,8 @@ const NAV_ITEMS_MAP: Record<
     { href: '/admin/news', label: 'Yangiliklar va maqolalar', icon: Newspaper },
     { href: '/admin/events', label: 'Tadbirlar va taqvim', icon: Calendar },
     { href: '/admin/teachers', label: 'Oʻqituvchilar tarkibi', icon: UserCheck },
+    { href: '/admin/administration', label: 'Rahbariyat va maʼmuriyat', icon: ShieldCheck },
     { href: '/admin/specialties', label: 'Mutaxassisliklar', icon: GraduationCap },
-    { href: '/admin/schedule', label: 'Dars jadvali', icon: Clock },
     { href: '/admin/pages', label: 'Muassasa haqida (37-modda)', icon: FileText },
     { href: '/admin/contacts', label: 'Bogʻlanish va aloqa (Aloqa)', icon: MapPin },
     { href: '/admin/media', label: 'Mediateka / Fayllar', icon: ImageIcon },
@@ -49,8 +49,8 @@ const NAV_ITEMS_MAP: Record<
     { href: '/admin/news', label: 'Новости и статьи', icon: Newspaper },
     { href: '/admin/events', label: 'События и календарь', icon: Calendar },
     { href: '/admin/teachers', label: 'Педагогический состав', icon: UserCheck },
+    { href: '/admin/administration', label: 'Руководство и администрация', icon: ShieldCheck },
     { href: '/admin/specialties', label: 'Специальности техникума', icon: GraduationCap },
-    { href: '/admin/schedule', label: 'Расписание занятий', icon: Clock },
     { href: '/admin/pages', label: 'Сведения об ОО (37-модда)', icon: FileText },
     { href: '/admin/contacts', label: 'Контакты и реквизиты (Aloqa)', icon: MapPin },
     { href: '/admin/media', label: 'Медиатека / Файлы', icon: ImageIcon },

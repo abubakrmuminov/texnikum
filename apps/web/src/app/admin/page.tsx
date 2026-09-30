@@ -4,13 +4,13 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
-  Clock,
   ExternalLink,
   GraduationCap,
   History,
   Image as ImageIcon,
   Newspaper,
   Plus,
+  ShieldCheck,
   UserCheck,
 } from 'lucide-react';
 import {
@@ -186,22 +186,22 @@ export default function AdminDashboardPage(): JSX.Element {
           </CardContent>
         </Card>
 
-        {/* Метрика 4: Расписание */}
+        {/* Метрика 4: Руководство и администрация */}
         <Card>
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
             <span className="text-xs font-semibold text-muted-foreground">
-              {isUz ? 'Dars jadvali' : 'Учебное расписание'}
+              {isUz ? 'Rahbariyat va maʼmuriyat' : 'Руководство и администрация'}
             </span>
             <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Clock className="size-4" aria-hidden="true" />
+              <ShieldCheck className="size-4" aria-hidden="true" />
             </div>
           </CardHeader>
           <CardContent className="p-5 pt-0 space-y-1">
-            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-              {isUz ? 'Dolzarb' : 'Актуально'}
+            <div className="text-2xl font-black text-foreground">
+              10
             </div>
             <p className="text-xs text-muted-foreground">
-              {isUz ? '2026/2027 oʻquv yili • Surat / maxraj' : 'Семестр 2026/2027 • Числитель/знаменатель'}
+              {isUz ? 'Boshqaruv tarkibi va boʻlim boshliqlari' : 'Дирекция и начальники отделов'}
             </p>
           </CardContent>
         </Card>
@@ -231,10 +231,10 @@ export default function AdminDashboardPage(): JSX.Element {
               <span>{isUz ? 'Fayl yuklash' : 'Загрузить медиафайл'}</span>
             </Button>
           </Link>
-          <Link href="/admin/schedule">
+          <Link href="/admin/administration">
             <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8">
-              <Clock className="size-3.5 text-primary" aria-hidden="true" />
-              <span>{isUz ? 'Dars jadvalini tahrirlash' : 'Редактировать расписание'}</span>
+              <ShieldCheck className="size-3.5 text-primary" aria-hidden="true" />
+              <span>{isUz ? 'Rahbariyat va maʼmuriyat' : 'Руководство и администрация'}</span>
             </Button>
           </Link>
           <Link href="/admin/contacts">

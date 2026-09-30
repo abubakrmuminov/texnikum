@@ -28,7 +28,7 @@ export function Header(): JSX.Element {
     { href: '/', label: tNav('home'), icon: BookOpen },
     { href: '/news', label: tNav('news'), icon: BookOpen },
     { href: '/specialties', label: tNav('specialties'), icon: GraduationCap },
-    { href: '/schedule', label: tNav('schedule'), icon: Calendar },
+    { href: '/administration', label: tNav('administration'), icon: ShieldCheck },
     { href: '/teachers', label: tNav('teachers'), icon: UserCheck },
     { href: '/events', label: tNav('events'), icon: Calendar },
     { href: '/info', label: tNav('about'), icon: Info },

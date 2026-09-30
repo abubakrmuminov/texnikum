@@ -7,13 +7,13 @@ import { useTranslations } from 'next-intl';
 import {
   ArrowLeft,
   Building2,
-  Clock,
   Compass,
   FileQuestion,
   GraduationCap,
   Home,
   Newspaper,
   PhoneCall,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,10 +42,10 @@ export default function NotFound(): JSX.Element {
       desc: 'OʻRQ-637 (37-modda) boʻlimlari',
     },
     {
-      href: '/schedule',
-      label: t('navSchedule'),
-      icon: Clock,
-      desc: 'Darslar va qoʻngʻiroqlar jadvali',
+      href: '/administration',
+      label: 'Rahbariyat',
+      icon: ShieldCheck,
+      desc: 'Texnikum maʼmuriyati va qabul vaqtlari',
     },
     {
       href: '/contacts',

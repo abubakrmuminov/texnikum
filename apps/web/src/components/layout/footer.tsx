@@ -56,8 +56,8 @@ export function Footer(): JSX.Element {
                 </Link>
               </li>
               <li>
-                <Link href="/schedule" className="hover:text-primary transition-colors">
-                  Elektron dars jadvali
+                <Link href="/administration" className="hover:text-primary transition-colors">
+                  Texnikum maʼmuriyati va rahbariyat
                 </Link>
               </li>
             </ul>
