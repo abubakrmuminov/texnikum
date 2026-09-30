@@ -293,6 +293,7 @@ export default function AdminAuditPage() {
           <Button
             variant="outline"
             size="sm"
+            data-tour="audit.refresh-btn"
             onClick={() => loadAuditLogs(true)}
             disabled={isLoading || isRefreshing}
             className="text-xs h-9"
@@ -304,6 +305,7 @@ export default function AdminAuditPage() {
           <Button
             variant="outline"
             size="sm"
+            data-tour="audit.export-btn"
             onClick={exportLogsToJson}
             disabled={filteredLogs.length === 0}
             className="text-xs h-9"
@@ -327,6 +329,7 @@ export default function AdminAuditPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            data-tour="audit.search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
@@ -342,6 +345,7 @@ export default function AdminAuditPage() {
           <div className="flex items-center gap-1.5">
             <Filter className="h-4 w-4 text-muted-foreground hidden sm:inline-block" />
             <select
+              data-tour="audit.action-filter"
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
               className="h-10 rounded-md border border-input bg-background px-3 py-1 text-xs sm:text-sm font-medium"
@@ -397,7 +401,7 @@ export default function AdminAuditPage() {
       </div>
 
       {/* Audit Log Table */}
-      <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
+      <div data-tour="audit.table" className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground space-y-2">
             <RefreshCw className="h-6 w-6 animate-spin mx-auto text-primary" />

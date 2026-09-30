@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse as SwaggerResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { ApiResponse, UserProfile, UserRole } from '@college/shared';
+import { ApiResponse, OnboardingState, UserProfile, UserRole } from '@college/shared';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -44,5 +44,20 @@ export class UsersController {
     @CurrentUser() user: UserProfile,
   ): Promise<ApiResponse<UserProfile>> {
     return this.usersService.updateRole(id, dto, user);
+  }
+
+  @Post(':id/onboarding/reset')
+  @ApiOperation({
+    summary: 'Сброс онбординга пользователя (повторный запуск тура при входе, только Администратор)',
+  })
+  @SwaggerResponse({
+    status: 200,
+    description: 'Онбординг пользователя успешно сброшен',
+  })
+  async resetOnboarding(
+    @Param('id') id: string,
+    @CurrentUser() user: UserProfile,
+  ): Promise<ApiResponse<{ id: string; onboarding: OnboardingState }>> {
+    return this.usersService.resetOnboarding(id, user);
   }
 }

@@ -230,6 +230,7 @@ export default function AdminTeachersPage() {
 
         <Button
           onClick={openCreateModal}
+          data-tour="teachers.create-btn"
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
         >
           <Plus className="h-4 w-4" />
@@ -256,6 +257,7 @@ export default function AdminTeachersPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
+          data-tour="teachers.search-input"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={
@@ -268,7 +270,7 @@ export default function AdminTeachersPage() {
       </div>
 
       {/* Teachers Table */}
-      <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
+      <div data-tour="teachers.table" className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
             {isUz ? 'Oʻqituvchilar yuklanmoqda...' : 'Загрузка преподавателей...'}

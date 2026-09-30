@@ -14,6 +14,7 @@ import {
   UserProfile,
   UserRole,
   ContactsData,
+  OnboardingState,
 } from '@college/shared';
 import type { AdministratorMember, AuditAction } from '@college/shared';
 
@@ -1758,6 +1759,38 @@ export const api = {
 
   updateContacts: async (data: ContactsData, token?: string): Promise<ContactsData> => {
     return safeMutation('/contacts', 'PUT', data, token, data);
+  },
+
+  // Онбординг текущего пользователя (/me/onboarding)
+  getOnboarding: async (token?: string): Promise<OnboardingState> => {
+    return safeFetch<OnboardingState>('/me/onboarding', {}, { cache: 'no-store', token });
+  },
+
+  patchOnboarding: async (
+    data: Partial<OnboardingState>,
+    token?: string,
+  ): Promise<OnboardingState> => {
+    return safeMutation<OnboardingState>(
+      '/me/onboarding',
+      'PATCH',
+      data,
+      token,
+      data as OnboardingState,
+    );
+  },
+
+  // Сброс онбординга пользователя (только Администратор)
+  resetUserOnboarding: async (
+    userId: string,
+    token?: string,
+  ): Promise<{ id: string; onboarding: OnboardingState }> => {
+    return safeMutation<{ id: string; onboarding: OnboardingState }>(
+      `/users/${userId}/onboarding/reset`,
+      'POST',
+      undefined,
+      token,
+      { id: userId, onboarding: {} },
+    );
   },
 };
 

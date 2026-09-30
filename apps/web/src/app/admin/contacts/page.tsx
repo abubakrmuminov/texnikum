@@ -177,6 +177,7 @@ export default function AdminContactsPage() {
           </Link>
           <Button
             type="submit"
+            data-tour="contacts.save-btn"
             disabled={isSaving}
             className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
           >
@@ -204,7 +205,7 @@ export default function AdminContactsPage() {
       )}
 
       {/* 1. Корпуса техникума */}
-      <div className="space-y-4">
+      <div data-tour="contacts.campuses" className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" />
@@ -323,7 +324,7 @@ export default function AdminContactsPage() {
       </div>
 
       {/* 2. Telefon maʼlumotnomasi */}
-      <div className="space-y-4">
+      <div data-tour="contacts.phones" className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
             <Phone className="h-5 w-5 text-primary" />

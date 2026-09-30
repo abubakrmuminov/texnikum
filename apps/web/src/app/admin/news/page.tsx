@@ -163,7 +163,7 @@ export default function AdminNewsPage() {
         </div>
 
         <Link href="/admin/news/new">
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs">
+          <Button data-tour="news.create-btn" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs">
             <Plus className="h-4 w-4" />
             {isUz ? 'Yangilik yozish' : 'Написать новость'}
           </Button>
@@ -183,6 +183,7 @@ export default function AdminNewsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            data-tour="news.search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={isUz ? 'Sarlavha yoki matn boʻyicha qidirish...' : 'Поиск по названию или тексту...'}
@@ -195,6 +196,7 @@ export default function AdminNewsPage() {
           <div className="flex items-center gap-1.5">
             <Filter className="h-4 w-4 text-muted-foreground hidden sm:inline-block" />
             <select
+              data-tour="news.status-filter"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -208,6 +210,7 @@ export default function AdminNewsPage() {
 
           {/* Category filter */}
           <select
+            data-tour="news.category-filter"
             value={selectedCategoryId}
             onChange={(e) => setSelectedCategoryId(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -223,7 +226,7 @@ export default function AdminNewsPage() {
       </div>
 
       {/* News Table */}
-      <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
+      <div data-tour="news.table" className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
             {isUz ? 'Maqolalar yuklanmoqda...' : 'Загрузка публикаций...'}

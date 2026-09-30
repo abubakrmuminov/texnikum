@@ -9,6 +9,7 @@ export const API_ROUTES = {
   PAGES: '/pages',
   USERS: '/users',
   AUDIT_LOG: '/audit-log',
+  ME_ONBOARDING: '/me/onboarding',
 } as const;
 
 export const WEB_ROUTES = {

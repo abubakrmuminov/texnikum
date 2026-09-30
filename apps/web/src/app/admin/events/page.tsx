@@ -264,6 +264,7 @@ export default function AdminEventsPage() {
 
         <Button
           onClick={openCreateModal}
+          data-tour="events.create-btn"
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
         >
           <Plus className="h-4 w-4" />
@@ -291,6 +292,7 @@ export default function AdminEventsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            data-tour="events.search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
@@ -301,6 +303,7 @@ export default function AdminEventsPage() {
         </div>
 
         <select
+          data-tour="events.category-filter"
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
@@ -317,7 +320,7 @@ export default function AdminEventsPage() {
       </div>
 
       {/* Events Table */}
-      <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
+      <div data-tour="events.table" className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
             {isUz ? 'Tadbirlar yuklanmoqda...' : 'Загрузка событий...'}

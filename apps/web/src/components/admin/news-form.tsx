@@ -201,6 +201,7 @@ export function NewsForm({
             type="button"
             variant="default"
             size="sm"
+            data-tour="news-form.submit"
             disabled={isSubmitting}
             onClick={() => handleSave(NewsStatus.PUBLISHED)}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -238,6 +239,7 @@ export function NewsForm({
               <span className="text-destructive">*</span>
             </label>
             <Input
+              data-tour="news-form.title"
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder={
@@ -300,6 +302,7 @@ export function NewsForm({
               <span className="text-destructive">*</span>
             </label>
             <Textarea
+              data-tour="news-form.lead"
               value={leadText}
               onChange={(e) => setLeadText(e.target.value)}
               placeholder={
@@ -321,11 +324,13 @@ export function NewsForm({
           </div>
 
           {/* WYSIWYG Body */}
-          <WysiwygEditor
-            value={contentHtml}
-            onChange={setContentHtml}
-            minHeight="400px"
-          />
+          <div data-tour="news-form.editor">
+            <WysiwygEditor
+              value={contentHtml}
+              onChange={setContentHtml}
+              minHeight="400px"
+            />
+          </div>
         </div>
 
         {/* Sidebar Settings (1 col) */}
@@ -343,6 +348,7 @@ export function NewsForm({
                 {isUz ? 'Material holati' : 'Статус материала'}
               </label>
               <select
+                data-tour="news-form.status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as NewsStatus)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -405,6 +411,7 @@ export function NewsForm({
                 {isUz ? 'Rukn' : 'Рубрика'}
               </label>
               <select
+                data-tour="news-form.category"
                 value={categoryId}
                 onChange={(e) => setCategoryId(Number(e.target.value))}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -419,7 +426,7 @@ export function NewsForm({
           </div>
 
           {/* Cover Image Card */}
-          <div className="rounded-xl border bg-card p-5 space-y-3 shadow-2xs">
+          <div data-tour="news-form.cover" className="rounded-xl border bg-card p-5 space-y-3 shadow-2xs">
             <ImageUploadField
               value={coverImageUrl}
               onChange={setCoverImageUrl}

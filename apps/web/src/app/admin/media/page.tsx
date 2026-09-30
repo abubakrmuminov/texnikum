@@ -172,6 +172,7 @@ export default function AdminMediaPage() {
           />
           <Button
             onClick={() => fileInputRef.current?.click()}
+            data-tour="media.upload-btn"
             disabled={isUploading}
             className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
           >
@@ -199,7 +200,7 @@ export default function AdminMediaPage() {
       )}
 
       {/* Storage Bucket Tabs */}
-      <div className="flex items-center gap-2 border-b pb-3">
+      <div data-tour="media.bucket-tabs" className="flex items-center gap-2 border-b pb-3">
         <button
           onClick={() => setSelectedBucket('news-media')}
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
@@ -229,6 +230,7 @@ export default function AdminMediaPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
+          data-tour="media.search-input"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={
@@ -240,11 +242,11 @@ export default function AdminMediaPage() {
 
       {/* Media Grid */}
       {isLoading ? (
-        <div className="p-12 text-center text-sm text-muted-foreground rounded-xl border bg-card">
+        <div data-tour="media.grid" className="p-12 text-center text-sm text-muted-foreground rounded-xl border bg-card">
           {isUz ? 'Fayllar yuklanmoqda...' : 'Загрузка файлов...'}
         </div>
       ) : filteredFiles.length === 0 ? (
-        <div className="p-12 text-center rounded-xl border bg-card space-y-3">
+        <div data-tour="media.grid" className="p-12 text-center rounded-xl border bg-card space-y-3">
           <p className="text-sm text-muted-foreground">
             {isUz
               ? 'Ushbu xotirada (baketda) hozircha fayllar mavjud emas'
@@ -259,7 +261,7 @@ export default function AdminMediaPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div data-tour="media.grid" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredFiles.map((file) => {
             const isImage = file.mimeType.startsWith('image/');
 

@@ -228,6 +228,7 @@ export default function AdminPagesPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            data-tour="pages.search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
@@ -260,7 +261,7 @@ export default function AdminPagesPage() {
       </div>
 
       {/* Pages Table */}
-      <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
+      <div data-tour="pages.table" className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
             Sahifalar yuklanmoqda...

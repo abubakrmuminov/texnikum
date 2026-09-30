@@ -65,6 +65,10 @@ Ishga tushgach quyidagi manzillar ochiladi:
 - **Boshqaruv paneli (Admin CMS)**: [http://localhost:3000/admin](http://localhost:3000/admin)
 - **Server REST API**: [http://localhost:4000/api/v1](http://localhost:4000/api/v1)
 - **Interaktiv Swagger API hujjatlari**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
+  - `GET /api/v1/me/onboarding` — joriy foydalanuvchi onbording holati
+  - `PATCH /api/v1/me/onboarding` — onbording holatini yangilash (merge)
+  - `POST /api/v1/users/:id/onboarding/reset` — foydalanuvchi onbordingini qayta tiklash (faqat Admin)
+  - `POST /api/v1/audit-log` — audit hodisalarini qayd qilish
 
 ---
 
@@ -76,7 +80,7 @@ Har bir reliz yoki oʻzgarishdan oldin:
 # 1. Barcha paketlarda TypeScript va ESLint tekshiruvi
 pnpm lint
 
-# 2. Toʻliq production yigʻish (Shared -> API -> Next.js SSG 49 ta sahifa)
+# 2. Toʻliq production yigʻish (Shared -> API -> Next.js SSG 79 ta sahifa)
 pnpm build
 ```
 

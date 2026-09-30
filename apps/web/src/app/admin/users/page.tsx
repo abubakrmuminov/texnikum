@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  RotateCcw,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAdminAuth } from '@/components/admin/admin-auth-context';
@@ -21,12 +23,13 @@ import { UserProfile, UserRole } from '@college/shared';
 export default function AdminUsersPage() {
   const { locale } = useAppLocale();
   const isUz = locale === 'uz';
-  const { user: currentUser, hasRole } = useAdminAuth();
+  const { user: currentUser, token, hasRole } = useAdminAuth();
   const [users, setUsers] = React.useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
+  const [resettingId, setResettingId] = React.useState<string | null>(null);
 
   const isAdmin = hasRole(UserRole.ADMIN);
 
@@ -79,6 +82,39 @@ export default function AdminUsersPage() {
           ? 'Foydalanuvchi rolini yangilab boʻlmadi'
           : 'Не удалось обновить роль пользователя'
       );
+    }
+  };
+
+  const handleResetOnboarding = async (userId: string, userFullName: string) => {
+    if (!isAdmin) {
+      alert(
+        isUz
+          ? 'Faqat administrator foydalanuvchi onbordingini tiklashi mumkin'
+          : 'Только администратор может сбрасывать онбординг пользователей'
+      );
+      return;
+    }
+
+    setResettingId(userId);
+    try {
+      await apiClient.resetUserOnboarding(userId, token || undefined);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, onboarding: {} } : u))
+      );
+      setSuccess(
+        isUz
+          ? `«${userFullName}» uchun onbording qayta tiklandi. Keyingi kirishda ekskursiya ochiladi.`
+          : `Онбординг пользователя «${userFullName}» успешно сброшен. Тур запустится при следующем входе.`
+      );
+      setTimeout(() => setSuccess(null), 4000);
+    } catch {
+      alert(
+        isUz
+          ? 'Foydalanuvchi onbordingini qayta tiklab boʻlmadi'
+          : 'Не удалось сбросить онбординг пользователя'
+      );
+    } finally {
+      setResettingId(null);
     }
   };
 
@@ -186,6 +222,7 @@ export default function AdminUsersPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
+          data-tour="users.search-input"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={isUz ? 'FIO yoki email boʻyicha qidiruv...' : 'Поиск по имени или email...'}
@@ -194,7 +231,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
+      <div data-tour="users.table" className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
             {isUz ? 'Foydalanuvchilar roʻyxati yuklanmoqda...' : 'Загрузка списка пользователей...'}
@@ -212,6 +249,7 @@ export default function AdminUsersPage() {
                   <th className="py-3 px-4">Email</th>
                   <th className="py-3 px-4">{isUz ? 'Joriy roli' : 'Текущая роль'}</th>
                   <th className="py-3 px-4">{isUz ? 'Kirish darajasini oʻzgartirish' : 'Изменить уровень доступа'}</th>
+                  <th className="py-3 px-4 text-center">{isUz ? 'Onbording holati' : 'Онбординг'}</th>
                   <th className="py-3 px-4 text-right">{isUz ? 'Roʻyxatdan oʻtgan' : 'Регистрация'}</th>
                 </tr>
               </thead>
@@ -269,6 +307,28 @@ export default function AdminUsersPage() {
                             {isUz ? 'Moderator (Moderator)' : 'Модератор (Moderator)'}
                           </option>
                         </select>
+                      </td>
+
+                      <td className="py-3 px-4 text-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          data-tour="users.reset-onboarding"
+                          disabled={resettingId === u.id}
+                          onClick={() => handleResetOnboarding(u.id, u.fullName)}
+                          className="h-8 px-2.5 text-xs gap-1.5 hover:bg-primary/10 hover:text-primary transition-colors"
+                          title={
+                            isUz
+                              ? 'Ekskursiyani qayta tiklash (keyingi kirishda ochiladi)'
+                              : 'Сбросить тур (запустится при следующем входе)'
+                          }
+                        >
+                          <RotateCcw
+                            className={`size-3.5 ${resettingId === u.id ? 'animate-spin' : ''}`}
+                            aria-hidden="true"
+                          />
+                          <span>{isUz ? 'Tiklash' : 'Сбросить тур'}</span>
+                        </Button>
                       </td>
 
                       <td className="py-3 px-4 text-right text-xs text-muted-foreground whitespace-nowrap">

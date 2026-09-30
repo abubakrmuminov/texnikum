@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AccessibilityProvider } from '@/components/accessibility/accessibility-provider';
 import { AccessibilityToolbar } from '@/components/accessibility/accessibility-toolbar';
+import { PublicA11yHint } from '@/components/accessibility/public-a11y-hint';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 
@@ -60,6 +61,9 @@ export default function RootLayout({
 
             {/* Sayt pastki qismi va rasmiy rekvizitlar */}
             <Footer />
+
+            {/* Kichik va xalaqit bermaydigan eslatma (WCAG 2.1 AA) */}
+            <PublicA11yHint />
           </AccessibilityProvider>
         </LocaleProvider>
       </body>

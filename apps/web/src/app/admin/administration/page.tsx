@@ -241,7 +241,7 @@ export default function AdminAdministrationPage(): JSX.Element {
           </p>
         </div>
 
-        <Button onClick={openCreateModal} className="h-9 text-xs gap-1.5 shrink-0">
+        <Button onClick={openCreateModal} data-tour="administration.create-btn" className="h-9 text-xs gap-1.5 shrink-0">
           <Plus className="h-4 w-4" />
           {isUz ? 'Yangi rahbar qoʻshish' : 'Добавить руководителя'}
         </Button>
@@ -261,6 +261,7 @@ export default function AdminAdministrationPage(): JSX.Element {
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            data-tour="administration.search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
@@ -273,7 +274,7 @@ export default function AdminAdministrationPage(): JSX.Element {
         </div>
 
         {/* Категории */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div data-tour="administration.category-tabs" className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {[
             { id: 'all', label: isUz ? 'Barchasi' : 'Все' },
             { id: 'leadership', label: isUz ? 'Rahbariyat' : 'Руководство' },
@@ -294,7 +295,7 @@ export default function AdminAdministrationPage(): JSX.Element {
       </div>
 
       {/* Таблица администраторов */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-2xs">
+      <div data-tour="administration.table" className="rounded-xl border border-border bg-card overflow-hidden shadow-2xs">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-muted-foreground">
             {isUz ? 'Yuklanmoqda...' : 'Загрузка данных...'}
