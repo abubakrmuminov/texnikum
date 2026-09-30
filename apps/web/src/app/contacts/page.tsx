@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContactsFeedbackForm, CopyAddressButton } from '@/components/contacts/contacts-client';
+import { apiClient, FALLBACK_CONTACTS } from '@/lib/api-client';
 
 export const metadata: Metadata = {
   title: 'Bogʻlanish va aloqa maʼlumotlari — Fargʻona 2-son texnikumi',
@@ -21,45 +22,13 @@ export const metadata: Metadata = {
     'Oʻquv binolari manzillari, talabalar turar joyi, qabul komissiyasi telefonlari, ish vaqti va shahar jamoat transporti yoʻnalishlari.',
 };
 
-const CAMPUSES = [
-  {
-    name: 'Bosh oʻquv binosi',
-    address: '150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 42-uy',
-    departments: 'Qabul komissiyasi (105-xona), Maʼmuriyat, Buxgalteriya, Axborot-resurs markazi (Kutubxona)',
-    phone: '+998 (73) 244-00-00',
-    email: 'info@texnikum2.uz',
-    workHours: 'Dush–Shanba: 08:30 – 17:30',
-    transport: '«Universitet» bekati (1, 8, 14, 22-sonli jamoat transporti)',
-  },
-  {
-    name: 'Oʻquv-amaliyot binosi va laboratoriyalar',
-    address: '150100, Fargʻona viloyati, Fargʻona shahri, B. Margʻinoniy koʻchasi, 18-uy',
-    departments: 'IT-laboratoriyalar, kompyuter tarmoqlari sinflari, WorldSkills kasbiy mahorat ustaxonalari',
-    phone: '+998 (73) 244-00-11',
-    email: 'it-dept@texnikum2.uz',
-    workHours: 'Dush–Shanba: 08:30 – 18:00',
-    transport: '«Margʻinoniy» bekati (5, 12, 19-sonli marshrutkalar)',
-  },
-  {
-    name: 'Talabalar turar joyi (Yotoqxona)',
-    address: '150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 44-uy',
-    departments: 'Yotoqxona maʼmuriyati, tibbiyot punkti, sport sektori, maʼnaviyat xonasi',
-    phone: '+998 (73) 244-00-15',
-    email: 'hostel@texnikum2.uz',
-    workHours: 'Kechu-kunduz (24/7 navbatchilik va nazorat)',
-    transport: 'Bosh oʻquv binosi yonida (1 daqiqalik piyoda yoʻl)',
-  },
-];
+export default async function ContactsPage(): Promise<JSX.Element> {
+  const contacts = await apiClient.getContacts().catch(() => FALLBACK_CONTACTS);
+  const campuses = contacts?.campuses?.length ? contacts.campuses : FALLBACK_CONTACTS.campuses;
+  const phones = contacts?.phones?.length ? contacts.phones : FALLBACK_CONTACTS.phones;
+  const directions = contacts?.directions || FALLBACK_CONTACTS.directions;
+  const mapCoordinates = contacts?.mapCoordinates || FALLBACK_CONTACTS.mapCoordinates;
 
-const TELEPHONE_DIRECTORY = [
-  { title: 'Qabul komissiyasi (ishonch telefoni)', phone: '+998 (73) 244-00-00', note: 'Qabul va hujjat topshirish boʻyicha maʼlumot' },
-  { title: 'Direktor qabulxonasi / Devonxona', phone: '+998 (73) 244-00-01', note: 'Rasmiy yozishmalar va murojaatlar' },
-  { title: 'Oʻquv-metodika boʻlimi', phone: '+998 (73) 244-00-02', note: 'Oʻquv jarayoni va akademik maʼlumotnomalar' },
-  { title: 'Amaliyot va bitiruvchilar bandligi', phone: '+998 (73) 244-00-03', note: 'Ish beruvchilar bilan shartnomalar va dual taʼlim' },
-  { title: 'Buxgalteriya (kontrakt toʻlovlari)', phone: '+998 (73) 244-00-04', note: 'Toʻlov-kontrakt shartnomalari va kvitansiyalar' },
-];
-
-export default function ContactsPage(): JSX.Element {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-12">
       {/* Хлебные крошки и заголовок */}
@@ -88,8 +57,8 @@ export default function ContactsPage(): JSX.Element {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {CAMPUSES.map((camp, idx) => (
-            <Card key={idx} className="flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+          {campuses.map((camp, idx) => (
+            <Card key={camp.id || idx} className="flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -158,8 +127,8 @@ export default function ContactsPage(): JSX.Element {
               </tr>
             </thead>
             <tbody>
-              {TELEPHONE_DIRECTORY.map((item, idx) => (
-                <tr key={idx} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              {phones.map((item, idx) => (
+                <tr key={item.id || idx} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                   <td className="p-3.5 font-medium text-foreground">
                     {item.title}
                   </td>
@@ -195,7 +164,7 @@ export default function ContactsPage(): JSX.Element {
                 </div>
                 <div>
                   <strong className="text-foreground block">Shahar jamoat transportida:</strong>
-                  <span>Fargʻona shahri boʻylab 1, 8, 14, 22-sonli avtobus yoki yoʻnalishli taksilar orqali «Universitet» yoki «2-son texnikum» bekatiga kelishingiz mumkin.</span>
+                  <span>{directions.bus}</span>
                 </div>
               </div>
 
@@ -205,7 +174,7 @@ export default function ContactsPage(): JSX.Element {
                 </div>
                 <div>
                   <strong className="text-foreground block">Moʻljal:</strong>
-                  <span>Fargʻona davlat universiteti bosh binosi roʻparasida, Al-Fargʻoniy koʻchasi boʻylab 42-uy.</span>
+                  <span>{directions.landmark}</span>
                 </div>
               </div>
             </div>
@@ -219,7 +188,7 @@ export default function ContactsPage(): JSX.Element {
                   height="100%"
                   style={{ border: 0 }}
                   loading="lazy"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=71.7700%2C40.3750%2C71.8050%2C40.3980&amp;layer=mapnik&amp;marker=40.3864%2C71.7864"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${(mapCoordinates.lng - 0.0164).toFixed(4)}%2C${(mapCoordinates.lat - 0.0114).toFixed(4)}%2C${(mapCoordinates.lng + 0.0186).toFixed(4)}%2C${(mapCoordinates.lat + 0.0116).toFixed(4)}&amp;layer=mapnik&amp;marker=${mapCoordinates.lat}%2C${mapCoordinates.lng}`}
                 />
               </div>
 
@@ -229,12 +198,12 @@ export default function ContactsPage(): JSX.Element {
                     Fargʻona 2-son texnikumi (OpenStreetMap)
                   </span>
                   <span className="text-[11px] text-muted-foreground font-mono">
-                    GPS koordinatalar: 40.3864° N, 71.7864° E
+                    GPS koordinatalar: {mapCoordinates.lat}° N, {mapCoordinates.lng}° E
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <a
-                    href="https://www.openstreetmap.org/?mlat=40.3864&amp;mlon=71.7864#map=16/40.3864/71.7864"
+                    href={`https://www.openstreetmap.org/?mlat=${mapCoordinates.lat}&amp;mlon=${mapCoordinates.lng}#map=16/${mapCoordinates.lat}/${mapCoordinates.lng}`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -244,7 +213,7 @@ export default function ContactsPage(): JSX.Element {
                     </Button>
                   </a>
                   <a
-                    href="https://maps.google.com/?q=40.3864,71.7864"
+                    href={`https://maps.google.com/?q=${mapCoordinates.lat},${mapCoordinates.lng}`}
                     target="_blank"
                     rel="noreferrer"
                   >

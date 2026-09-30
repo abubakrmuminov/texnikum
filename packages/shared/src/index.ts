@@ -12,3 +12,4 @@ export * from './types/schedule';
 export * from './types/page';
 export * from './types/media';
 export * from './types/audit';
+export * from './types/contacts';
