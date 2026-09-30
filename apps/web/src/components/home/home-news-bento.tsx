@@ -29,15 +29,6 @@ function formatUzbekDate(dateStr?: string | null): string {
   }
 }
 
-function getSecondaryFallbackBg(index: number): string {
-  const gradients = [
-    'bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950',
-    'bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950',
-    'bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950',
-    'bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950',
-  ];
-  return gradients[index % gradients.length]!;
-}
 
 export function HomeNewsBento({
   initialFeaturedNews,
@@ -84,17 +75,12 @@ export function HomeNewsBento({
         >
           {/* Фоновое фото статьи с плавным увеличением на hover */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            {featuredNews.coverImageUrl ? (
-              <img
-                src={featuredNews.coverImageUrl}
-                alt={featuredNews.title}
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950">
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:20px_20px]" />
-              </div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={featuredNews.coverImageUrl || '/images/news/default-cover.jpg'}
+              alt={featuredNews.title}
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            />
             {/* Глубокий, мягкий затемняющий оверлей для максимальной читаемости текста */}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40 group-hover:via-slate-950/65 transition-colors duration-500" />
           </div>
@@ -164,7 +150,7 @@ export function HomeNewsBento({
 
       {/* Второстепенные новости (5 колонок) — фото как фон каждой карточки */}
       <div className="lg:col-span-5 flex flex-col gap-4">
-        {secondaryNews.map((news, idx) => (
+        {secondaryNews.map((news) => (
           <article
             key={news.id}
             itemScope
@@ -173,17 +159,12 @@ export function HomeNewsBento({
           >
             {/* Фоновое фото карточки с зумом на hover */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-              {news.coverImageUrl ? (
-                <img
-                  src={news.coverImageUrl}
-                  alt={news.title}
-                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                />
-              ) : (
-                <div className={`w-full h-full ${getSecondaryFallbackBg(idx)}`}>
-                  <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px]" />
-                </div>
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={news.coverImageUrl || '/images/news/default-cover.jpg'}
+                alt={news.title}
+                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              />
               {/* Плавный темный градиент для контраста текста */}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/80 to-slate-950/45 group-hover:from-slate-950 group-hover:via-slate-950/70 transition-colors duration-300" />
             </div>

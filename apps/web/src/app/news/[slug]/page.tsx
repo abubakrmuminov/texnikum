@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, ImageOff } from 'lucide-react';
 import { collegeApi, FALLBACK_NEWS } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -133,17 +133,51 @@ export default async function NewsDetailPage({ params }: NewsPageProps): Promise
           </div>
         </header>
 
-        {/* Обложка статьи */}
-        <figure className="aspect-[16/9] w-full rounded-2xl bg-muted overflow-hidden flex items-center justify-center border border-border shadow-sm">
-          <div className="text-center p-6">
-            <span className="inline-block px-3 py-1 rounded bg-primary/10 text-primary font-bold text-xs uppercase tracking-wider mb-2">
-              Fargʻona 2-son texnikumi
-            </span>
-            <p className="text-xs text-muted-foreground max-w-md">
-              Texnikum axborot xizmati • Rasmiy fotomaterial
-            </p>
+        {/* Обложка статьи или уведомление об отсутствии фото */}
+        {item.coverImageUrl &&
+        item.coverImageUrl.trim() !== '' &&
+        item.coverImageUrl !== '/images/news/default-cover.jpg' ? (
+          <figure className="w-full rounded-2xl overflow-hidden border border-border shadow-sm bg-muted">
+            <div className="aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={item.coverImageUrl}
+                alt={item.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <figcaption className="px-4 py-2.5 text-xs text-muted-foreground bg-muted/40 border-t border-border flex flex-wrap items-center justify-between gap-2">
+              <span>Texnikum axborot xizmati fotomateriali</span>
+              <span className="font-medium text-foreground">Fargʻona 2-son texnikumi</span>
+            </figcaption>
+          </figure>
+        ) : (
+          <div
+            role="note"
+            aria-label="Fotomaterial haqida maʼlumot"
+            className="w-full rounded-2xl border border-dashed border-border/80 bg-muted/20 p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-4 transition-colors"
+          >
+            <div className="size-12 rounded-xl bg-background border border-border flex items-center justify-center text-muted-foreground shadow-2xs shrink-0">
+              <ImageOff className="size-6 text-muted-foreground/80" aria-hidden="true" />
+            </div>
+            <div className="space-y-1.5 text-center sm:text-left flex-1">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <span className="text-sm sm:text-base font-semibold text-foreground">
+                  Ushbu maqola uchun fotosurat biriktirilmagan
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground border border-border">
+                  Fotomaterial mavjud emas
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Maqola faqat matnli axborot formatida taqdim etilgan. Texnikum axborot xizmati tomonidan yangi fotomateriallar tayyorlanganda ushbu sahifaga qoʻshiladi.
+              </p>
+              <p className="text-[11px] text-muted-foreground/75 italic">
+                (Для этой статьи фотография не прикреплена. Материал представлен в текстовом формате).
+              </p>
+            </div>
           </div>
-        </figure>
+        )}
 
         {/* Основной текст статьи */}
         <div
