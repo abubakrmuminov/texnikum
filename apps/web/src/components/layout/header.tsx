@@ -1,39 +1,319 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
   BookOpen,
-  Calendar,
+  ChevronDown,
   GraduationCap,
   Info,
   Menu,
   Phone,
   ShieldCheck,
-  UserCheck,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from './language-switcher';
+import { useAppLocale } from '@/components/i18n/locale-provider';
+
+interface SubMenuItem {
+  href: string;
+  labelUz: string;
+  labelRu: string;
+  descUz: string;
+  descRu: string;
+  badge?: string;
+}
+
+interface NavMenuItem {
+  id: string;
+  href: string;
+  labelUz: string;
+  labelRu: string;
+  icon: React.ElementType;
+  children?: SubMenuItem[];
+}
 
 export function Header(): JSX.Element {
   const pathname = usePathname();
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const tNav = useTranslations('nav');
+  const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
+  const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const tCommon = useTranslations('common');
 
-  const navLinks = [
-    { href: '/', label: tNav('home'), icon: BookOpen },
-    { href: '/news', label: tNav('news'), icon: BookOpen },
-    { href: '/specialties', label: tNav('specialties'), icon: GraduationCap },
-    { href: '/administration', label: tNav('administration'), icon: ShieldCheck },
-    { href: '/teachers', label: tNav('teachers'), icon: UserCheck },
-    { href: '/events', label: tNav('events'), icon: Calendar },
-    { href: '/info', label: tNav('about'), icon: Info },
-    { href: '/contacts', label: tNav('contacts'), icon: Phone },
+  const navMenuItems: NavMenuItem[] = [
+    {
+      id: 'home',
+      href: '/',
+      labelUz: 'Bosh sahifa',
+      labelRu: 'Главная',
+      icon: BookOpen,
+    },
+    {
+      id: 'info',
+      href: '/info',
+      labelUz: 'Texnikum haqida',
+      labelRu: 'О техникуме',
+      icon: Info,
+      children: [
+        {
+          href: '/info/info-common',
+          labelUz: 'Asosiy maʼlumotlar',
+          labelRu: 'Основные сведения',
+          descUz: 'Tashkiliy maqom, filiallar va rekvizitlar',
+          descRu: 'Официальный статус, реквизиты и история',
+        },
+        {
+          href: '/info/info-struct',
+          labelUz: 'Tuzilma va boshqaruv',
+          labelRu: 'Структура и органы управления',
+          descUz: 'Boʻlimlar, kafedralar va boshqaruv kengashlari',
+          descRu: 'Отделения, службы и педагогический совет',
+        },
+        {
+          href: '/info/info-documents',
+          labelUz: 'Meʼyoriy hujjatlar',
+          labelRu: 'Документы и лицензии',
+          descUz: 'Ustav, davlat litsenziyasi va akkreditatsiya',
+          descRu: 'Устав, лицензия на образовательную деятельность',
+        },
+        {
+          href: '/info/info-material',
+          labelUz: 'Moddiy-texnik taʼminot',
+          labelRu: 'Материально-техническая база',
+          descUz: 'Zamonaviy IT-laboratoriyalar va jihozlar',
+          descRu: 'Лаборатории, учебные аудитории и оборудование',
+        },
+        {
+          href: '/info/info-financial',
+          labelUz: 'Moliyaviy faoliyat',
+          labelRu: 'Финансовая деятельность',
+          descUz: 'Byudjet daromadlari va xarajatlar smetasi',
+          descRu: 'Бюджетные сметы и внебюджетные поступления',
+        },
+        {
+          href: '/info/info-international',
+          labelUz: 'Xalqaro hamkorlik',
+          labelRu: 'Международное сотрудничество',
+          descUz: 'Xorijiy kollejlar bilan qoʻshma dasturlar',
+          descRu: 'Международные программы и стажировки',
+        },
+        {
+          href: '/info',
+          labelUz: 'Barcha 12 boʻlim (37-modda)',
+          labelRu: 'Все 12 обязательных разделов',
+          descUz: '«Taʼlim toʻgʻrisida»gi Qonun meʼyoriy reyestri',
+          descRu: 'Полный реестр сведений по ст. 37 ЗРУ-637',
+          badge: 'Qonun',
+        },
+      ],
+    },
+    {
+      id: 'specialties',
+      href: '/specialties',
+      labelUz: 'Taʼlim yoʻnalishlari',
+      labelRu: 'Специальности',
+      icon: GraduationCap,
+      children: [
+        {
+          href: '/specialties',
+          labelUz: 'Barcha mutaxassisliklar',
+          labelRu: 'Все специальности',
+          descUz: '2026/2027 oʻquv yili uchun qabul dasturlari',
+          descRu: 'Каталог направлений на 2026/2027 учебный год',
+          badge: '2026',
+        },
+        {
+          href: '/specialties/40610101-kompyuter-injiniringi-va-dasturiy-taminot',
+          labelUz: 'Kompyuter injiniringi',
+          labelRu: 'Компьютерный инжиниринг',
+          descUz: '40610101 • Dasturiy taʼminot va veb-ishlab chiqish',
+          descRu: '40610101 • Разработка ПО и веб-технологии',
+        },
+        {
+          href: '/specialties/40610102-kompyuter-tarmoqlari-va-tizimlari-mamurligi',
+          labelUz: 'Tarmoqlar maʼmurligi',
+          labelRu: 'Сетевое администрирование',
+          descUz: '40610102 • Klasterlar va kiberxavfsiz infratuzilma',
+          descRu: '40610102 • Сетевые комплексы и инфраструктура',
+        },
+        {
+          href: '/specialties/40610201-axborot-xavfsizligi-tizimlari-va-vositalari',
+          labelUz: 'Axborot xavfsizligi',
+          labelRu: 'Информационная безопасность',
+          descUz: '40610201 • Maʼlumotlarni himoyalash vositalari',
+          descRu: '40610201 • Защита конфиденциальных данных',
+        },
+        {
+          href: '/info/info-education',
+          labelUz: 'Oʻquv rejalari va standartlar',
+          labelRu: 'Учебный процесс и планы',
+          descUz: 'Malaka talablari, dars soatlari va amaliyot',
+          descRu: 'Образовательные программы и учебные графики',
+        },
+      ],
+    },
+    {
+      id: 'team',
+      href: '/administration',
+      labelUz: 'Jamoa va maʼmuriyat',
+      labelRu: 'Коллектив',
+      icon: ShieldCheck,
+      children: [
+        {
+          href: '/administration',
+          labelUz: 'Texnikum maʼmuriyati',
+          labelRu: 'Руководство и администрация',
+          descUz: 'Direktor, oʻrinbosarlar va boʻlim boshliqlari',
+          descRu: 'Директор, заместители и руководители служб',
+        },
+        {
+          href: '/teachers',
+          labelUz: 'Pedagogik tarkib',
+          labelRu: 'Педагогический состав',
+          descUz: 'Malakali oʻqituvchilar va amaliyot ustalari',
+          descRu: 'Преподаватели специальных дисциплин и мастера',
+        },
+        {
+          href: '/info/info-leadership',
+          labelUz: 'Fuqarolarni qabul qilish',
+          labelRu: 'График приема граждан',
+          descUz: 'Rahbariyat bilan shaxsiy uchrashuv kunlari',
+          descRu: 'Приемные дни администрации техникума',
+        },
+        {
+          href: '/info/info-vacant',
+          labelUz: 'Boʻsh ish oʻrinlari',
+          labelRu: 'Вакантные должности',
+          descUz: 'Ustozlar va ilmiy mutaxassislar uchun vakansiyalar',
+          descRu: 'Вакансии для педагогических работников',
+        },
+      ],
+    },
+    {
+      id: 'news',
+      href: '/news',
+      labelUz: 'Matbuot xizmati',
+      labelRu: 'Пресс-центр',
+      icon: BookOpen,
+      children: [
+        {
+          href: '/news',
+          labelUz: 'Barcha yangiliklar',
+          labelRu: 'Лента новостей',
+          descUz: 'Rasmiy bayonotlar, gʻalabalar va yangilanishlar',
+          descRu: 'Официальные заявления, победы и публикации',
+        },
+        {
+          href: '/events',
+          labelUz: 'Tadbirlar taqvimi',
+          labelRu: 'Календарь событий',
+          descUz: 'Konferensiyalar, olimpiadalar va ochiq darslar',
+          descRu: 'Конференции, чемпионаты и мастер-классы',
+        },
+        {
+          href: '/events/ochiq-eshiklar-kuni-aprel-2026',
+          labelUz: 'Ochiq eshiklar kuni',
+          labelRu: 'День открытых дверей',
+          descUz: 'Maktab bitiruvchilari va ota-onalar uchun tadbir',
+          descRu: 'Презентация техникума для школьников и родителей',
+          badge: 'Tadbir',
+        },
+        {
+          href: '/info/info-employment',
+          labelUz: 'Bitiruvchilar yutuqlari',
+          labelRu: 'Трудоустройство выпускников',
+          descUz: 'Ishga joylashish va kasbiy muvaffaqiyatlar',
+          descRu: 'Мониторинг трудоустройства и карьерный рост',
+        },
+      ],
+    },
+    {
+      id: 'admissions',
+      href: '/specialties',
+      labelUz: 'Abituriyent 2026',
+      labelRu: 'Абитуриенту',
+      icon: GraduationCap,
+      children: [
+        {
+          href: '/specialties',
+          labelUz: 'Davlat granti va kvotalar',
+          labelRu: 'Государственный грант и квоты',
+          descUz: 'Grant va toʻlov-kontrakt oʻrinlari soni',
+          descRu: 'Бюджетные места и договорная форма обучения',
+          badge: 'Grant',
+        },
+        {
+          href: '/news/qabul-2026-davlat-granti-va-hujjat-topshirish-tartibi',
+          labelUz: 'Hujjat topshirish tartibi',
+          labelRu: 'Порядок подачи документов',
+          descUz: 'Abituriyentlar uchun qadam-baqadam yoʻriqnoma',
+          descRu: 'Пошаговая инструкция для поступающих',
+        },
+        {
+          href: '/info/info-grants',
+          labelUz: 'Grantlar va stipendiyalar',
+          labelRu: 'Стипендии и поддержка',
+          descUz: 'Iqtidorli talabalar uchun ragʻbatlantirish tizimi',
+          descRu: 'Меры социальной и академической поддержки',
+        },
+        {
+          href: '/info/info-environment',
+          labelUz: 'Inklyuziv va qulay muhit',
+          labelRu: 'Доступная среда',
+          descUz: 'Imkoniyati cheklangan shaxslar uchun sharoitlar',
+          descRu: 'Условия для лиц с ограниченными возможностями',
+        },
+      ],
+    },
+    {
+      id: 'contacts',
+      href: '/contacts',
+      labelUz: 'Aloqa',
+      labelRu: 'Контакты',
+      icon: Phone,
+      children: [
+        {
+          href: '/contacts',
+          labelUz: 'Manzil va rekvizitlar',
+          labelRu: 'Адрес и контакты',
+          descUz: 'Fargʻona sh., B. Margʻiloniy 42 • OpenStreetMap',
+          descRu: 'г. Фергана, ул. Б. Маргилоний, 42 • Карта',
+        },
+        {
+          href: '/settings',
+          labelUz: 'Maxsus imkoniyatlar',
+          labelRu: 'Специальные возможности',
+          descUz: 'Koʻzi ojizlar uchun rejim, shrift va fon sozlamalari',
+          descRu: 'Настройки для слабовидящих, масштаб и контраст',
+        },
+      ],
+    },
   ];
+
+  const handleMouseEnter = (menuId: string) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredMenu(menuId);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredMenu(null);
+    }, 150);
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -115,59 +395,168 @@ export function Header(): JSX.Element {
         </div>
       </div>
 
-      {/* Навигационное меню (Десктоп) */}
+      {/* Навигационное меню с интерактивными подменю (Десктоп) */}
       <nav
         aria-label="Asosiy navigatsiya menyusi"
-        className="hidden lg:block border-t border-border bg-muted/30"
+        className="hidden lg:block border-t border-border bg-muted/30 relative"
       >
-        <div className="container mx-auto px-4 flex items-center gap-1 overflow-x-auto py-1">
-          {navLinks.map((link) => {
-            const isActive =
-              link.href === '/'
+        <div className="container mx-auto px-4 flex items-center gap-1 py-1">
+          {navMenuItems.map((item, index) => {
+            const hasChildren = Boolean(item.children && item.children.length > 0);
+            const isMenuOpen = hoveredMenu === item.id;
+            const isSelfOrChildActive =
+              item.href === '/'
                 ? pathname === '/'
-                : pathname.startsWith(link.href);
+                : pathname.startsWith(item.href) ||
+                  Boolean(item.children?.some((c) => pathname === c.href || pathname.startsWith(c.href)));
+
+            const isAlignRight = index >= navMenuItems.length - 2;
+
             return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-3.5 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-ring ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                    : 'text-foreground/80 hover:text-foreground hover:bg-accent'
-                }`}
-                aria-current={isActive ? 'page' : undefined}
+              <div
+                key={item.id}
+                className="relative"
+                onMouseEnter={() => handleMouseEnter(item.id)}
+                onMouseLeave={handleMouseLeave}
               >
-                {link.label}
-              </Link>
+                <Link
+                  href={item.href}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-ring ${
+                    isSelfOrChildActive
+                      ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                      : 'text-foreground/80 hover:text-foreground hover:bg-accent'
+                  }`}
+                  aria-haspopup={hasChildren ? 'menu' : undefined}
+                  aria-expanded={hasChildren ? isMenuOpen : undefined}
+                >
+                  <span>{isUz ? item.labelUz : item.labelRu}</span>
+                  {hasChildren && (
+                    <ChevronDown
+                      className={`size-3.5 opacity-60 transition-transform duration-200 ${
+                        isMenuOpen ? 'rotate-180 opacity-100' : ''
+                      }`}
+                      aria-hidden="true"
+                    />
+                  )}
+                </Link>
+
+                {/* Выпадающее окно подменю при наведении */}
+                {hasChildren && isMenuOpen && (
+                  <div
+                    className={`absolute top-full z-50 pt-1.5 animate-in fade-in-0 zoom-in-95 duration-150 ${
+                      isAlignRight ? 'right-0 left-auto' : 'left-0'
+                    }`}
+                    role="menu"
+                    aria-label={isUz ? item.labelUz : item.labelRu}
+                  >
+                    <div className="w-80 rounded-xl border border-border bg-popover/95 backdrop-blur-md p-2 shadow-2xl ring-1 ring-black/5 divide-y divide-border/40">
+                      <div className="space-y-0.5 pb-1">
+                        {item.children!.map((sub) => {
+                          const isSubActive = pathname === sub.href;
+                          return (
+                            <Link
+                              key={sub.href}
+                              href={sub.href}
+                              onClick={() => setHoveredMenu(null)}
+                              className={`group/sub flex flex-col gap-0.5 p-2 rounded-lg transition-colors focus:outline-none focus:bg-accent ${
+                                isSubActive
+                                  ? 'bg-accent/90 text-accent-foreground font-semibold'
+                                  : 'hover:bg-accent/70 text-foreground'
+                              }`}
+                              role="menuitem"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-semibold group-hover/sub:text-primary transition-colors">
+                                  {isUz ? sub.labelUz : sub.labelRu}
+                                </span>
+                                {sub.badge && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold">
+                                    {sub.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[11px] text-muted-foreground line-clamp-1">
+                                {isUz ? sub.descUz : sub.descRu}
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
       </nav>
 
-      {/* Выпадающее меню для мобильных устройств */}
+      {/* Меню для мобильных устройств с раскрывающимися списками (Accordion) */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-border bg-background px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
+        <div className="lg:hidden border-t border-border bg-background px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-200 max-h-[80vh] overflow-y-auto">
           <nav aria-label="Mobil navigatsiya" className="flex flex-col gap-1">
-            {navLinks.map((link) => {
+            {navMenuItems.map((item) => {
+              const hasChildren = Boolean(item.children && item.children.length > 0);
+              const isExpanded = expandedMobileMenu === item.id;
               const isActive =
-                link.href === '/'
+                item.href === '/'
                   ? pathname === '/'
-                  : pathname.startsWith(link.href);
+                  : pathname.startsWith(item.href);
+
               return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground font-semibold'
-                      : 'hover:bg-accent text-foreground'
-                  }`}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <link.icon className="size-4 opacity-70" />
-                  <span>{link.label}</span>
-                </Link>
+                <div key={item.id} className="border-b border-border/40 last:border-0 pb-1">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors flex-1 ${
+                        isActive
+                          ? 'bg-primary text-primary-foreground font-semibold'
+                          : 'hover:bg-accent text-foreground'
+                      }`}
+                    >
+                      <item.icon className="size-4 opacity-70" />
+                      <span>{isUz ? item.labelUz : item.labelRu}</span>
+                    </Link>
+                    {hasChildren && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedMobileMenu(isExpanded ? null : item.id)
+                        }
+                        className="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
+                        aria-label={isExpanded ? 'Yopish' : 'Ochish'}
+                      >
+                        <ChevronDown
+                          className={`size-4 transition-transform ${
+                            isExpanded ? 'rotate-180 text-primary' : ''
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Раскрывающийся аккордеон на мобильных */}
+                  {hasChildren && isExpanded && (
+                    <div className="pl-6 pr-2 pt-1 pb-2 space-y-1 bg-muted/20 rounded-lg mt-1">
+                      {item.children!.map((sub) => (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block p-1.5 rounded-md hover:bg-accent/80 text-xs text-foreground"
+                        >
+                          <div className="font-semibold text-primary/90">
+                            {isUz ? sub.labelUz : sub.labelRu}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground line-clamp-1">
+                            {isUz ? sub.descUz : sub.descRu}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
