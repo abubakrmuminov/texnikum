@@ -8,6 +8,7 @@ import {
   UserProfile,
 } from '@college/shared';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreateNewsDto } from './dto/create-news.dto';
@@ -62,121 +63,137 @@ export class NewsService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly auditService: AuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findAll(query: QueryNewsDto): Promise<ApiResponse<PaginatedResponse<NewsItem>>> {
     const page = query.page || 1;
     const limit = query.limit || 10;
-    const offset = (page - 1) * limit;
+    const status = query.status || NewsStatus.PUBLISHED;
+    const search = query.search ? query.search.trim().toLowerCase() : '';
+    const cacheKey = `news:list:p${page}:l${limit}:s${status}:q${encodeURIComponent(search)}`;
 
-    if (this.supabaseService.isReady()) {
-      const supabase = this.supabaseService.getClient();
-      if (supabase) {
-        let dbQuery = supabase
-          .from('news')
-          .select('*, news_categories(*)', { count: 'exact' });
+    return this.cacheService.getOrSet(cacheKey, 60, async () => {
+      const offset = (page - 1) * limit;
 
-        if (query.status) {
-          dbQuery = dbQuery.eq('status', query.status);
-        } else {
-          dbQuery = dbQuery.eq('status', NewsStatus.PUBLISHED);
-        }
+      if (this.supabaseService.isReady()) {
+        const supabase = this.supabaseService.getClient();
+        if (supabase) {
+          let dbQuery = supabase
+            .from('news')
+            .select('*, news_categories(*)', { count: 'exact' });
 
-        if (query.search) {
-          dbQuery = dbQuery.ilike('title', `%${query.search}%`);
-        }
+          if (query.status) {
+            dbQuery = dbQuery.eq('status', query.status);
+          } else {
+            dbQuery = dbQuery.eq('status', NewsStatus.PUBLISHED);
+          }
 
-        const { data, count, error } = await dbQuery
-          .order('published_at', { ascending: false })
-          .range(offset, offset + limit - 1);
+          if (query.search) {
+            dbQuery = dbQuery.ilike('title', `%${query.search}%`);
+          }
 
-        if (!error && data) {
-          const items: NewsItem[] = data.map((d: Record<string, unknown>) => ({
-            id: String(d.id),
-            title: String(d.title),
-            slug: String(d.slug),
-            categoryId: Number(d.category_id),
-            leadText: String(d.lead_text),
-            contentHtml: String(d.content_html),
-            coverImageUrl: d.cover_image_url ? String(d.cover_image_url) : null,
-            readingTimeMin: Number(d.reading_time_min),
-            status: d.status as NewsStatus,
-            isFeatured: Boolean(d.is_featured),
-            authorId: d.author_id ? String(d.author_id) : null,
-            publishedAt: d.published_at ? String(d.published_at) : null,
-            createdAt: String(d.created_at),
-            updatedAt: String(d.updated_at),
-          }));
-          const total = count ?? items.length;
-          return {
-            success: true,
-            data: {
-              items,
-              total,
-              page,
-              limit,
-              totalPages: Math.ceil(total / limit),
-            },
-            timestamp: new Date().toISOString(),
-          };
+          const { data, count, error } = await dbQuery
+            .order('published_at', { ascending: false })
+            .range(offset, offset + limit - 1);
+
+          if (!error && data) {
+            const items: NewsItem[] = data.map((d: Record<string, unknown>) => ({
+              id: String(d.id),
+              title: String(d.title),
+              slug: String(d.slug),
+              categoryId: Number(d.category_id),
+              leadText: String(d.lead_text),
+              contentHtml: String(d.content_html),
+              coverImageUrl: d.cover_image_url ? String(d.cover_image_url) : null,
+              readingTimeMin: Number(d.reading_time_min),
+              status: d.status as NewsStatus,
+              isFeatured: Boolean(d.is_featured),
+              authorId: d.author_id ? String(d.author_id) : null,
+              publishedAt: d.published_at ? String(d.published_at) : null,
+              createdAt: String(d.created_at),
+              updatedAt: String(d.updated_at),
+            }));
+            const total = count ?? items.length;
+            return {
+              success: true,
+              data: {
+                items,
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+              },
+              timestamp: new Date().toISOString(),
+            };
+          }
         }
       }
-    }
 
-    let filtered = [...this.newsList];
-    if (query.status) {
-      filtered = filtered.filter((n) => n.status === query.status);
-    } else {
-      filtered = filtered.filter((n) => n.status === NewsStatus.PUBLISHED);
-    }
-    if (query.search) {
-      const s = query.search.toLowerCase();
-      filtered = filtered.filter((n) => n.title.toLowerCase().includes(s) || n.leadText.toLowerCase().includes(s));
-    }
+      let filtered = [...this.newsList];
+      if (query.status) {
+        filtered = filtered.filter((n) => n.status === query.status);
+      } else {
+        filtered = filtered.filter((n) => n.status === NewsStatus.PUBLISHED);
+      }
+      if (query.search) {
+        const s = query.search.toLowerCase();
+        filtered = filtered.filter((n) => n.title.toLowerCase().includes(s) || n.leadText.toLowerCase().includes(s));
+      }
 
-    const total = filtered.length;
-    const items = filtered.slice(offset, offset + limit);
+      const total = filtered.length;
+      const items = filtered.slice(offset, offset + limit);
 
-    return {
-      success: true,
-      data: {
-        items,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-      timestamp: new Date().toISOString(),
-    };
+      return {
+        success: true,
+        data: {
+          items,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findFeatured(): Promise<ApiResponse<NewsItem | null>> {
-    const featured = this.newsList.find((n) => n.isFeatured && n.status === NewsStatus.PUBLISHED) || this.newsList[0] || null;
-    return {
-      success: true,
-      data: featured,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet('news:featured', 120, async () => {
+      const featured =
+        this.newsList.find((n) => n.isFeatured && n.status === NewsStatus.PUBLISHED) ||
+        this.newsList[0] ||
+        null;
+      return {
+        success: true,
+        data: featured,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findOne(slugOrId: string): Promise<ApiResponse<NewsItem>> {
-    const item = this.newsList.find((n) => n.slug === slugOrId || n.id === slugOrId);
-    if (!item) {
-      throw new NotFoundException(`Новость «${slugOrId}» не найдена`);
-    }
-    return {
-      success: true,
-      data: item,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet(`news:detail:${slugOrId}`, 180, async () => {
+      const item = this.newsList.find((n) => n.slug === slugOrId || n.id === slugOrId);
+      if (!item) {
+        throw new NotFoundException(`Новость «${slugOrId}» не найдена`);
+      }
+      return {
+        success: true,
+        data: item,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findAllCategories(): Promise<ApiResponse<NewsCategory[]>> {
-    return {
-      success: true,
-      data: this.categories,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet('news:categories:all', 600, async () => {
+      return {
+        success: true,
+        data: this.categories,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async create(dto: CreateNewsDto, user: UserProfile): Promise<ApiResponse<NewsItem>> {
@@ -200,6 +217,7 @@ export class NewsService {
 
     this.newsList.unshift(newItem);
     await this.auditService.log(user.id, 'CREATE', 'news', newItem.id, newItem as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('news:*');
 
     return {
       success: true,
@@ -232,6 +250,7 @@ export class NewsService {
       updatedItem as unknown as Record<string, unknown>,
       oldItem as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('news:*');
 
     return {
       success: true,
@@ -250,6 +269,7 @@ export class NewsService {
     const oldItem = this.newsList[index]!;
     this.newsList.splice(index, 1);
     await this.auditService.log(user.id, 'DELETE', 'news', id, undefined, oldItem as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('news:*');
 
     return {
       success: true,
@@ -270,6 +290,7 @@ export class NewsService {
     };
     this.categories.push(newCat);
     await this.auditService.log(user.id, 'CREATE', 'news_category', String(newCat.id), newCat as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('news:*');
 
     return {
       success: true,

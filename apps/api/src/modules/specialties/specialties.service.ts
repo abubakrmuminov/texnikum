@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ApiResponse, PaginatedResponse, Specialty, UserProfile } from '@college/shared';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateSpecialtyDto } from './dto/create-specialty.dto';
 import { QuerySpecialtiesDto } from './dto/query-specialties.dto';
@@ -58,59 +59,70 @@ export class SpecialtiesService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly auditService: AuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findAll(query: QuerySpecialtiesDto): Promise<ApiResponse<PaginatedResponse<Specialty>>> {
     const page = query.page || 1;
     const limit = query.limit || 10;
-    const offset = (page - 1) * limit;
+    const isActive = query.isActive !== undefined ? String(query.isActive) : 'all';
+    const baseEducation = query.baseEducation || 'all';
+    const departmentId = query.departmentId || 'all';
+    const search = query.search ? query.search.trim().toLowerCase() : '';
+    const cacheKey = `specialties:list:p${page}:l${limit}:act${isActive}:b${baseEducation}:d${departmentId}:q${encodeURIComponent(search)}`;
 
-    let filtered = [...this.specialties];
-    if (query.isActive !== undefined) {
-      filtered = filtered.filter((s) => s.isActive === query.isActive);
-    }
-    if (query.baseEducation) {
-      filtered = filtered.filter((s) => s.baseEducation === query.baseEducation || s.baseEducation === 'both');
-    }
-    if (query.departmentId) {
-      filtered = filtered.filter((s) => s.departmentId === query.departmentId);
-    }
-    if (query.search) {
-      const s = query.search.toLowerCase();
-      filtered = filtered.filter(
-        (sp) =>
-          sp.name.toLowerCase().includes(s) ||
-          sp.code.toLowerCase().includes(s) ||
-          sp.qualification.toLowerCase().includes(s),
-      );
-    }
+    return this.cacheService.getOrSet(cacheKey, 300, async () => {
+      const offset = (page - 1) * limit;
 
-    const total = filtered.length;
-    const items = filtered.slice(offset, offset + limit);
+      let filtered = [...this.specialties];
+      if (query.isActive !== undefined) {
+        filtered = filtered.filter((s) => s.isActive === query.isActive);
+      }
+      if (query.baseEducation) {
+        filtered = filtered.filter((s) => s.baseEducation === query.baseEducation || s.baseEducation === 'both');
+      }
+      if (query.departmentId) {
+        filtered = filtered.filter((s) => s.departmentId === query.departmentId);
+      }
+      if (query.search) {
+        const s = query.search.toLowerCase();
+        filtered = filtered.filter(
+          (sp) =>
+            sp.name.toLowerCase().includes(s) ||
+            sp.code.toLowerCase().includes(s) ||
+            sp.qualification.toLowerCase().includes(s),
+        );
+      }
 
-    return {
-      success: true,
-      data: {
-        items,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-      timestamp: new Date().toISOString(),
-    };
+      const total = filtered.length;
+      const items = filtered.slice(offset, offset + limit);
+
+      return {
+        success: true,
+        data: {
+          items,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findOne(slugOrId: string): Promise<ApiResponse<Specialty>> {
-    const item = this.specialties.find((s) => s.slug === slugOrId || s.id === slugOrId);
-    if (!item) {
-      throw new NotFoundException(`Специальность «${slugOrId}» не найдена`);
-    }
-    return {
-      success: true,
-      data: item,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet(`specialties:detail:${slugOrId}`, 600, async () => {
+      const item = this.specialties.find((s) => s.slug === slugOrId || s.id === slugOrId);
+      if (!item) {
+        throw new NotFoundException(`Специальность «${slugOrId}» не найдена`);
+      }
+      return {
+        success: true,
+        data: item,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async create(dto: CreateSpecialtyDto, user: UserProfile): Promise<ApiResponse<Specialty>> {
@@ -149,6 +161,7 @@ export class SpecialtiesService {
       newSpecialty.id,
       newSpecialty as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('specialties:*');
 
     return {
       success: true,
@@ -180,6 +193,7 @@ export class SpecialtiesService {
       updated as unknown as Record<string, unknown>,
       old as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('specialties:*');
 
     return {
       success: true,
@@ -198,6 +212,7 @@ export class SpecialtiesService {
     const old = this.specialties[index]!;
     this.specialties.splice(index, 1);
     await this.auditService.log(user.id, 'DELETE', 'specialties', id, undefined, old as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('specialties:*');
 
     return {
       success: true,

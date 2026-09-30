@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CacheModule } from './modules/cache/cache.module';
 import { EventsModule } from './modules/events/events.module';
 import { HealthModule } from './modules/health/health.module';
 import { MediaModule } from './modules/media/media.module';
@@ -32,6 +33,7 @@ import { UsersModule } from './modules/users/users.module';
     ]),
 
     // Глобальные и инфраструктурные модули
+    CacheModule,
     SupabaseModule,
     AuditModule,
     HealthModule,

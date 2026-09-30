@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ApiResponse, ScheduleItem, UserProfile } from '@college/shared';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { QueryScheduleDto } from './dto/query-schedule.dto';
@@ -59,62 +60,76 @@ export class ScheduleService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly auditService: AuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findAll(query: QueryScheduleDto): Promise<ApiResponse<ScheduleItem[]>> {
-    let filtered = [...this.scheduleList];
+    const act = query.isActive !== undefined ? String(query.isActive) : 'all';
+    const grp = query.groupName ? encodeURIComponent(query.groupName.trim().toLowerCase()) : 'all';
+    const tch = query.teacherId || 'all';
+    const day = query.dayOfWeek !== undefined ? String(query.dayOfWeek) : 'all';
+    const par = query.parity || 'all';
+    const cacheKey = `schedule:list:act${act}:g${grp}:t${tch}:d${day}:p${par}`;
 
-    if (query.isActive !== undefined) {
-      filtered = filtered.filter((s) => s.isActive === query.isActive);
-    }
-    if (query.groupName) {
-      filtered = filtered.filter(
-        (s) => s.groupName.toLowerCase() === query.groupName!.toLowerCase(),
-      );
-    }
-    if (query.teacherId) {
-      filtered = filtered.filter((s) => s.teacherId === query.teacherId);
-    }
-    if (query.dayOfWeek !== undefined) {
-      filtered = filtered.filter((s) => s.dayOfWeek === Number(query.dayOfWeek));
-    }
-    if (query.parity) {
-      filtered = filtered.filter(
-        (s) => s.parity === query.parity || s.parity === 'both',
-      );
-    }
+    return this.cacheService.getOrSet(cacheKey, 60, async () => {
+      let filtered = [...this.scheduleList];
 
-    filtered.sort((a, b) => {
-      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
-      return a.lessonNumber - b.lessonNumber;
+      if (query.isActive !== undefined) {
+        filtered = filtered.filter((s) => s.isActive === query.isActive);
+      }
+      if (query.groupName) {
+        filtered = filtered.filter(
+          (s) => s.groupName.toLowerCase() === query.groupName!.toLowerCase(),
+        );
+      }
+      if (query.teacherId) {
+        filtered = filtered.filter((s) => s.teacherId === query.teacherId);
+      }
+      if (query.dayOfWeek !== undefined) {
+        filtered = filtered.filter((s) => s.dayOfWeek === Number(query.dayOfWeek));
+      }
+      if (query.parity) {
+        filtered = filtered.filter(
+          (s) => s.parity === query.parity || s.parity === 'both',
+        );
+      }
+
+      filtered.sort((a, b) => {
+        if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+        return a.lessonNumber - b.lessonNumber;
+      });
+
+      return {
+        success: true,
+        data: filtered,
+        timestamp: new Date().toISOString(),
+      };
     });
-
-    return {
-      success: true,
-      data: filtered,
-      timestamp: new Date().toISOString(),
-    };
   }
 
   async findGroups(): Promise<ApiResponse<string[]>> {
-    const groups = Array.from(new Set(this.scheduleList.map((s) => s.groupName))).sort();
-    return {
-      success: true,
-      data: groups,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet('schedule:groups:all', 300, async () => {
+      const groups = Array.from(new Set(this.scheduleList.map((s) => s.groupName))).sort();
+      return {
+        success: true,
+        data: groups,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findOne(id: string): Promise<ApiResponse<ScheduleItem>> {
-    const item = this.scheduleList.find((s) => s.id === id);
-    if (!item) {
-      throw new NotFoundException(`Занятие с ID «${id}» не найдено`);
-    }
-    return {
-      success: true,
-      data: item,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet(`schedule:detail:${id}`, 180, async () => {
+      const item = this.scheduleList.find((s) => s.id === id);
+      if (!item) {
+        throw new NotFoundException(`Занятие с ID «${id}» не найдено`);
+      }
+      return {
+        success: true,
+        data: item,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async create(dto: CreateScheduleDto, user: UserProfile): Promise<ApiResponse<ScheduleItem>> {
@@ -142,6 +157,7 @@ export class ScheduleService {
       newItem.id,
       newItem as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('schedule:*');
 
     return {
       success: true,
@@ -173,6 +189,7 @@ export class ScheduleService {
       updated as unknown as Record<string, unknown>,
       old as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('schedule:*');
 
     return {
       success: true,
@@ -191,6 +208,7 @@ export class ScheduleService {
     const old = this.scheduleList[index]!;
     this.scheduleList.splice(index, 1);
     await this.auditService.log(user.id, 'DELETE', 'schedule', id, undefined, old as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('schedule:*');
 
     return {
       success: true,

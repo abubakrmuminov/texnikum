@@ -5,6 +5,23 @@
 # ==========================================
 
 services:
+  # Redis Cache & Stampede Prevention (Single-Flight)
+  redis:
+    image: redis:7-alpine
+    container_name: college-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
   # NestJS REST API
   api:
     build:
@@ -21,6 +38,10 @@ services:
       - NODE_ENV=production
       - PORT=4000
       - CORS_ORIGIN=http://localhost:3000
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:4000/api/v1/health"]
       interval: 15s
@@ -47,6 +68,10 @@ services:
     depends_on:
       api:
         condition: service_started
+
+volumes:
+  redis-data:
+    name: college-redis-data
 
 networks:
   default:

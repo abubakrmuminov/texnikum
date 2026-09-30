@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ApiResponse, PageItem, UserProfile } from '@college/shared';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreatePageDto } from './dto/create-page.dto';
 import { QueryPagesDto } from './dto/query-pages.dto';
@@ -79,35 +80,44 @@ export class PagesService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly auditService: AuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findAll(query: QueryPagesDto): Promise<ApiResponse<PageItem[]>> {
-    let filtered = [...this.pages];
-    if (query.isPublished !== undefined) {
-      filtered = filtered.filter((p) => p.isPublished === query.isPublished);
-    }
-    if (query.section) {
-      filtered = filtered.filter((p) => p.section === query.section);
-    }
-    filtered.sort((a, b) => a.orderIndex - b.orderIndex);
+    const pub = query.isPublished !== undefined ? String(query.isPublished) : 'all';
+    const sec = query.section || 'all';
+    const cacheKey = `pages:list:pub${pub}:sec${sec}`;
 
-    return {
-      success: true,
-      data: filtered,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet(cacheKey, 300, async () => {
+      let filtered = [...this.pages];
+      if (query.isPublished !== undefined) {
+        filtered = filtered.filter((p) => p.isPublished === query.isPublished);
+      }
+      if (query.section) {
+        filtered = filtered.filter((p) => p.section === query.section);
+      }
+      filtered.sort((a, b) => a.orderIndex - b.orderIndex);
+
+      return {
+        success: true,
+        data: filtered,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findOne(slug: string): Promise<ApiResponse<PageItem>> {
-    const page = this.pages.find((p) => p.slug === slug || p.id === slug);
-    if (!page) {
-      throw new NotFoundException(`Страница «${slug}» не найдена`);
-    }
-    return {
-      success: true,
-      data: page,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet(`pages:detail:${slug}`, 600, async () => {
+      const page = this.pages.find((p) => p.slug === slug || p.id === slug);
+      if (!page) {
+        throw new NotFoundException(`Страница «${slug}» не найдена`);
+      }
+      return {
+        success: true,
+        data: page,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async create(dto: CreatePageDto, user: UserProfile): Promise<ApiResponse<PageItem>> {
@@ -133,6 +143,7 @@ export class PagesService {
       newPage.id,
       newPage as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('pages:*');
 
     return {
       success: true,
@@ -164,6 +175,7 @@ export class PagesService {
       updated as unknown as Record<string, unknown>,
       old as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('pages:*');
 
     return {
       success: true,
@@ -182,6 +194,7 @@ export class PagesService {
     const old = this.pages[index]!;
     this.pages.splice(index, 1);
     await this.auditService.log(user.id, 'DELETE', 'pages', id, undefined, old as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('pages:*');
 
     return {
       success: true,

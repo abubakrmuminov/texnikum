@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ApiResponse, Department, PaginatedResponse, Teacher, UserProfile } from '@college/shared';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { QueryTeachersDto } from './dto/query-teachers.dto';
@@ -98,69 +99,82 @@ export class TeachersService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly auditService: AuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findAll(query: QueryTeachersDto): Promise<ApiResponse<PaginatedResponse<Teacher>>> {
     const page = query.page || 1;
     const limit = query.limit || 10;
-    const offset = (page - 1) * limit;
+    const act = query.isActive !== undefined ? String(query.isActive) : 'all';
+    const dept = query.departmentId || 'all';
+    const subj = query.subject ? encodeURIComponent(query.subject.trim().toLowerCase()) : 'all';
+    const search = query.search ? encodeURIComponent(query.search.trim().toLowerCase()) : '';
+    const cacheKey = `teachers:list:p${page}:l${limit}:act${act}:d${dept}:s${subj}:q${search}`;
 
-    let filtered = [...this.teachers];
-    if (query.isActive !== undefined) {
-      filtered = filtered.filter((t) => t.isActive === query.isActive);
-    }
-    if (query.departmentId) {
-      filtered = filtered.filter((t) => t.departmentId === query.departmentId);
-    }
-    if (query.subject) {
-      filtered = filtered.filter((t) =>
-        t.subjects.some((s) => s.toLowerCase().includes(query.subject!.toLowerCase())),
-      );
-    }
-    if (query.search) {
-      const s = query.search.toLowerCase();
-      filtered = filtered.filter(
-        (t) =>
-          t.fullName.toLowerCase().includes(s) ||
-          t.position.toLowerCase().includes(s) ||
-          t.subjects.some((sub) => sub.toLowerCase().includes(s)),
-      );
-    }
+    return this.cacheService.getOrSet(cacheKey, 300, async () => {
+      const offset = (page - 1) * limit;
 
-    const total = filtered.length;
-    const items = filtered.slice(offset, offset + limit);
+      let filtered = [...this.teachers];
+      if (query.isActive !== undefined) {
+        filtered = filtered.filter((t) => t.isActive === query.isActive);
+      }
+      if (query.departmentId) {
+        filtered = filtered.filter((t) => t.departmentId === query.departmentId);
+      }
+      if (query.subject) {
+        filtered = filtered.filter((t) =>
+          t.subjects.some((s) => s.toLowerCase().includes(query.subject!.toLowerCase())),
+        );
+      }
+      if (query.search) {
+        const s = query.search.toLowerCase();
+        filtered = filtered.filter(
+          (t) =>
+            t.fullName.toLowerCase().includes(s) ||
+            t.position.toLowerCase().includes(s) ||
+            t.subjects.some((sub) => sub.toLowerCase().includes(s)),
+        );
+      }
 
-    return {
-      success: true,
-      data: {
-        items,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-      timestamp: new Date().toISOString(),
-    };
+      const total = filtered.length;
+      const items = filtered.slice(offset, offset + limit);
+
+      return {
+        success: true,
+        data: {
+          items,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findOne(slugOrId: string): Promise<ApiResponse<Teacher>> {
-    const teacher = this.teachers.find((t) => t.slug === slugOrId || t.id === slugOrId);
-    if (!teacher) {
-      throw new NotFoundException(`Преподаватель «${slugOrId}» не найден`);
-    }
-    return {
-      success: true,
-      data: teacher,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet(`teachers:detail:${slugOrId}`, 600, async () => {
+      const teacher = this.teachers.find((t) => t.slug === slugOrId || t.id === slugOrId);
+      if (!teacher) {
+        throw new NotFoundException(`Преподаватель «${slugOrId}» не найден`);
+      }
+      return {
+        success: true,
+        data: teacher,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findAllDepartments(): Promise<ApiResponse<Department[]>> {
-    return {
-      success: true,
-      data: this.departments,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet('teachers:departments:all', 600, async () => {
+      return {
+        success: true,
+        data: this.departments,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async create(dto: CreateTeacherDto, user: UserProfile): Promise<ApiResponse<Teacher>> {
@@ -196,6 +210,7 @@ export class TeachersService {
       newTeacher.id,
       newTeacher as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('teachers:*');
 
     return {
       success: true,
@@ -227,6 +242,7 @@ export class TeachersService {
       updated as unknown as Record<string, unknown>,
       oldTeacher as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('teachers:*');
 
     return {
       success: true,
@@ -245,6 +261,7 @@ export class TeachersService {
     const old = this.teachers[index]!;
     this.teachers.splice(index, 1);
     await this.auditService.log(user.id, 'DELETE', 'teachers', id, undefined, old as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('teachers:*');
 
     return {
       success: true,

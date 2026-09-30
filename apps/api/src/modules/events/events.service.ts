@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ApiResponse, EventItem, PaginatedResponse, UserProfile } from '@college/shared';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { QueryEventsDto } from './dto/query-events.dto';
@@ -50,58 +51,68 @@ export class EventsService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly auditService: AuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findAll(query: QueryEventsDto): Promise<ApiResponse<PaginatedResponse<EventItem>>> {
     const page = query.page || 1;
     const limit = query.limit || 10;
-    const offset = (page - 1) * limit;
+    const pub = query.isPublished !== undefined ? String(query.isPublished) : 'all';
+    const cat = query.category || 'all';
+    const search = query.search ? encodeURIComponent(query.search.trim().toLowerCase()) : '';
+    const cacheKey = `events:list:p${page}:l${limit}:pub${pub}:c${cat}:q${search}`;
 
-    let filtered = [...this.events];
-    if (query.isPublished !== undefined) {
-      filtered = filtered.filter((e) => e.isPublished === query.isPublished);
-    }
-    if (query.category) {
-      filtered = filtered.filter((e) => e.category === query.category);
-    }
-    if (query.search) {
-      const s = query.search.toLowerCase();
-      filtered = filtered.filter(
-        (e) =>
-          e.title.toLowerCase().includes(s) ||
-          e.description.toLowerCase().includes(s) ||
-          e.location.toLowerCase().includes(s),
-      );
-    }
+    return this.cacheService.getOrSet(cacheKey, 120, async () => {
+      const offset = (page - 1) * limit;
 
-    filtered.sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+      let filtered = [...this.events];
+      if (query.isPublished !== undefined) {
+        filtered = filtered.filter((e) => e.isPublished === query.isPublished);
+      }
+      if (query.category) {
+        filtered = filtered.filter((e) => e.category === query.category);
+      }
+      if (query.search) {
+        const s = query.search.toLowerCase();
+        filtered = filtered.filter(
+          (e) =>
+            e.title.toLowerCase().includes(s) ||
+            e.description.toLowerCase().includes(s) ||
+            e.location.toLowerCase().includes(s),
+        );
+      }
 
-    const total = filtered.length;
-    const items = filtered.slice(offset, offset + limit);
+      filtered.sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
 
-    return {
-      success: true,
-      data: {
-        items,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-      timestamp: new Date().toISOString(),
-    };
+      const total = filtered.length;
+      const items = filtered.slice(offset, offset + limit);
+
+      return {
+        success: true,
+        data: {
+          items,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async findOne(slugOrId: string): Promise<ApiResponse<EventItem>> {
-    const item = this.events.find((e) => e.slug === slugOrId || e.id === slugOrId);
-    if (!item) {
-      throw new NotFoundException(`Событие «${slugOrId}» не найдено`);
-    }
-    return {
-      success: true,
-      data: item,
-      timestamp: new Date().toISOString(),
-    };
+    return this.cacheService.getOrSet(`events:detail:${slugOrId}`, 300, async () => {
+      const item = this.events.find((e) => e.slug === slugOrId || e.id === slugOrId);
+      if (!item) {
+        throw new NotFoundException(`Событие «${slugOrId}» не найдено`);
+      }
+      return {
+        success: true,
+        data: item,
+        timestamp: new Date().toISOString(),
+      };
+    });
   }
 
   async create(dto: CreateEventDto, user: UserProfile): Promise<ApiResponse<EventItem>> {
@@ -136,6 +147,7 @@ export class EventsService {
       newEvent.id,
       newEvent as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('events:*');
 
     return {
       success: true,
@@ -167,6 +179,7 @@ export class EventsService {
       updated as unknown as Record<string, unknown>,
       old as unknown as Record<string, unknown>,
     );
+    await this.cacheService.delByPattern('events:*');
 
     return {
       success: true,
@@ -185,6 +198,7 @@ export class EventsService {
     const old = this.events[index]!;
     this.events.splice(index, 1);
     await this.auditService.log(user.id, 'DELETE', 'events', id, undefined, old as unknown as Record<string, unknown>);
+    await this.cacheService.delByPattern('events:*');
 
     return {
       success: true,
