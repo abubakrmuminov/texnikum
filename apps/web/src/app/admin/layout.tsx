@@ -24,25 +24,63 @@ import { UserRole } from '@college/shared';
 import { AdminAuthProvider, useAdminAuth } from '@/components/admin/admin-auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAppLocale } from '@/components/i18n/locale-provider';
+import { LanguageSwitcher } from '@/components/layout/language-switcher';
 
-const NAV_ITEMS = [
-  { href: '/admin', label: 'Дашборд', icon: LayoutDashboard, exact: true },
-  { href: '/admin/news', label: 'Новости и статьи', icon: Newspaper },
-  { href: '/admin/events', label: 'События и календарь', icon: Calendar },
-  { href: '/admin/teachers', label: 'Педагогический состав', icon: UserCheck },
-  { href: '/admin/specialties', label: 'Специальности техникума', icon: GraduationCap },
-  { href: '/admin/schedule', label: 'Расписание занятий', icon: Clock },
-  { href: '/admin/pages', label: 'Сведения об ОО (37-модда)', icon: FileText },
-  { href: '/admin/contacts', label: 'Контакты и реквизиты (Aloqa)', icon: MapPin },
-  { href: '/admin/media', label: 'Медиатека / Файлы', icon: ImageIcon },
-  { href: '/admin/users', label: 'Пользователи и роли', icon: Shield, adminOnly: true },
-  { href: '/admin/audit', label: 'Журнал аудита', icon: History, adminOnly: true },
-];
+const NAV_ITEMS_MAP: Record<
+  'uz' | 'ru',
+  Array<{ href: string; label: string; icon: React.ElementType; exact?: boolean; adminOnly?: boolean }>
+> = {
+  uz: [
+    { href: '/admin', label: 'Boshqaruv paneli', icon: LayoutDashboard, exact: true },
+    { href: '/admin/news', label: 'Yangiliklar va maqolalar', icon: Newspaper },
+    { href: '/admin/events', label: 'Tadbirlar va taqvim', icon: Calendar },
+    { href: '/admin/teachers', label: 'Oʻqituvchilar tarkibi', icon: UserCheck },
+    { href: '/admin/specialties', label: 'Mutaxassisliklar', icon: GraduationCap },
+    { href: '/admin/schedule', label: 'Dars jadvali', icon: Clock },
+    { href: '/admin/pages', label: 'Muassasa haqida (37-modda)', icon: FileText },
+    { href: '/admin/contacts', label: 'Bogʻlanish va aloqa (Aloqa)', icon: MapPin },
+    { href: '/admin/media', label: 'Mediateka / Fayllar', icon: ImageIcon },
+    { href: '/admin/users', label: 'Foydalanuvchilar va rollar', icon: Shield, adminOnly: true },
+    { href: '/admin/audit', label: 'Audit jurnali', icon: History, adminOnly: true },
+  ],
+  ru: [
+    { href: '/admin', label: 'Дашборд', icon: LayoutDashboard, exact: true },
+    { href: '/admin/news', label: 'Новости и статьи', icon: Newspaper },
+    { href: '/admin/events', label: 'События и календарь', icon: Calendar },
+    { href: '/admin/teachers', label: 'Педагогический состав', icon: UserCheck },
+    { href: '/admin/specialties', label: 'Специальности техникума', icon: GraduationCap },
+    { href: '/admin/schedule', label: 'Расписание занятий', icon: Clock },
+    { href: '/admin/pages', label: 'Сведения об ОО (37-модда)', icon: FileText },
+    { href: '/admin/contacts', label: 'Контакты и реквизиты (Aloqa)', icon: MapPin },
+    { href: '/admin/media', label: 'Медиатека / Файлы', icon: ImageIcon },
+    { href: '/admin/users', label: 'Пользователи и роли', icon: Shield, adminOnly: true },
+    { href: '/admin/audit', label: 'Журнал аудита', icon: History, adminOnly: true },
+  ],
+};
+
+const ROLE_LABELS_MAP: Record<'uz' | 'ru', Record<UserRole, { label: string; color: string }>> = {
+  uz: {
+    [UserRole.ADMIN]: { label: 'Administrator', color: 'bg-destructive/10 text-destructive border-destructive/20' },
+    [UserRole.EDITOR]: { label: 'Muharrir', color: 'bg-primary/10 text-primary border-primary/20' },
+    [UserRole.MODERATOR]: { label: 'Moderator', color: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20' },
+  },
+  ru: {
+    [UserRole.ADMIN]: { label: 'Администратор', color: 'bg-destructive/10 text-destructive border-destructive/20' },
+    [UserRole.EDITOR]: { label: 'Редактор', color: 'bg-primary/10 text-primary border-primary/20' },
+    [UserRole.MODERATOR]: { label: 'Модератор', color: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20' },
+  },
+};
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Element {
   const pathname = usePathname();
   const { user, logout, hasRole, isLoading } = useAdminAuth();
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const navItems = NAV_ITEMS_MAP[locale] || NAV_ITEMS_MAP.uz;
+  const roleLabels = ROLE_LABELS_MAP[locale] || ROLE_LABELS_MAP.uz;
 
   // Для страницы входа не рендерим административный сайдбар
   if (pathname === '/admin/login') {
@@ -56,18 +94,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
         <div className="flex flex-col items-center gap-3">
           <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <span className="text-xs text-muted-foreground font-medium">
-            {isLoading ? 'Yuklanmoqda... / Загрузка...' : 'Yoʻnaltirilmoqda... / Перенаправление...'}
+            {isLoading ? (isUz ? 'Yuklanmoqda...' : 'Загрузка...') : (isUz ? 'Yoʻnaltirilmoqda...' : 'Перенаправление...')}
           </span>
         </div>
       </div>
     );
   }
-
-  const roleLabels: Record<UserRole, { label: string; color: string }> = {
-    [UserRole.ADMIN]: { label: 'Администратор', color: 'bg-destructive/10 text-destructive border-destructive/20' },
-    [UserRole.EDITOR]: { label: 'Редактор', color: 'bg-primary/10 text-primary border-primary/20' },
-    [UserRole.MODERATOR]: { label: 'Модератор', color: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20' },
-  };
 
   const currentRole = roleLabels[user.role] ?? roleLabels[UserRole.ADMIN];
 
@@ -86,14 +118,14 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
                 Texnikum № 2 • CMS
               </span>
               <span className="text-[11px] text-muted-foreground block">
-                Управление порталом
+                {isUz ? 'Portalni boshqarish' : 'Управление порталом'}
               </span>
             </div>
           </div>
 
           {/* Навигационное меню */}
           <nav className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               if (item.adminOnly && !hasRole(UserRole.ADMIN)) {
                 return null;
               }
@@ -140,10 +172,18 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
             </div>
           )}
 
+          {/* Переключатель языка прямо в боковой панели */}
+          <div className="flex items-center justify-between px-2 pt-2 border-t border-border">
+            <span className="text-[11px] text-muted-foreground font-semibold">
+              {isUz ? 'Tizim tili:' : 'Язык панели:'}
+            </span>
+            <LanguageSwitcher />
+          </div>
+
           <div className="flex items-center gap-2">
             <Link href="/" className="flex-1">
               <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 h-8">
-                <span>На сайт</span>
+                <span>{isUz ? 'Saytga oʻtish' : 'На сайт'}</span>
                 <ExternalLink className="size-3" aria-hidden="true" />
               </Button>
             </Link>
@@ -152,7 +192,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
               size="sm"
               onClick={logout}
               className="text-xs text-destructive hover:text-destructive h-8 px-2"
-              title="Выйти из системы"
+              title={isUz ? 'Tizimdan chiqish' : 'Выйти из системы'}
             >
               <LogOut className="size-4" aria-hidden="true" />
             </Button>
@@ -179,17 +219,20 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
             type="button"
             onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
             className="p-1.5 rounded-lg border border-border text-foreground hover:bg-muted"
-            aria-label="Открыть меню управления"
+            aria-label={isUz ? 'Boshqaruv menyusini ochish' : 'Открыть меню управления'}
           >
             {mobileSidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
-          <span className="font-bold text-sm">Панель управления CMS</span>
+          <span className="font-bold text-sm">
+            {isUz ? 'CMS Boshqaruv paneli' : 'Панель управления CMS'}
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <Link href="/">
             <Button variant="ghost" size="sm" className="text-xs h-7">
-              На сайт →
+              {isUz ? 'Saytga →' : 'На сайт →'}
             </Button>
           </Link>
         </div>
@@ -199,7 +242,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
       {mobileSidebarOpen && (
         <div className="lg:hidden border-b border-border bg-card p-4 space-y-3 shadow-lg">
           <nav className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               if (item.adminOnly && !hasRole(UserRole.ADMIN)) {
                 return null;
               }
@@ -243,7 +286,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
               className="w-full text-xs text-destructive hover:text-destructive gap-2 h-8"
             >
               <LogOut className="size-4" aria-hidden="true" />
-              <span>Chiqish / Выйти</span>
+              <span>{isUz ? 'Tizimdan chiqish' : 'Выйти из системы'}</span>
             </Button>
           </div>
         </div>

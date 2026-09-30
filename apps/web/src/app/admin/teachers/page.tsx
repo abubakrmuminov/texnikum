@@ -18,6 +18,7 @@ import { Modal } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { Teacher } from '@college/shared';
+import { ImageUploadField } from '@/components/admin/image-upload-field';
 
 function slugify(text: string): string {
   const ru: Record<string, string> = {
@@ -451,14 +452,14 @@ export default function AdminTeachersPage() {
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                URL фотографии
-              </label>
-              <Input
+            <div className="space-y-1.5 sm:col-span-2">
+              <ImageUploadField
                 value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                onChange={setPhotoUrl}
+                label="Oʻqituvchi fotosurati / Фотография преподавателя"
+                description="Rasmiy portret fotosurati (JPG, PNG, WEBP, 10 MB gacha)"
+                bucket="news-media"
+                aspectRatio="portrait"
               />
             </div>
 

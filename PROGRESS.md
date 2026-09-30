@@ -131,6 +131,21 @@
     - Кнопка перехода к разделу «Контакты и реквизиты (Aloqa)» добавлена в боковое меню админ-панели (`apps/web/src/app/admin/layout.tsx`).
   - Публичная страница `/contacts` подключена к динамическому получению данных через `apiClient.getContacts()` с отказоустойчивым резервным источником.
   - Проверена строгая компиляция TypeScript: `@college/shared`, `@college/api`, `@college/web` (все 77 страниц собраны успешно).
+- **Узбекская локализация панели администратора (Bilingual Admin CMS) и настоящая загрузка фото (Drag-and-Drop Image Upload)**:
+  - Интегрирован переключатель языка (`LanguageSwitcher`) непосредственно в боковую панель (`sidebar`) и мобильную шапку панели администратора.
+  - Все разделы админки получили синхронную поддержку узбекского (`Oʻzbekcha`) и русского (`Русский`) языков:
+    - Главное меню навигации (`Boshqaruv paneli`, `Yangiliklar va maqolalar`, `Tadbirlar va taqvim`, `Oʻqituvchilar tarkibi`, `Mutaxassisliklar`, `Dars jadvali`, `Muassasa haqida`, `Bogʻlanish va aloqa`, `Mediateka`, `Foydalanuvchilar va rollar`, `Audit jurnali`).
+    - Карточки ролей (`Administrator`, `Muharrir`, `Moderator`), кнопки выхода и перехода на публичный сайт.
+    - Дашборд: метрики KPI, статусы публикаций, быстрые действия, сводные таблицы последних новостей и действий безопасности.
+    - Добавлены полные переводы секции `"admin"` в словари `apps/web/src/messages/uz.json` и `ru.json`.
+  - Разработан универсальный компонент настоящей загрузки файлов `ImageUploadField` (`apps/web/src/components/admin/image-upload-field.tsx`):
+    - Интуитивная Drag & Drop зона с возможностью перетаскивания или выбора файла через системный диалог проводника.
+    - Мгновенный предпросмотр выбранного изображения (zero-latency preview) с поддержкой пропорций `video` (16:9), `portrait` (3:4) и `square` (1:1).
+    - Ограничение по размеру (до 10 МБ) и MIME-типам (PNG, JPG, WEBP, SVG) с двуязычными предупреждениями об ошибках.
+    - Кнопки быстрого управления: «Almashtirish / Заменить фото» и «Oʻchirish / Удалить».
+    - Возможность переключения на ввод прямой ссылки (URL) для обратной совместимости.
+    - Полноценная интеграция в ключевые формы: создание/редактирование новостей (`news-form.tsx`), карточки преподавателей (`admin/teachers`), мероприятия (`admin/events`), специальности техникума (`admin/specialties`).
+    - Сервис `apps/api/src/modules/media/media.service.ts` и фронтенд `apiClient.uploadMedia` оптимизированы для загрузки как в Supabase Storage, так и с гарантированным Data URI base64 fallback при автономной работе.
 
 ## In Progress
 - Все поставленные задачи выполнены.

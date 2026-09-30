@@ -21,8 +21,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { NewsItem, NewsCategory, NewsStatus } from '@college/shared';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 export default function AdminNewsPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
   const [news, setNews] = React.useState<NewsItem[]>([]);
   const [categories, setCategories] = React.useState<NewsCategory[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -124,19 +127,19 @@ export default function AdminNewsPage() {
       case NewsStatus.PUBLISHED:
         return (
           <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
-            Опубликовано
+            {isUz ? 'Eʼlon qilingan' : 'Опубликовано'}
           </Badge>
         );
       case NewsStatus.DRAFT:
         return (
           <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs">
-            Черновик
+            {isUz ? 'Qoralama' : 'Черновик'}
           </Badge>
         );
       case NewsStatus.ARCHIVED:
         return (
           <Badge variant="outline" className="bg-muted text-muted-foreground text-xs">
-            Архив
+            {isUz ? 'Arxiv' : 'Архив'}
           </Badge>
         );
       default:
@@ -150,17 +153,19 @@ export default function AdminNewsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Управление новостями
+            {isUz ? 'Yangiliklarni boshqarish' : 'Управление новостями'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Публикация новостей, редактирование статей и управление рубриками
+            {isUz
+              ? 'Yangiliklar nashr qilish, maqolalarni tahrirlash va ruknlarni boshqarish'
+              : 'Публикация новостей, редактирование статей и управление рубриками'}
           </p>
         </div>
 
         <Link href="/admin/news/new">
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs">
             <Plus className="h-4 w-4" />
-            Написать новость
+            {isUz ? 'Yangilik yozish' : 'Написать новость'}
           </Button>
         </Link>
       </div>
@@ -180,7 +185,7 @@ export default function AdminNewsPage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск по названию или тексту..."
+            placeholder={isUz ? 'Sarlavha yoki matn boʻyicha qidirish...' : 'Поиск по названию или тексту...'}
             className="pl-9 h-10"
           />
         </div>
@@ -194,10 +199,10 @@ export default function AdminNewsPage() {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <option value="all">Все статусы</option>
-              <option value={NewsStatus.PUBLISHED}>Опубликованные</option>
-              <option value={NewsStatus.DRAFT}>Черновики</option>
-              <option value={NewsStatus.ARCHIVED}>Архивные</option>
+              <option value="all">{isUz ? 'Barcha holatlar' : 'Все статусы'}</option>
+              <option value={NewsStatus.PUBLISHED}>{isUz ? 'Eʼlon qilinganlar' : 'Опубликованные'}</option>
+              <option value={NewsStatus.DRAFT}>{isUz ? 'Qoralamalar' : 'Черновики'}</option>
+              <option value={NewsStatus.ARCHIVED}>{isUz ? 'Arxivdagilar' : 'Архивные'}</option>
             </select>
           </div>
 
@@ -207,7 +212,7 @@ export default function AdminNewsPage() {
             onChange={(e) => setSelectedCategoryId(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <option value="all">Все рубрики</option>
+            <option value="all">{isUz ? 'Barcha ruknlar' : 'Все рубрики'}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -221,18 +226,18 @@ export default function AdminNewsPage() {
       <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Загрузка публикаций...
+            {isUz ? 'Maqolalar yuklanmoqda...' : 'Загрузка публикаций...'}
           </div>
         ) : filteredNews.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <p className="text-sm text-muted-foreground">
               {searchQuery || selectedStatus !== 'all' || selectedCategoryId !== 'all'
-                ? 'Публикаций по заданным критериям не найдено'
-                : 'Список новостей пуст'}
+                ? (isUz ? 'Kriteriyalar boʻyicha maqolalar topilmadi' : 'Публикаций по заданным критериям не найдено')
+                : (isUz ? 'Yangiliklar roʻyxati boʻsh' : 'Список новостей пуст')}
             </p>
             <Link href="/admin/news/new">
               <Button variant="outline" size="sm">
-                Создать первую публикацию
+                {isUz ? 'Birinchi maqolani yaratish' : 'Создать первую публикацию'}
               </Button>
             </Link>
           </div>
@@ -241,11 +246,11 @@ export default function AdminNewsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">Обложка</th>
-                  <th className="py-3 px-4">Заголовок / Рубрика</th>
-                  <th className="py-3 px-4">Статус</th>
-                  <th className="py-3 px-4">Дата публикации</th>
-                  <th className="py-3 px-4 text-right">Действия</th>
+                  <th className="py-3 px-4">{isUz ? 'Muqova' : 'Обложка'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Sarlavha / Rukn' : 'Заголовок / Рубрика'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Holat' : 'Статус'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Eʼlon sanasi' : 'Дата публикации'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -262,13 +267,13 @@ export default function AdminNewsPage() {
                           />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center text-muted-foreground text-[10px]">
-                            Нет фото
+                            {isUz ? 'Rasm yoʻq' : 'Нет фото'}
                           </div>
                         )}
                         {item.isFeatured && (
                           <span
                             className="absolute top-1 left-1 bg-amber-500 text-white rounded-full p-0.5 shadow-xs"
-                            title="Закрепленная главная новость"
+                            title={isUz ? 'Bosh sahifaga biriktirilgan' : 'Закрепленная главная новость'}
                           >
                             <Star className="h-2.5 w-2.5 fill-white" />
                           </span>
@@ -291,7 +296,7 @@ export default function AdminNewsPage() {
                         )}
                         <span className="flex items-center gap-0.5 text-[11px]">
                           <Clock className="h-3 w-3" />
-                          {item.readingTimeMin} мин
+                          {item.readingTimeMin} {isUz ? 'daq' : 'мин'}
                         </span>
                       </div>
                     </td>
@@ -304,14 +309,16 @@ export default function AdminNewsPage() {
                       {item.publishedAt ? (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5" />
-                          {new Date(item.publishedAt).toLocaleDateString('ru-RU', {
+                          {new Date(item.publishedAt).toLocaleDateString(isUz ? 'uz-UZ' : 'ru-RU', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric',
                           })}
                         </div>
                       ) : (
-                        <span className="text-muted-foreground/60">Не опубликовано</span>
+                        <span className="text-muted-foreground/60">
+                          {isUz ? 'Eʼlon qilinmagan' : 'Не опубликовано'}
+                        </span>
                       )}
                     </td>
 
@@ -322,7 +329,7 @@ export default function AdminNewsPage() {
                           <Link
                             href={`/news/${item.slug}`}
                             target="_blank"
-                            title="Открыть на сайте"
+                            title={isUz ? 'Saytda koʻrish' : 'Открыть на сайте'}
                           >
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                               <ExternalLink className="h-3.5 w-3.5" />
@@ -338,8 +345,8 @@ export default function AdminNewsPage() {
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                           title={
                             item.status === NewsStatus.PUBLISHED
-                              ? 'Снять с публикации (в черновик)'
-                              : 'Опубликовать на сайте'
+                              ? (isUz ? 'Qoralamaga oʻtkazish' : 'Снять с публикации (в черновик)')
+                              : (isUz ? 'Saytda eʼlon qilish' : 'Опубликовать на сайте')
                           }
                         >
                           {item.status === NewsStatus.PUBLISHED ? (
@@ -350,7 +357,7 @@ export default function AdminNewsPage() {
                         </Button>
 
                         {/* Edit Link */}
-                        <Link href={`/admin/news/${item.id}`} title="Редактировать">
+                        <Link href={`/admin/news/${item.id}`} title={isUz ? 'Tahrirlash' : 'Редактировать'}>
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                             <Edit2 className="h-3.5 w-3.5" />
                           </Button>
@@ -362,7 +369,7 @@ export default function AdminNewsPage() {
                           size="sm"
                           onClick={() => handleDelete(item.id, item.title)}
                           className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                          title="Удалить"
+                          title={isUz ? 'Oʻchirish' : 'Удалить'}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>

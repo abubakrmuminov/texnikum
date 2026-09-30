@@ -89,7 +89,10 @@ export class MediaService {
     const uniqueFileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const storagePath = `${bucket}/${uniqueFileName}`;
 
-    let publicUrl = `/uploads/${storagePath}`;
+    let publicUrl =
+      file.mimetype.startsWith('image/') && file.buffer
+        ? `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+        : `/uploads/${storagePath}`;
 
     // 4. Загрузка в Supabase Storage (если настроен)
     if (this.supabaseService.isReady()) {

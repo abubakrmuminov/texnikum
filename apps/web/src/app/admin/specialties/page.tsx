@@ -18,6 +18,7 @@ import { Modal } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { Specialty, BaseEducation } from '@college/shared';
+import { ImageUploadField } from '@/components/admin/image-upload-field';
 
 function slugify(text: string): string {
   const ru: Record<string, string> = {
@@ -480,13 +481,13 @@ export default function AdminSpecialtiesPage() {
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                URL фонового изображения / обложки
-              </label>
-              <Input
+              <ImageUploadField
                 value={coverImageUrl}
-                onChange={(e) => setCoverImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                onChange={setCoverImageUrl}
+                label="Mutaxassislik rasmi / Обложка специальности"
+                description="Yoʻnalish sahifasining asosiy rasmi (16:9, JPG, PNG, WEBP, 10 MB gacha)"
+                bucket="news-media"
+                aspectRatio="video"
               />
             </div>
 

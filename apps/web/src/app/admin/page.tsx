@@ -26,9 +26,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { collegeApi } from '@/lib/api-client';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 export default function AdminDashboardPage(): JSX.Element {
   const { user, token } = useAdminAuth();
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
 
   const [news, setNews] = useState<NewsItem[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -77,7 +80,7 @@ export default function AdminDashboardPage(): JSX.Element {
     );
   };
 
-  const todayFormatted = new Date().toLocaleDateString('ru-RU', {
+  const todayFormatted = new Date().toLocaleDateString(isUz ? 'uz-UZ' : 'ru-RU', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -87,7 +90,7 @@ export default function AdminDashboardPage(): JSX.Element {
   if (loading) {
     return (
       <div className="p-12 text-center text-sm text-muted-foreground">
-        Загрузка панели управления...
+        {isUz ? 'Boshqaruv paneli yuklanmoqda...' : 'Загрузка панели управления...'}
       </div>
     );
   }
@@ -98,10 +101,10 @@ export default function AdminDashboardPage(): JSX.Element {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Панель управления техникумом
+            {isUz ? 'Texnikum boshqaruv paneli' : 'Панель управления техникумом'}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1 capitalize">
-            {todayFormatted} • Добро пожаловать, {user?.fullName || 'Сотрудник'}
+            {todayFormatted} • {isUz ? 'Xush kelibsiz' : 'Добро пожаловать'}, {user?.fullName || (isUz ? 'Xodim' : 'Сотрудник')}
           </p>
         </div>
 
@@ -109,12 +112,12 @@ export default function AdminDashboardPage(): JSX.Element {
           <Link href="/admin/news/new">
             <Button size="sm" className="text-xs font-semibold gap-1.5 shadow">
               <Plus className="size-4" aria-hidden="true" />
-              <span>Создать новость</span>
+              <span>{isUz ? 'Yangi maqola yaratish' : 'Создать новость'}</span>
             </Button>
           </Link>
           <Link href="/">
             <Button variant="outline" size="sm" className="text-xs gap-1.5">
-              <span>Открыть сайт</span>
+              <span>{isUz ? 'Saytni ochish' : 'Открыть сайт'}</span>
               <ExternalLink className="size-3.5" aria-hidden="true" />
             </Button>
           </Link>
@@ -126,7 +129,9 @@ export default function AdminDashboardPage(): JSX.Element {
         {/* Метрика 1: Новости */}
         <Card>
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
-            <span className="text-xs font-semibold text-muted-foreground">Новости и статьи</span>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {isUz ? 'Yangiliklar va maqolalar' : 'Новости и статьи'}
+            </span>
             <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <Newspaper className="size-4" aria-hidden="true" />
             </div>
@@ -135,11 +140,11 @@ export default function AdminDashboardPage(): JSX.Element {
             <div className="text-2xl font-black text-foreground">{news.length}</div>
             <div className="text-xs text-muted-foreground flex items-center gap-2">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                {publishedNewsCount} опубл.
+                {publishedNewsCount} {isUz ? 'eʼlon' : 'опубл.'}
               </span>
               <span>•</span>
               <span className="text-amber-600 dark:text-amber-400">
-                {draftNewsCount} черновик.
+                {draftNewsCount} {isUz ? 'qoralama' : 'черновик.'}
               </span>
             </div>
           </CardContent>
@@ -148,7 +153,9 @@ export default function AdminDashboardPage(): JSX.Element {
         {/* Метрика 2: Педагоги */}
         <Card>
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
-            <span className="text-xs font-semibold text-muted-foreground">Педагогический состав</span>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {isUz ? 'Oʻqituvchilar tarkibi' : 'Педагогический состав'}
+            </span>
             <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <UserCheck className="size-4" aria-hidden="true" />
             </div>
@@ -156,7 +163,7 @@ export default function AdminDashboardPage(): JSX.Element {
           <CardContent className="p-5 pt-0 space-y-1">
             <div className="text-2xl font-black text-foreground">{teachers.length}</div>
             <p className="text-xs text-muted-foreground">
-              Преподавателей и экспертов в штате
+              {isUz ? 'Shtatdagi oʻqituvchilar va ekspertlar' : 'Преподавателей и экспертов в штате'}
             </p>
           </CardContent>
         </Card>
@@ -164,7 +171,9 @@ export default function AdminDashboardPage(): JSX.Element {
         {/* Метрика 3: Специальности */}
         <Card>
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
-            <span className="text-xs font-semibold text-muted-foreground">Программы обучения</span>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {isUz ? 'Taʼlim dasturlari' : 'Программы обучения'}
+            </span>
             <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <GraduationCap className="size-4" aria-hidden="true" />
             </div>
@@ -172,7 +181,7 @@ export default function AdminDashboardPage(): JSX.Element {
           <CardContent className="p-5 pt-0 space-y-1">
             <div className="text-2xl font-black text-foreground">{specialties.length}</div>
             <p className="text-xs text-muted-foreground">
-              {totalBudgetPlaces} мест по государственному гранту
+              {totalBudgetPlaces} {isUz ? 'ta davlat granti oʻrni' : 'мест по государственному гранту'}
             </p>
           </CardContent>
         </Card>
@@ -180,17 +189,19 @@ export default function AdminDashboardPage(): JSX.Element {
         {/* Метрика 4: Расписание */}
         <Card>
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
-            <span className="text-xs font-semibold text-muted-foreground">Учебное расписание</span>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {isUz ? 'Dars jadvali' : 'Учебное расписание'}
+            </span>
             <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <Clock className="size-4" aria-hidden="true" />
             </div>
           </CardHeader>
           <CardContent className="p-5 pt-0 space-y-1">
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-              Актуально
+              {isUz ? 'Dolzarb' : 'Актуально'}
             </div>
             <p className="text-xs text-muted-foreground">
-              Семестр 2026/2027 • Числитель/знаменатель
+              {isUz ? '2026/2027 oʻquv yili • Surat / maxraj' : 'Семестр 2026/2027 • Числитель/знаменатель'}
             </p>
           </CardContent>
         </Card>
@@ -199,37 +210,37 @@ export default function AdminDashboardPage(): JSX.Element {
       {/* Быстрые действия */}
       <div className="p-4 rounded-xl border border-border bg-card shadow-sm space-y-3">
         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Быстрый переход и добавление записей
+          {isUz ? 'Tezkor oʻtish va yozuv qoʻshish' : 'Быстрый переход и добавление записей'}
         </span>
         <div className="flex flex-wrap gap-2">
           <Link href="/admin/news/new">
             <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8">
               <Newspaper className="size-3.5 text-primary" aria-hidden="true" />
-              <span>Написать новость</span>
+              <span>{isUz ? 'Yangilik yozish' : 'Написать новость'}</span>
             </Button>
           </Link>
           <Link href="/admin/events">
             <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8">
               <Calendar className="size-3.5 text-primary" aria-hidden="true" />
-              <span>Создать событие</span>
+              <span>{isUz ? 'Tadbir yaratish' : 'Создать событие'}</span>
             </Button>
           </Link>
           <Link href="/admin/media">
             <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8">
               <ImageIcon className="size-3.5 text-primary" aria-hidden="true" />
-              <span>Загрузить медиафайл</span>
+              <span>{isUz ? 'Fayl yuklash' : 'Загрузить медиафайл'}</span>
             </Button>
           </Link>
           <Link href="/admin/schedule">
             <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8">
               <Clock className="size-3.5 text-primary" aria-hidden="true" />
-              <span>Редактировать расписание</span>
+              <span>{isUz ? 'Dars jadvalini tahrirlash' : 'Редактировать расписание'}</span>
             </Button>
           </Link>
-          <Link href="/admin/pages">
+          <Link href="/admin/contacts">
             <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8">
               <History className="size-3.5 text-primary" aria-hidden="true" />
-              <span>Сведения об ОО (37-модда)</span>
+              <span>{isUz ? 'Aloqa maʼlumotlari' : 'Контакты и реквизиты'}</span>
             </Button>
           </Link>
         </div>
@@ -239,11 +250,11 @@ export default function AdminDashboardPage(): JSX.Element {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground">
-            Последние публикации и черновики
+            {isUz ? 'Soʻnggi nashrlar va qoralamalar' : 'Последние публикации и черновики'}
           </h2>
           <Link href="/admin/news">
             <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary">
-              Все новости ({news.length}) →
+              {isUz ? `Barcha yangiliklar (${news.length}) →` : `Все новости (${news.length}) →`}
             </Button>
           </Link>
         </div>
@@ -252,11 +263,11 @@ export default function AdminDashboardPage(): JSX.Element {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[11px] font-semibold">
-                <th className="p-3.5">Заголовок</th>
-                <th className="p-3.5 w-32">Статус</th>
-                <th className="p-3.5 w-28 text-center">Главное</th>
-                <th className="p-3.5 w-36">Дата</th>
-                <th className="p-3.5 w-48 text-right">Действия</th>
+                <th className="p-3.5">{isUz ? 'Sarlavha' : 'Заголовок'}</th>
+                <th className="p-3.5 w-32">{isUz ? 'Holat' : 'Статус'}</th>
+                <th className="p-3.5 w-28 text-center">{isUz ? 'Asosiy' : 'Главное'}</th>
+                <th className="p-3.5 w-36">{isUz ? 'Sana' : 'Дата'}</th>
+                <th className="p-3.5 w-48 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
               </tr>
             </thead>
             <tbody>
@@ -273,15 +284,15 @@ export default function AdminDashboardPage(): JSX.Element {
                   <td className="p-3.5">
                     {item.status === NewsStatus.PUBLISHED ? (
                       <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300">
-                        Опубликовано
+                        {isUz ? 'Eʼlon qilingan' : 'Опубликовано'}
                       </Badge>
                     ) : item.status === NewsStatus.DRAFT ? (
                       <Badge variant="secondary">
-                        Черновик
+                        {isUz ? 'Qoralama' : 'Черновик'}
                       </Badge>
                     ) : (
                       <Badge variant="outline">
-                        В архиве
+                        {isUz ? 'Arxiv' : 'В архиве'}
                       </Badge>
                     )}
                   </td>
@@ -293,7 +304,7 @@ export default function AdminDashboardPage(): JSX.Element {
                     )}
                   </td>
                   <td className="p-3.5 text-muted-foreground font-mono">
-                    {new Date(item.publishedAt || item.createdAt).toLocaleDateString('ru-RU')}
+                    {new Date(item.publishedAt || item.createdAt).toLocaleDateString(isUz ? 'uz-UZ' : 'ru-RU')}
                   </td>
                   <td className="p-3.5 text-right space-x-1">
                     <Button
@@ -302,11 +313,13 @@ export default function AdminDashboardPage(): JSX.Element {
                       onClick={() => togglePublish(item)}
                       className="text-[11px] h-7"
                     >
-                      {item.status === NewsStatus.PUBLISHED ? 'В черновик' : 'Опубликовать'}
+                      {item.status === NewsStatus.PUBLISHED
+                        ? (isUz ? 'Qoralamaga' : 'В черновик')
+                        : (isUz ? 'Eʼlon qilish' : 'Опубликовать')}
                     </Button>
                     <Link href={`/admin/news/${item.id}`}>
                       <Button variant="outline" size="sm" className="text-[11px] h-7">
-                        Правка
+                        {isUz ? 'Tahrirlash' : 'Правка'}
                       </Button>
                     </Link>
                   </td>
@@ -323,11 +336,11 @@ export default function AdminDashboardPage(): JSX.Element {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <History className="size-4 text-primary" aria-hidden="true" />
-              <span>Последние события безопасности (Аудит)</span>
+              <span>{isUz ? 'Xavfsizlik va soʻnggi amallar jurnali (Audit)' : 'Последние события безопасности (Аудит)'}</span>
             </h2>
             <Link href="/admin/audit">
               <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary">
-                Полный журнал аудита →
+                {isUz ? 'Toʻliq audit jurnali →' : 'Полный журнал аудита →'}
               </Button>
             </Link>
           </div>

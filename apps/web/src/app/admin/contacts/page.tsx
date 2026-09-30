@@ -20,8 +20,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiClient } from '@/lib/api-client';
 import { CampusItem, ContactsData, PhoneDirectoryItem } from '@college/shared';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 export default function AdminContactsPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
   const [data, setData] = React.useState<ContactsData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -142,17 +145,19 @@ export default function AdminContactsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <MapPin className="h-6 w-6 text-primary" />
-            Контакты и реквизиты (Aloqa)
+            {isUz ? 'Bogʻlanish va aloqa maʼlumotlari (Aloqa)' : 'Контакты и реквизиты (Aloqa)'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Управление корпусами техникума, телефонным справочником, графиком работы и схемой проезда
+            {isUz
+              ? 'Texnikum binolari, telefon maʼlumotnomasi, ish tartibi va marshrutlarni boshqarish'
+              : 'Управление корпусами техникума, телефонным справочником, графиком работы и схемой проезда'}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link href="/contacts" target="_blank">
             <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs">
-              <span>Открыть страницу</span>
+              <span>{isUz ? 'Sahifani ochish' : 'Открыть страницу'}</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -162,7 +167,9 @@ export default function AdminContactsPage() {
             className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
           >
             <Save className="h-4 w-4" />
-            {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
+            {isSaving
+              ? (isUz ? 'Saqlanmoqda...' : 'Сохранение...')
+              : (isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения')}
           </Button>
         </div>
       </div>
@@ -187,7 +194,7 @@ export default function AdminContactsPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" />
-            Здания и корпуса техникума ({data.campuses.length})
+            {isUz ? `Texnikum binolari va boʻlinmalari (${data.campuses.length})` : `Здания и корпуса техникума (${data.campuses.length})`}
           </h2>
           <Button
             type="button"
@@ -197,7 +204,7 @@ export default function AdminContactsPage() {
             className="text-xs gap-1"
           >
             <Plus className="h-3.5 w-3.5" />
-            Добавить корпус
+            {isUz ? 'Yangi bino qoʻshish' : 'Добавить корпус'}
           </Button>
         </div>
 

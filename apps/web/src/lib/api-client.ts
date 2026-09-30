@@ -1175,13 +1175,27 @@ export const api = {
     formData.append('file', file);
     formData.append('bucket', bucket);
 
+    let fallbackUrl = '';
+    if (typeof window !== 'undefined') {
+      try {
+        fallbackUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve((reader.result as string) || URL.createObjectURL(file));
+          reader.onerror = () => resolve(URL.createObjectURL(file));
+          reader.readAsDataURL(file);
+        });
+      } catch {
+        fallbackUrl = URL.createObjectURL(file);
+      }
+    }
+
     const fallback: MediaFile = {
       id: crypto.randomUUID(),
       bucket,
       fileName: file.name,
       originalName: file.name,
       storagePath: `${bucket}/${file.name}`,
-      publicUrl: URL.createObjectURL(file),
+      publicUrl: fallbackUrl || `/uploads/${bucket}/${file.name}`,
       mimeType: file.type || 'application/octet-stream',
       fileSizeBytes: file.size,
       uploadedBy: FALLBACK_USERS[0]!.id,

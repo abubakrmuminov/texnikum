@@ -7,7 +7,6 @@ import {
   Sparkles,
   Save,
   ArrowLeft,
-  Upload,
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
@@ -17,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { WysiwygEditor } from './wysiwyg-editor';
 import { NewsItem, NewsCategory, NewsStatus } from '@college/shared';
 import { apiClient } from '@/lib/api-client';
+import { ImageUploadField } from '@/components/admin/image-upload-field';
 
 interface NewsFormProps {
   initialData?: NewsItem;
@@ -378,40 +378,14 @@ export function NewsForm({
 
           {/* Cover Image Card */}
           <div className="rounded-xl border bg-card p-5 space-y-3 shadow-2xs">
-            <h3 className="font-semibold text-sm text-foreground border-b pb-2 flex items-center justify-between">
-              <span>Обложка материала</span>
-              <Upload className="h-4 w-4 text-muted-foreground" />
-            </h3>
-
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                URL изображения
-              </label>
-              <Input
-                value={coverImageUrl}
-                onChange={(e) => setCoverImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
-                className="text-xs"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Поддерживаются WebP, JPG, PNG или файлы из бакета `news-media`
-              </p>
-            </div>
-
-            {coverImageUrl ? (
-              <div className="relative rounded-lg overflow-hidden border aspect-video bg-muted/30">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={coverImageUrl}
-                  alt="Предпросмотр обложки"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="border border-dashed rounded-lg p-6 text-center text-xs text-muted-foreground bg-muted/10">
-                Изображение не выбрано
-              </div>
-            )}
+            <ImageUploadField
+              value={coverImageUrl}
+              onChange={setCoverImageUrl}
+              label="Maqola muqovasi / Обложка материала"
+              description="Sayt bosh sahifasi va yangiliklar lentasida koʻrinadigan asosiy rasm"
+              bucket="news-media"
+              aspectRatio="video"
+            />
           </div>
         </div>
       </div>
