@@ -12,6 +12,33 @@ interface HomeNewsBentoProps {
   initialSecondaryNews: NewsItem[];
 }
 
+function formatUzbekDate(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    const months = [
+      'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+      'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
+    ];
+    const day = d.getDate();
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${month}, ${year}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+function getSecondaryFallbackBg(index: number): string {
+  const gradients = [
+    'bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950',
+    'bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950',
+    'bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950',
+    'bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950',
+  ];
+  return gradients[index % gradients.length]!;
+}
+
 export function HomeNewsBento({
   initialFeaturedNews,
   initialSecondaryNews,
@@ -48,112 +75,156 @@ export function HomeNewsBento({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      {/* Главная новость дня (Bento Hero: 7 колонок) */}
+      {/* Главная новость дня (Bento Hero: 7 колонок) с фоновым фото статьи */}
       {featuredNews ? (
         <article
           itemScope
           itemType="https://schema.org/NewsArticle"
-          className="lg:col-span-7 flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all group focus-within:ring-2 focus-within:ring-primary"
+          className="lg:col-span-7 relative overflow-hidden rounded-2xl border border-border/80 min-h-[420px] sm:min-h-[460px] flex flex-col justify-between p-6 sm:p-8 group shadow-sm hover:shadow-xl transition-all duration-500 focus-within:ring-2 focus-within:ring-primary"
         >
-          <div className="space-y-4">
+          {/* Фоновое фото статьи с плавным увеличением на hover */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            {featuredNews.coverImageUrl ? (
+              <img
+                src={featuredNews.coverImageUrl}
+                alt={featuredNews.title}
+                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950">
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:20px_20px]" />
+              </div>
+            )}
+            {/* Глубокий, мягкий затемняющий оверлей для максимальной читаемости текста */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/40 group-hover:via-slate-950/65 transition-colors duration-500" />
+          </div>
+
+          {/* Содержимое поверх фона */}
+          <div className="relative z-10 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="emerald" className="font-bold">
+              <Badge
+                variant="emerald"
+                className="font-bold text-xs bg-emerald-500 text-white shadow-xs backdrop-blur-xs"
+              >
                 Diqqat markazida
               </Badge>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="size-3" />
-                <span>{featuredNews.readingTimeMin} daqiqa mutolaa</span>
+              <span className="text-xs text-white/80 flex items-center gap-1 font-medium drop-shadow-xs">
+                <Clock className="size-3 text-emerald-400" />
+                <span>{featuredNews.readingTimeMin || 3} daqiqa mutolaa</span>
               </span>
               {featuredNews.publishedAt && (
                 <time
                   dateTime={featuredNews.publishedAt}
-                  className="text-xs text-muted-foreground"
+                  className="text-xs text-white/80 font-medium drop-shadow-xs"
                 >
-                  {new Date(featuredNews.publishedAt).toLocaleDateString('uz-UZ', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
+                  {formatUzbekDate(featuredNews.publishedAt)}
                 </time>
               )}
             </div>
 
             <Link
               href={`/news/${featuredNews.slug}`}
-              className="block group-hover:text-primary transition-colors focus:outline-none focus-visible:underline"
+              className="block group-hover:text-emerald-300 transition-colors focus:outline-none focus-visible:underline"
             >
               <h2
                 itemProp="headline"
-                className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight leading-snug"
+                className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight text-white drop-shadow-md"
               >
                 {featuredNews.title}
               </h2>
             </Link>
 
-            <p itemProp="description" className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+            <p
+              itemProp="description"
+              className="text-white/85 text-sm sm:text-base leading-relaxed line-clamp-3 drop-shadow-xs font-normal max-w-2xl"
+            >
               {featuredNews.leadText}
             </p>
           </div>
 
-          <div className="pt-6 mt-6 border-t border-border/60 flex items-center justify-between">
+          {/* Нижняя панель с кнопкой перехода */}
+          <div className="relative z-10 pt-6 mt-6 border-t border-white/15 flex items-center justify-between">
             <Link
               href={`/news/${featuredNews.slug}`}
-              className="text-sm font-semibold text-primary inline-flex items-center gap-1.5 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-white transition-all group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span>Batafsil oʻqish</span>
-              <ArrowRight className="size-4" />
+              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <span className="text-xs text-muted-foreground">Fargʻona 2-son texnikumi</span>
+            <span className="text-xs text-white/70 font-medium drop-shadow-xs hidden sm:inline">
+              Fargʻona 2-son texnikumi
+            </span>
           </div>
         </article>
       ) : (
-        <div className="lg:col-span-7 p-12 text-center border rounded-2xl text-muted-foreground">
+        <div className="lg:col-span-7 p-12 text-center border rounded-2xl text-muted-foreground bg-card">
           Eʼlon qilingan asosiy yangiliklar mavjud emas
         </div>
       )}
 
-      {/* Второстепенные новости (5 колонок) */}
+      {/* Второстепенные новости (5 колонок) — фото как фон каждой карточки */}
       <div className="lg:col-span-5 flex flex-col gap-4">
-        {secondaryNews.map((news) => (
+        {secondaryNews.map((news, idx) => (
           <article
             key={news.id}
             itemScope
             itemType="https://schema.org/NewsArticle"
-            className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-colors group focus-within:ring-2 focus-within:ring-primary"
+            className="relative overflow-hidden rounded-xl border border-border/80 min-h-[145px] flex flex-col justify-between p-4 sm:p-5 group shadow-2xs hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary"
           >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <Badge variant="slate" className="text-[10px] font-semibold">
+            {/* Фоновое фото карточки с зумом на hover */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+              {news.coverImageUrl ? (
+                <img
+                  src={news.coverImageUrl}
+                  alt={news.title}
+                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                />
+              ) : (
+                <div className={`w-full h-full ${getSecondaryFallbackBg(idx)}`}>
+                  <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px]" />
+                </div>
+              )}
+              {/* Плавный темный градиент для контраста текста */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/80 to-slate-950/45 group-hover:from-slate-950 group-hover:via-slate-950/70 transition-colors duration-300" />
+            </div>
+
+            {/* Контент карточки */}
+            <div className="relative z-10 space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-white/80">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-semibold bg-white/15 text-white/90 border-white/20 backdrop-blur-xs"
+                >
                   Matbuot xizmati
                 </Badge>
                 {news.publishedAt && (
-                  <time dateTime={news.publishedAt}>
-                    {new Date(news.publishedAt).toLocaleDateString('uz-UZ', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
+                  <time dateTime={news.publishedAt} className="font-mono text-white/75 text-[11px]">
+                    {formatUzbekDate(news.publishedAt)}
                   </time>
                 )}
               </div>
+
               <Link
                 href={`/news/${news.slug}`}
                 className="block focus:outline-none focus-visible:underline"
               >
                 <h3
                   itemProp="headline"
-                  className="font-bold text-sm sm:text-base line-clamp-2 group-hover:text-primary transition-colors"
+                  className="font-bold text-sm sm:text-base line-clamp-2 text-white group-hover:text-emerald-300 transition-colors leading-snug drop-shadow-xs"
                 >
                   {news.title}
                 </h3>
               </Link>
-              <p className="text-xs text-muted-foreground line-clamp-2">
+
+              <p className="text-xs text-white/80 line-clamp-1 drop-shadow-xs">
                 {news.leadText}
               </p>
             </div>
-            <div className="pt-2 text-right">
+
+            <div className="relative z-10 pt-2 text-right">
               <Link
                 href={`/news/${news.slug}`}
-                className="text-xs font-semibold text-primary inline-flex items-center gap-1 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+                className="text-xs font-semibold text-white/90 group-hover:text-white inline-flex items-center gap-1 group-hover:translate-x-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
               >
                 <span>Batafsil</span>
                 <ArrowRight className="size-3" />
@@ -163,7 +234,7 @@ export function HomeNewsBento({
         ))}
 
         <Link href="/news" className="w-full">
-          <Button variant="outline" className="w-full justify-center text-xs font-semibold">
+          <Button variant="outline" className="w-full justify-center text-xs font-semibold h-10 shadow-2xs hover:bg-muted/80">
             <span>Barcha yangiliklar lentasiga oʻtish</span>
             <ArrowRight className="size-3.5 ml-1.5" />
           </Button>

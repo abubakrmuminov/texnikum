@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="labBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d" />
+      <stop offset="60%" stop-color="#161b33" />
+      <stop offset="100%" stop-color="#05070f" />
+    </linearGradient>
+    <linearGradient id="purpleGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#labBg)" />
+  <circle cx="880" cy="300" r="280" fill="url(#purpleGlow)" filter="blur(60px)" />
+
+  <!-- Network Nodes -->
+  <g stroke="#8b5cf6" stroke-width="2" opacity="0.6">
+    <line x1="750" y1="200" x2="880" y2="150" />
+    <line x1="880" y1="150" x2="1000" y2="240" />
+    <line x1="880" y1="150" x2="880" y2="320" />
+    <line x1="750" y1="200" x2="800" y2="350" />
+    <line x1="880" y1="320" x2="1000" y2="380" />
+    <line x1="800" y1="350" x2="920" y2="420" />
+  </g>
+
+  <!-- Glowing Nodes -->
+  <circle cx="750" cy="200" r="14" fill="#38bdf8" />
+  <circle cx="880" cy="150" r="18" fill="#8b5cf6" />
+  <circle cx="1000" cy="240" r="14" fill="#ec4899" />
+  <circle cx="880" cy="320" r="22" fill="#6366f1" />
+  <circle cx="800" cy="350" r="14" fill="#10b981" />
+  <circle cx="1000" cy="380" r="16" fill="#f59e0b" />
+  <circle cx="920" cy="420" r="14" fill="#38bdf8" />
+
+  <!-- Typography -->
+  <text x="80" y="240" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="44" fill="#ffffff" letter-spacing="-1">
+    Bulutli hisoblash va AI laboratoriyasi
+  </text>
+  <text x="80" y="300" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="28" fill="#a855f7">
+    25 ta zamonaviy ish oʻrni • Yangi avlod serverlari
+  </text>
+  <text x="80" y="360" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="20" fill="#94a3b8">
+    Sunʼiy intellekt va kiberxavfsizlik amaliy mashgʻulotlari
+  </text>
+  <text x="80" y="400" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="16" fill="#64748b">
+    Raqamli taʼlim texnologiyalarini rivojlantirish dasturi
+  </text>
+</svg>

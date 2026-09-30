@@ -49,7 +49,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
       <p>«Kompyuter tarmoqlari va tizimlari maʼmurligi» yoʻnalishida tahsil olayotgan talaba Temur Poʻlatov tarmoq klasterini sozlash va kiberxavfsizlik tahdidlarini bartaraf etish boʻyicha eng yuqori natijani qayd etdi.</p>
       <p>Texnikum maʼmuriyati va pedagogik jamoasi gʻoliblarni hamda ularning ustozlarini samimiy qutlaydi!</p>
     `,
-    coverImageUrl: '/images/news/champion-2026.webp',
+    coverImageUrl: '/images/news/champion-2026.svg',
     readingTimeMin: 4,
     status: NewsStatus.PUBLISHED,
     isFeatured: true,
@@ -80,7 +80,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
       </ol>
       <p class="mt-4">Kerakli hujjatlar toʻliq roʻyxati va qabul nizomi «Abituriyentga» boʻlimida batafsil keltirilgan.</p>
     `,
-    coverImageUrl: '/images/news/admissions-2026.webp',
+    coverImageUrl: '/images/news/admissions-2026.svg',
     readingTimeMin: 3,
     status: NewsStatus.PUBLISHED,
     isFeatured: false,
@@ -96,7 +96,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
     categoryId: 3,
     leadText: 'Raqamli taʼlim texnologiyalarini rivojlantirish dasturi doirasida texnikumda 25 oʻrinli yangi innovatsion laboratoriya ishga tushirildi.',
     contentHtml: '<p class="lead">Yangi laboratoriya zamonaviy server uskunalari, yuqori tezlikdagi optik tolali aloqa hamda amaliy IT-loyihalarni amalga oshirish uchun dasturiy vositalar bilan toʻliq jihozlandi.</p>',
-    coverImageUrl: '/images/news/lab-opening.webp',
+    coverImageUrl: '/images/news/lab-opening.svg',
     readingTimeMin: 3,
     status: NewsStatus.PUBLISHED,
     isFeatured: false,
@@ -112,7 +112,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
     categoryId: 4,
     leadText: 'Final uchrashuvida texnikumimiz sportchilari murosasiz kurashda 3:1 hisobida gʻalaba qozonib, kubok sohibiga aylanishdi.',
     contentHtml: '<p class="lead">Shahrimiz sport majmuasida oʻtkazilgan professional taʼlim muassasalari spartakiadasida texnikum voleybol terma jamoasi barcha oʻyinlarda ishonchli oʻyin koʻrsatib, 1-oʻrinni egalladi.</p>',
-    coverImageUrl: '/images/news/volleyball-cup.webp',
+    coverImageUrl: '/images/news/volleyball-cup.svg',
     readingTimeMin: 2,
     status: NewsStatus.PUBLISHED,
     isFeatured: false,

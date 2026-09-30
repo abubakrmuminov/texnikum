@@ -61,11 +61,14 @@ export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Elemen
   const formatDate = (dateString: string) => {
     try {
       const d = new Date(dateString);
-      return d.toLocaleDateString('uz-UZ', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
+      const months = [
+        'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+        'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
+      ];
+      const day = d.getDate();
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day}-${month}, ${year}`;
     } catch {
       return dateString;
     }
@@ -196,19 +199,29 @@ export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Elemen
               >
                 {/* Обложка */}
                 <div className="aspect-[16/9] w-full bg-muted relative overflow-hidden flex items-center justify-center">
-                  <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                    TEX
-                  </div>
+                  {item.coverImageUrl ? (
+                    <img
+                      src={item.coverImageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center">
+                      <div className="size-10 rounded-full bg-primary/20 text-primary-foreground flex items-center justify-center font-bold text-xs">
+                        TEX
+                      </div>
+                    </div>
+                  )}
                   {cat && (
-                    <span className="absolute top-3 left-3">
-                      <Badge variant="secondary" className="shadow-sm font-medium text-[11px]">
+                    <span className="absolute top-3 left-3 z-10">
+                      <Badge variant="secondary" className="shadow-xs font-medium text-[11px] backdrop-blur-xs bg-card/90">
                         {cat.name}
                       </Badge>
                     </span>
                   )}
                   {item.isFeatured && (
-                    <span className="absolute top-3 right-3">
-                      <Badge className="bg-amber-600 hover:bg-amber-600 text-white font-semibold text-[10px]">
+                    <span className="absolute top-3 right-3 z-10">
+                      <Badge className="bg-amber-600 hover:bg-amber-600 text-white font-semibold text-[10px] shadow-xs">
                         Asosiy
                       </Badge>
                     </span>

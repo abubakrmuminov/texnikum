@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="sportBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#061c16" />
+      <stop offset="60%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+    <linearGradient id="goldCup" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#sportBg)" />
+  <circle cx="880" cy="300" r="280" fill="#10b981" opacity="0.3" filter="blur(60px)" />
+
+  <!-- Cup Graphic -->
+  <g transform="translate(800, 180)">
+    <!-- Base -->
+    <rect x="70" y="220" width="140" height="24" rx="6" fill="#ca8a04" />
+    <polygon points="120,180 160,180 150,220 130,220" fill="#eab308" />
+    <!-- Bowl -->
+    <path d="M70,70 L210,70 C210,160 170,180 140,180 C110,180 70,160 70,70 Z" fill="url(#goldCup)" />
+    <!-- Handles -->
+    <path d="M70,85 C30,90 30,135 75,140" stroke="#fde047" stroke-width="10" fill="none" />
+    <path d="M210,85 C250,90 250,135 205,140" stroke="#fde047" stroke-width="10" fill="none" />
+    <!-- Star on Cup -->
+    <polygon points="140,105 145,120 160,120 148,130 152,145 140,135 128,145 132,130 120,120 135,120" fill="#1e293b" />
+  </g>
+
+  <!-- Typography -->
+  <text x="80" y="240" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="44" fill="#ffffff" letter-spacing="-1">
+    Viloyat Spartakiadasi Gʻolibi!
+  </text>
+  <text x="80" y="300" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="28" fill="#10b981">
+    Texnikum voleybol jamoasi 1-oʻrinni egalladi
+  </text>
+  <text x="80" y="360" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="20" fill="#94a3b8">
+    Fargʻona viloyati texnikumlari oʻrtasidagi musobaqalar
+  </text>
+  <text x="80" y="400" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="16" fill="#64748b">
+    Sogʻlom turmush tarzi va yoshlar sportini rivojlantirish
+  </text>
+</svg>
