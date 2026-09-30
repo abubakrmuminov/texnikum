@@ -46,7 +46,7 @@ export default function AdminDashboardPage(): JSX.Element {
           collegeApi.getNews({ limit: 10 }),
           collegeApi.getTeachers({ limit: 100 }),
           collegeApi.getSpecialties({ limit: 100 }),
-          collegeApi.getAuditLogs({ limit: 5 }),
+          collegeApi.getAuditLogs({ limit: 5 }, token || undefined),
         ]);
         setNews(newsRes.items);
         setTeachers(teachersRes.items);
@@ -346,33 +346,45 @@ export default function AdminDashboardPage(): JSX.Element {
           </div>
 
           <div className="rounded-xl border border-border bg-card divide-y divide-border text-xs">
-            {auditLogs.map((log) => (
-              <div key={log.id} className="p-3 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2.5">
-                  <Badge
-                    variant="outline"
-                    className={`text-[10px] font-mono ${
-                      log.action === 'CREATE'
-                        ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400'
-                        : log.action === 'UPDATE'
-                        ? 'border-blue-500 text-blue-700 dark:text-blue-400'
-                        : 'border-amber-500 text-amber-700 dark:text-amber-400'
-                    }`}
-                  >
-                    {log.action}
-                  </Badge>
-                  <span className="font-semibold text-foreground">
-                    {log.entityType}
-                  </span>
-                  <span className="text-muted-foreground truncate max-w-sm hidden sm:inline">
-                    {JSON.stringify(log.newValues || log.oldValues || '')}
-                  </span>
+            {auditLogs.map((log) => {
+              const summary =
+                (log.newValues?.title as string) ||
+                (log.newValues?.fullName as string) ||
+                (log.newValues?.name as string) ||
+                (log.newValues?.message as string) ||
+                (log.newValues?.email as string) ||
+                (log.oldValues?.title as string) ||
+                (log.oldValues?.fullName as string) ||
+                log.entityId;
+
+              return (
+                <div key={log.id} className="p-3 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] font-mono shrink-0 ${
+                        log.action === 'CREATE'
+                          ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400'
+                          : log.action === 'UPDATE'
+                          ? 'border-blue-500 text-blue-700 dark:text-blue-400'
+                          : 'border-amber-500 text-amber-700 dark:text-amber-400'
+                      }`}
+                    >
+                      {log.action}
+                    </Badge>
+                    <span className="font-semibold text-foreground shrink-0 font-mono text-[11px] bg-muted px-1.5 py-0.5 rounded">
+                      {log.entityType}
+                    </span>
+                    <span className="text-muted-foreground truncate max-w-xs sm:max-w-md text-xs font-medium">
+                      {summary}
+                    </span>
+                  </div>
+                  <div className="text-muted-foreground font-mono shrink-0 text-[11px]">
+                    {new Date(log.createdAt).toLocaleTimeString(isUz ? 'uz-UZ' : 'ru-RU')}
+                  </div>
                 </div>
-                <div className="text-muted-foreground font-mono shrink-0">
-                  {new Date(log.createdAt).toLocaleTimeString('ru-RU')}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

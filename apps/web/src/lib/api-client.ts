@@ -15,9 +15,9 @@ import {
   UserRole,
   ContactsData,
 } from '@college/shared';
-import type { AdministratorMember } from '@college/shared';
+import type { AdministratorMember, AuditAction } from '@college/shared';
 
-export type { AdministratorMember, AdministratorCategory } from '@college/shared';
+export type { AdministratorMember, AdministratorCategory, AuditAction } from '@college/shared';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -808,7 +808,7 @@ export const FALLBACK_AUDIT: AuditLogItem[] = [
 async function safeFetch<T>(
   endpoint: string,
   fallbackData: T,
-  fetchOptions?: { revalidate?: number; cache?: RequestCache },
+  fetchOptions?: { revalidate?: number; cache?: RequestCache; token?: string },
 ): Promise<T> {
   try {
     const nextOpts: { revalidate?: number } = {};
@@ -818,10 +818,27 @@ async function safeFetch<T>(
       nextOpts.revalidate = 30;
     }
 
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    let authToken = fetchOptions?.token;
+    if (!authToken && typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('college_admin_session');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          authToken = parsed?.token || undefined;
+        }
+      } catch {
+        // Ignore session read error
+      }
+    }
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
+    }
+
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...(Object.keys(nextOpts).length > 0 ? { next: nextOpts } : {}),
       ...(fetchOptions?.cache ? { cache: fetchOptions.cache } : {}),
-      headers: { Accept: 'application/json' },
+      headers,
     });
     if (!res.ok) {
       return fallbackData;
@@ -958,6 +975,86 @@ export function getAllCurrentAdministrators(): AdministratorMember[] {
   if (!local.length) return FALLBACK_ADMINISTRATORS;
   const localIds = new Set(local.map((a) => a.id));
   return [...local, ...FALLBACK_ADMINISTRATORS.filter((a) => !localIds.has(a.id))];
+}
+
+function getLocalAuditLogs(): AuditLogItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('college_custom_audit_logs');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed as AuditLogItem[];
+    }
+  } catch {
+    // Ignore storage parse errors
+  }
+  return [];
+}
+
+function saveLocalAuditLogs(items: AuditLogItem[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('college_custom_audit_logs', JSON.stringify(items.slice(0, 200)));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+export function getAllCurrentAuditLogs(): AuditLogItem[] {
+  const local = getLocalAuditLogs();
+  if (!local.length) return FALLBACK_AUDIT;
+  const localIds = new Set(local.map((a) => a.id));
+  return [...local, ...FALLBACK_AUDIT.filter((a) => !localIds.has(a.id))];
+}
+
+export function recordLocalAudit(
+  action: AuditAction,
+  entityType: string,
+  entityId: string,
+  newValues?: Record<string, unknown>,
+  oldValues?: Record<string, unknown>,
+): AuditLogItem {
+  let userId: string | null = null;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('college_admin_session');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        userId = parsed?.user?.id || parsed?.user?.email || null;
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  const item: AuditLogItem = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    userId: userId || 'a0000000-0000-0000-0000-000000000001',
+    action,
+    entityType,
+    entityId,
+    newValues: newValues ?? null,
+    oldValues: oldValues ?? null,
+    ipAddress: '127.0.0.1',
+    createdAt: new Date().toISOString(),
+  };
+
+  const existing = getLocalAuditLogs();
+  saveLocalAuditLogs([item, ...existing]);
+
+  // Asynchronous sync to backend
+  if (typeof window !== 'undefined') {
+    safeMutation('/audit-log', 'POST', {
+      action: item.action,
+      entityType: item.entityType,
+      entityId: item.entityId,
+      newValues: item.newValues,
+      oldValues: item.oldValues,
+      ipAddress: item.ipAddress,
+    }).catch(() => {});
+  }
+
+  return item;
 }
 
 export const FALLBACK_CONTACTS: ContactsData = {
@@ -1393,6 +1490,14 @@ export const api = {
       FALLBACK_ADMINISTRATORS.unshift(newAdmin);
     }
 
+    recordLocalAudit('CREATE', 'administration', newAdmin.id, {
+      fullName: newAdmin.fullName,
+      position: newAdmin.position,
+      category: newAdmin.category,
+      roomNumber: newAdmin.roomNumber,
+      phone: newAdmin.phone,
+    });
+
     try {
       return await safeMutation<AdministratorMember>('/administration', 'POST', data, token, newAdmin);
     } catch {
@@ -1425,6 +1530,14 @@ export const api = {
       FALLBACK_ADMINISTRATORS.unshift(updated);
     }
 
+    recordLocalAudit(
+      'UPDATE',
+      'administration',
+      id,
+      { fullName: updated.fullName, position: updated.position, ...data },
+      existing as unknown as Record<string, unknown>,
+    );
+
     try {
       return await safeMutation<AdministratorMember>(`/administration/${id}`, 'PATCH', data, token, updated);
     } catch {
@@ -1434,11 +1547,20 @@ export const api = {
 
   deleteAdministrator: async (id: string, token?: string): Promise<{ success: boolean }> => {
     const currentLocal = getLocalAdministrators();
+    const existing = currentLocal.find((a) => a.id === id) || FALLBACK_ADMINISTRATORS.find((a) => a.id === id);
     saveLocalAdministrators(currentLocal.filter((a) => a.id !== id));
     const fbIdx = FALLBACK_ADMINISTRATORS.findIndex((a) => a.id === id);
     if (fbIdx !== -1) {
       FALLBACK_ADMINISTRATORS.splice(fbIdx, 1);
     }
+
+    recordLocalAudit(
+      'DELETE',
+      'administration',
+      id,
+      undefined,
+      existing ? { fullName: existing.fullName, position: existing.position } : undefined,
+    );
 
     try {
       return await safeMutation(`/administration/${id}`, 'DELETE', undefined, token, { success: true });
@@ -1568,21 +1690,63 @@ export const api = {
   // Журнал аудита (Admin only)
   getAuditLogs: async (
     params?: { action?: string; entityType?: string; page?: number; limit?: number },
+    token?: string,
   ): Promise<{ items: AuditLogItem[]; total: number; page: number; limit: number; totalPages: number }> => {
     const query = new URLSearchParams();
-    if (params?.action) query.set('action', params.action);
-    if (params?.entityType) query.set('entityType', params.entityType);
+    if (params?.action && params.action !== 'all') query.set('action', params.action);
+    if (params?.entityType && params.entityType !== 'all') query.set('entityType', params.entityType);
     if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.limit) query.set('limit', String(params.limit || 50));
 
+    const localItems = getAllCurrentAuditLogs();
     const fallback = {
-      items: FALLBACK_AUDIT,
-      total: FALLBACK_AUDIT.length,
+      items: localItems,
+      total: localItems.length,
       page: params?.page || 1,
-      limit: params?.limit || 20,
-      totalPages: 1,
+      limit: params?.limit || 50,
+      totalPages: Math.ceil(localItems.length / (params?.limit || 50)) || 1,
     };
-    return safeFetch(`/audit-log?${query.toString()}`, fallback);
+
+    const res = await safeFetch<{ items: AuditLogItem[]; total: number; page: number; limit: number; totalPages: number }>(
+      `/audit-log?${query.toString()}`,
+      fallback,
+      { cache: 'no-store', token },
+    );
+
+    if (res && Array.isArray(res.items)) {
+      const serverIds = new Set(res.items.map((i) => i.id));
+      const missingLocal = getLocalAuditLogs().filter((l) => {
+        if (serverIds.has(l.id)) return false;
+        if (params?.action && params.action !== 'all' && l.action !== params.action) return false;
+        if (params?.entityType && params.entityType !== 'all' && l.entityType !== params.entityType) return false;
+        return true;
+      });
+      if (missingLocal.length > 0) {
+        const combined = [...missingLocal, ...res.items].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        return {
+          ...res,
+          items: combined,
+          total: res.total + missingLocal.length,
+          totalPages: Math.ceil((res.total + missingLocal.length) / (params?.limit || 50)) || 1,
+        };
+      }
+    }
+
+    return res;
+  },
+
+  recordAuditLog: async (
+    data: {
+      action: AuditAction;
+      entityType: string;
+      entityId: string;
+      newValues?: Record<string, unknown>;
+      oldValues?: Record<string, unknown>;
+    },
+  ): Promise<AuditLogItem> => {
+    return recordLocalAudit(data.action, data.entityType, data.entityId, data.newValues, data.oldValues);
   },
 
   // Контакты и реквизиты техникума (Aloqa)

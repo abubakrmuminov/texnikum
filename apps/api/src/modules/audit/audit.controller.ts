@@ -1,11 +1,13 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Ip, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse as SwaggerResponse, ApiTags } from '@nestjs/swagger';
 import { ApiResponse, AuditLogItem, PaginatedResponse, UserRole } from '@college/shared';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser, AuthenticatedUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuditService } from './audit.service';
 import { QueryAuditDto } from './dto/query-audit.dto';
+import { CreateAuditDto } from './dto/create-audit.dto';
 
 @ApiTags('Журнал аудита')
 @ApiBearerAuth('JWT-auth')
@@ -22,4 +24,17 @@ export class AuditController {
   async findAll(@Query() query: QueryAuditDto): Promise<ApiResponse<PaginatedResponse<AuditLogItem>>> {
     return this.auditService.findAll(query);
   }
+
+  @Post()
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @ApiOperation({ summary: 'Фиксация административного события в журнале аудита' })
+  @SwaggerResponse({ status: 201, description: 'Запись аудита успешно зафиксирована' })
+  async create(
+    @Body() dto: CreateAuditDto,
+    @CurrentUser() user: AuthenticatedUser,
+    @Ip() ipAddress: string,
+  ): Promise<ApiResponse<AuditLogItem>> {
+    return this.auditService.create(dto, user, ipAddress);
+  }
 }
+

@@ -2,6 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ApiResponse, AuditAction, AuditLogItem, PaginatedResponse } from '@college/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 import { QueryAuditDto } from './dto/query-audit.dto';
+import { CreateAuditDto } from './dto/create-audit.dto';
+import { AuthenticatedUser } from '../auth/decorators/current-user.decorator';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @Injectable()
 export class AuditService {
@@ -22,6 +26,34 @@ export class AuditService {
 
   constructor(private readonly supabaseService: SupabaseService) {}
 
+  async create(
+    dto: CreateAuditDto,
+    user?: AuthenticatedUser,
+    ipAddress?: string,
+  ): Promise<ApiResponse<AuditLogItem>> {
+    const userId = user?.id || null;
+    const finalIp = ipAddress || dto.ipAddress || '127.0.0.1';
+
+    await this.log(
+      userId,
+      dto.action,
+      dto.entityType,
+      dto.entityId,
+      dto.newValues,
+      dto.oldValues,
+      finalIp,
+    );
+
+    const createdItem = this.localAuditLogs[0]!;
+
+    return {
+      success: true,
+      data: createdItem,
+      message: 'Запись аудита успешно зафиксирована',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   async log(
     userId: string | null,
     action: AuditAction,
@@ -39,26 +71,45 @@ export class AuditService {
       entityId,
       oldValues: oldValues ?? null,
       newValues: newValues ?? null,
-      ipAddress: ipAddress ?? null,
+      ipAddress: ipAddress ?? '127.0.0.1',
       createdAt: new Date().toISOString(),
     };
 
     this.localAuditLogs.unshift(entry);
+    if (this.localAuditLogs.length > 200) {
+      this.localAuditLogs = this.localAuditLogs.slice(0, 200);
+    }
 
     if (this.supabaseService.isReady()) {
       const supabase = this.supabaseService.getClient();
       if (supabase) {
+        const validDbUserId = userId && UUID_REGEX.test(userId) ? userId : null;
+        const payloadNewValues = validDbUserId === userId ? newValues : { ...(newValues || {}), originalUserId: userId };
+
         const { error } = await supabase.from('audit_log').insert({
-          user_id: userId,
+          user_id: validDbUserId,
           action,
           entity_type: entityType,
           entity_id: entityId,
-          new_values: newValues,
+          new_values: payloadNewValues,
           old_values: oldValues,
-          ip_address: ipAddress,
+          ip_address: ipAddress || '127.0.0.1',
         });
+
         if (error) {
-          this.logger.error(`Ошибка записи в audit_log: ${error.message}`);
+          this.logger.warn(`Ошибка первичной записи в audit_log: ${error.message}. Повтор с user_id=null...`);
+          if (validDbUserId) {
+            // Если была ошибка внешнего ключа в profiles, сохраняем с user_id = null
+            await supabase.from('audit_log').insert({
+              user_id: null,
+              action,
+              entity_type: entityType,
+              entity_id: entityId,
+              new_values: { ...(newValues || {}), originalUserId: userId },
+              old_values: oldValues,
+              ip_address: ipAddress || '127.0.0.1',
+            });
+          }
         }
       }
     }
@@ -99,15 +150,23 @@ export class AuditService {
             ipAddress: d.ip_address ? String(d.ip_address) : null,
             createdAt: String(d.created_at),
           }));
-          const total = count ?? items.length;
+          const existingIds = new Set(items.map((i) => i.id));
+          const extraLocal = this.localAuditLogs.filter((l) => {
+            if (existingIds.has(l.id)) return false;
+            if (query.entityType && l.entityType !== query.entityType) return false;
+            if (query.action && l.action !== query.action) return false;
+            return true;
+          });
+          const merged = [...extraLocal, ...items];
+          const total = (count ?? items.length) + extraLocal.length;
           return {
             success: true,
             data: {
-              items,
+              items: merged.slice(0, limit),
               total,
               page,
               limit,
-              totalPages: Math.ceil(total / limit),
+              totalPages: Math.ceil(total / limit) || 1,
             },
             timestamp: new Date().toISOString(),
           };

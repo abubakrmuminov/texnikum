@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { UserProfile, UserRole } from '@college/shared';
-import { FALLBACK_USERS } from '@/lib/api-client';
+import { FALLBACK_USERS, recordLocalAudit } from '@/lib/api-client';
 
 interface AdminAuthContextType {
   user: UserProfile | null;
@@ -89,6 +89,15 @@ export function AdminAuthProvider({
       } catch {
         // ignore
       }
+
+      recordLocalAudit('CREATE', 'users', matchedUser.id, {
+        actionType: 'login',
+        email: matchedUser.email,
+        fullName: matchedUser.fullName,
+        role: matchedUser.role,
+        message: 'Tizimga muvaffaqiyatli kirildi (Login)',
+      });
+
       setIsLoading(false);
       return { success: true };
     }
@@ -101,6 +110,15 @@ export function AdminAuthProvider({
   };
 
   const logout = () => {
+    if (user) {
+      recordLocalAudit('DELETE', 'users', user.id, {
+        actionType: 'logout',
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        message: 'Tizimdan chiqildi (Logout)',
+      });
+    }
     setUser(null);
     setToken(null);
     localStorage.removeItem(ADMIN_STORAGE_KEY);
