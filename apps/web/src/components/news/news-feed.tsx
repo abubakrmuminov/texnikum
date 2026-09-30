@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Calendar, Clock, Search, X } from 'lucide-react';
 import { NewsCategory, NewsItem, NewsStatus } from '@college/shared';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ interface NewsFeedProps {
 }
 
 export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Element {
+  const router = useRouter();
   const [newsList, setNewsList] = useState<NewsItem[]>(initialNews);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -195,7 +197,8 @@ export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Elemen
                 key={item.id}
                 itemScope
                 itemType="https://schema.org/NewsArticle"
-                className="group flex flex-col h-full rounded-xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-all focus-within:ring-2 focus-within:ring-ring"
+                onClick={() => router.push(`/news/${item.slug}`)}
+                className="group flex flex-col h-full rounded-xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-all focus-within:ring-2 focus-within:ring-ring cursor-pointer relative"
               >
                 {/* Обложка */}
                 <div className="aspect-[16/9] w-full bg-muted relative overflow-hidden flex items-center justify-center">
@@ -250,7 +253,7 @@ export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Elemen
                     >
                       <Link
                         href={`/news/${item.slug}`}
-                        className="focus:outline-none focus:underline"
+                        className="focus:outline-none focus:underline after:absolute after:inset-0 after:z-20"
                       >
                         {item.title}
                       </Link>
@@ -266,7 +269,7 @@ export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Elemen
                   </div>
 
                   {/* Ссылка на чтение */}
-                  <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+                  <div className="pt-3 border-t border-border flex items-center justify-between text-xs pointer-events-none">
                     <span className="text-muted-foreground">Matbuot xizmati</span>
                     <span className="font-semibold text-primary group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
                       Batafsil →

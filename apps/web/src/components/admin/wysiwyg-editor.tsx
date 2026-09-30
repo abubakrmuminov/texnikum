@@ -17,9 +17,14 @@ import {
   FileText,
   Clock,
   Type,
+  UploadCloud,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Modal } from '@/components/ui/dialog';
+import { apiClient } from '@/lib/api-client';
 import { useAppLocale } from '@/components/i18n/locale-provider';
 
 interface WysiwygEditorProps {
@@ -49,6 +54,18 @@ export function WysiwygEditor({
 
   const [activeTab, setActiveTab] = React.useState<'edit' | 'preview'>('edit');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Image Upload Dialog state
+  const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
+  const [imageModalTab, setImageModalTab] = React.useState<'upload' | 'url'>('upload');
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [filePreview, setFilePreview] = React.useState<string | null>(null);
+  const [imageCaption, setImageCaption] = React.useState('');
+  const [imageUrl, setImageUrl] = React.useState('');
+  const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+  const [imageUploadError, setImageUploadError] = React.useState<string | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Calculate statistics
   const wordCount = React.useMemo(() => {
@@ -84,6 +101,131 @@ export function WysiwygEditor({
     }, 0);
   };
 
+  const handleFileSelect = (file: File) => {
+    setImageUploadError(null);
+    if (!file.type.startsWith('image/')) {
+      setImageUploadError(
+        isUz
+          ? 'Faqat rasm fayllari (JPG, PNG, WEBP, SVG) qabul qilinadi'
+          : 'Разрешены только графические файлы (JPG, PNG, WEBP, SVG)'
+      );
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setImageUploadError(
+        isUz
+          ? 'Fayl hajmi 10 MB dan oshmasligi kerak'
+          : 'Размер файла не должен превышать 10 МБ'
+      );
+      return;
+    }
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFilePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    if (!imageCaption) {
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+      setImageCaption(nameWithoutExt);
+    }
+  };
+
+  const handleInsertImageToContent = async () => {
+    setImageUploadError(null);
+    let finalUrl = '';
+
+    if (imageModalTab === 'upload') {
+      if (!selectedFile) {
+        setImageUploadError(
+          isUz ? 'Iltimos, avval rasm faylini tanlang' : 'Пожалуйста, выберите файл изображения'
+        );
+        return;
+      }
+
+      setIsUploadingImage(true);
+      try {
+        const uploaded = await apiClient.uploadMedia(selectedFile, 'news-media');
+        finalUrl = uploaded.publicUrl || filePreview || '';
+      } catch {
+        if (filePreview) {
+          finalUrl = filePreview;
+        } else {
+          setImageUploadError(
+            isUz ? 'Rasmni yuklashda xatolik yuz berdi' : 'Ошибка при загрузке изображения'
+          );
+          setIsUploadingImage(false);
+          return;
+        }
+      } finally {
+        setIsUploadingImage(false);
+      }
+    } else {
+      if (!imageUrl.trim()) {
+        setImageUploadError(
+          isUz ? 'Iltimos, rasm havolasini kiriting' : 'Пожалуйста, введите URL изображения'
+        );
+        return;
+      }
+      finalUrl = imageUrl.trim();
+    }
+
+    if (finalUrl) {
+      const caption = imageCaption.trim() || (isUz ? 'Rasm' : 'Изображение');
+      insertFormat(`\n\n![${caption}](`, `)\n\n`, finalUrl);
+      setIsImageModalOpen(false);
+      setSelectedFile(null);
+      setFilePreview(null);
+      setImageCaption('');
+      setImageUrl('');
+    }
+  };
+
+  const handleTextareaDrop = async (e: React.DragEvent<HTMLElement>) => {
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file && file.type.startsWith('image/')) {
+        e.preventDefault();
+        try {
+          const uploaded = await apiClient.uploadMedia(file, 'news-media');
+          const finalUrl = uploaded.publicUrl;
+          if (finalUrl) {
+            const caption = file.name.replace(/\.[^/.]+$/, '');
+            insertFormat(`\n\n![${caption}](`, `)\n\n`, finalUrl);
+          }
+        } catch {
+          // ignore or fallback
+        }
+      }
+    }
+  };
+
+  const handleTextareaPaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item && item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            try {
+              const uploaded = await apiClient.uploadMedia(file, 'news-media');
+              const finalUrl = uploaded.publicUrl;
+              if (finalUrl) {
+                insertFormat(`\n\n![${isUz ? 'Rasm' : 'Изображение'}](`, `)\n\n`, finalUrl);
+              }
+            } catch {
+              // ignore
+            }
+            break;
+          }
+        }
+      }
+    }
+  };
+
   const handleInsertH2 = () =>
     insertFormat('\n## ', '\n', isUz ? 'H2 kichik sarlavhasi' : 'Подзаголовок H2');
   const handleInsertH3 = () =>
@@ -104,12 +246,10 @@ export function WysiwygEditor({
     insertFormat('\n1. ', '\n', isUz ? 'Birinchi band' : 'Первый пункт');
   const handleInsertLink = () =>
     insertFormat('[', '](https://example.com)', isUz ? 'Havola matni' : 'Текст ссылки');
-  const handleInsertImage = () =>
-    insertFormat(
-      isUz ? '![Rasm tavsifi](' : '![Описание фото](',
-      ')',
-      'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800'
-    );
+  const handleInsertImage = () => {
+    setImageUploadError(null);
+    setIsImageModalOpen(true);
+  };
   const handleInsertTable = () => {
     const tableTemplate = isUz
       ? `
@@ -336,14 +476,42 @@ export function WysiwygEditor({
         {/* Content Area */}
         <div className="p-3">
           {activeTab === 'edit' ? (
-            <Textarea
-              ref={textareaRef}
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder={placeholder || defaultPlaceholder}
-              className="w-full border-0 focus-visible:ring-0 focus-visible:ring-offset-0 font-mono text-sm leading-relaxed p-0 resize-y"
-              style={{ minHeight }}
-            />
+            <div
+              className={`relative transition-colors rounded-md ${
+                isDraggingOver ? 'ring-2 ring-primary ring-offset-2 bg-primary/5' : ''
+              }`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+              onDrop={(e) => {
+                setIsDraggingOver(false);
+                handleTextareaDrop(e);
+              }}
+            >
+              <Textarea
+                ref={textareaRef}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onPaste={handleTextareaPaste}
+                placeholder={placeholder || defaultPlaceholder}
+                className="w-full border-0 focus-visible:ring-0 focus-visible:ring-offset-0 font-mono text-sm leading-relaxed p-0 resize-y"
+                style={{ minHeight }}
+              />
+              {isDraggingOver && (
+                <div className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-md flex items-center justify-center pointer-events-none">
+                  <div className="bg-background/90 px-4 py-2 rounded-lg shadow-sm border border-primary/30 flex items-center gap-2 text-xs font-semibold text-primary">
+                    <UploadCloud className="size-4 animate-bounce" />
+                    <span>
+                      {isUz
+                        ? 'Rasmni maqolaga joylash uchun shu yerga tashlang'
+                        : 'Отпустите файл для вставки в статью'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <div
               className="prose dark:prose-invert max-w-none text-sm leading-relaxed p-2"
@@ -355,6 +523,217 @@ export function WysiwygEditor({
       </div>
 
       {error && <p className="text-xs text-destructive mt-1 font-medium">{error}</p>}
+
+      {/* Modal диалог загрузки фото внутрь статьи */}
+      <Modal
+        isOpen={isImageModalOpen}
+        onClose={() => {
+          setIsImageModalOpen(false);
+          setSelectedFile(null);
+          setFilePreview(null);
+          setImageUploadError(null);
+        }}
+        title={isUz ? 'Maqolaga rasm joylashtirish' : 'Вставка изображения в статью'}
+        description={
+          isUz
+            ? 'Kompyuteringizdan rasm faylini yuklang yoki toʻgʻridan-toʻgʻri havolasini kiriting'
+            : 'Загрузите файл изображения с устройства или укажите прямую ссылку'
+        }
+        maxWidth="md"
+      >
+        <div className="space-y-4 pt-2">
+          {/* Переключатель способа вставки */}
+          <div className="flex rounded-lg bg-muted p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setImageModalTab('upload');
+                setImageUploadError(null);
+              }}
+              className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                imageModalTab === 'upload'
+                  ? 'bg-background text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? 'Faylni yuklash (Kompyuterdan)' : 'Загрузить файл (С устройства)'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setImageModalTab('url');
+                setImageUploadError(null);
+              }}
+              className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                imageModalTab === 'url'
+                  ? 'bg-background text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? 'Havola orqali (URL)' : 'По прямой ссылке (URL)'}
+            </button>
+          </div>
+
+          {/* Ошибка */}
+          {imageUploadError && (
+            <div className="flex items-center gap-2 p-2.5 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+              <AlertCircle className="size-4 shrink-0" />
+              <span>{imageUploadError}</span>
+            </div>
+          )}
+
+          {imageModalTab === 'upload' ? (
+            <div className="space-y-3">
+              {/* Поле выбора файла */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileSelect(file);
+                }}
+                className="hidden"
+              />
+
+              {filePreview ? (
+                <div className="relative rounded-xl border border-border overflow-hidden bg-muted/40 p-2 flex flex-col items-center">
+                  <div className="relative w-full max-h-56 overflow-hidden rounded-lg flex items-center justify-center bg-black/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={filePreview}
+                      alt="Preview"
+                      className="max-h-52 w-auto object-contain rounded"
+                    />
+                  </div>
+                  <div className="w-full flex items-center justify-between pt-2 px-1 text-xs text-muted-foreground">
+                    <span className="truncate max-w-[200px] font-mono text-[11px]">
+                      {selectedFile?.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setFilePreview(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="text-destructive hover:underline text-xs"
+                    >
+                      {isUz ? 'Boshqa rasm tanlash' : 'Выбрать другое'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl border-2 border-dashed border-border hover:border-primary/60 bg-muted/20 hover:bg-muted/40 p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors text-center"
+                >
+                  <div className="size-11 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <UploadCloud className="size-5" />
+                  </div>
+                  <p className="text-xs font-semibold text-foreground">
+                    {isUz
+                      ? 'Rasm faylini tanlash uchun bosing'
+                      : 'Нажмите для выбора файла с устройства'}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    PNG, JPG, WEBP, SVG (10 MB gacha)
+                  </p>
+                </div>
+              )}
+
+              {/* Подпись к картинке */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-foreground">
+                  {isUz ? 'Rasm osti izohi / tavsifi' : 'Подпись к изображению / описание'}
+                </label>
+                <Input
+                  value={imageCaption}
+                  onChange={(e) => setImageCaption(e.target.value)}
+                  placeholder={
+                    isUz
+                      ? 'Masalan: «WorldSkills» chempionati laboratoriyasi'
+                      : 'Например: Лаборатория чемпионата WorldSkills'
+                  }
+                  className="h-9 text-xs"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Ввод URL */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-foreground">
+                  {isUz ? 'Rasm havolasi (URL)' : 'Прямой URL адрес картинки'}
+                </label>
+                <Input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/... yoki rasm manzili"
+                  className="h-9 text-xs font-mono"
+                />
+              </div>
+
+              {/* Подпись */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-foreground">
+                  {isUz ? 'Rasm osti izohi / tavsifi' : 'Подпись к изображению'}
+                </label>
+                <Input
+                  value={imageCaption}
+                  onChange={(e) => setImageCaption(e.target.value)}
+                  placeholder={isUz ? 'Rasm tavsifi' : 'Описание изображения'}
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              {imageUrl.trim() && (
+                <div className="relative rounded-lg border p-2 bg-muted/20 flex items-center justify-center max-h-40 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imageUrl.trim()}
+                    alt="Preview"
+                    className="max-h-36 w-auto object-contain rounded"
+                    onError={() => {
+                      setImageUploadError(
+                        isUz
+                          ? 'Ushbu havola boʻyicha rasm yuklanmadi'
+                          : 'Не удалось загрузить картинку по ссылке'
+                      );
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Кнопки действий */}
+          <div className="flex items-center justify-end gap-2 pt-3 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsImageModalOpen(false)}
+            >
+              {isUz ? 'Bekor qilish' : 'Отмена'}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={isUploadingImage}
+              onClick={handleInsertImageToContent}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isUploadingImage ? (
+                <span>{isUz ? 'Yuklanmoqda...' : 'Загрузка...'}</span>
+              ) : (
+                <span>{isUz ? 'Maqolaga joylash' : 'Вставить в статью'}</span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

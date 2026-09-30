@@ -61,6 +61,26 @@ export default async function NewsDetailPage({ params }: NewsPageProps): Promise
   // Очистка HTML для качественного синтеза речи (WCAG 2.1 AA)
   const plainTextForSpeech = `${item.title}. ${item.leadText}. ${item.contentHtml.replace(/<[^>]*>/g, ' ')}`;
 
+  const formatArticleContent = (content: string) => {
+    if (!content) return '';
+    return content
+      // Convert markdown images to responsive styled figures with captions
+      .replace(
+        /!\[([^\]]*)\]\(([^)]+)\)/g,
+        '<figure class="my-6 rounded-2xl overflow-hidden border border-border bg-card shadow-sm"><div class="relative w-full max-h-[550px] overflow-hidden bg-muted/30 flex items-center justify-center"><img src="$2" alt="$1" class="w-full h-auto max-h-[550px] object-cover" /></div><figcaption class="px-4 py-2.5 text-xs text-center text-muted-foreground bg-muted/30 border-t border-border">$1</figcaption></figure>'
+      )
+      // Convert markdown headers
+      .replace(/^### (.*$)/gim, '<h3 class="text-lg sm:text-xl font-bold mt-5 mb-2 text-foreground">$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2 class="text-xl sm:text-2xl font-bold mt-6 mb-3 text-foreground pb-1.5 border-b border-border">$1</h2>')
+      // Blockquotes
+      .replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-primary pl-4 py-2 my-4 italic text-muted-foreground bg-muted/30 rounded-r">$1</blockquote>')
+      // Bold & Italic
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+      // Lists
+      .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc text-foreground/90 my-1">$1</li>');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Навигационные хлебные крошки */}
@@ -183,7 +203,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps): Promise
         <div
           itemProp="articleBody"
           className="prose prose-slate dark:prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed space-y-4 pt-4"
-          dangerouslySetInnerHTML={{ __html: item.contentHtml }}
+          dangerouslySetInnerHTML={{ __html: formatArticleContent(item.contentHtml) }}
         />
 
         {/* Подвал статьи */}

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Clock } from 'lucide-react';
 import { NewsItem, NewsStatus } from '@college/shared';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ export function HomeNewsBento({
   initialFeaturedNews,
   initialSecondaryNews,
 }: HomeNewsBentoProps): JSX.Element {
+  const router = useRouter();
   const [featuredNews, setFeaturedNews] = useState<NewsItem | null>(initialFeaturedNews);
   const [secondaryNews, setSecondaryNews] = useState<NewsItem[]>(initialSecondaryNews);
 
@@ -66,12 +68,13 @@ export function HomeNewsBento({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      {/* Главная новость дня (Bento Hero: 7 колонок) с фоновым фото статьи */}
+      {/* Главная новость дня (Bento Hero: 7 колонок) — клик по всей карточке открывает статью */}
       {featuredNews ? (
         <article
           itemScope
           itemType="https://schema.org/NewsArticle"
-          className="lg:col-span-7 relative overflow-hidden rounded-2xl border border-border/80 min-h-[420px] sm:min-h-[460px] flex flex-col justify-between p-6 sm:p-8 group shadow-sm hover:shadow-xl transition-all duration-500 focus-within:ring-2 focus-within:ring-primary"
+          onClick={() => router.push(`/news/${featuredNews.slug}`)}
+          className="lg:col-span-7 relative overflow-hidden rounded-2xl border border-border/80 min-h-[420px] sm:min-h-[460px] flex flex-col justify-between p-6 sm:p-8 group shadow-sm hover:shadow-xl transition-all duration-500 focus-within:ring-2 focus-within:ring-primary cursor-pointer"
         >
           {/* Фоновое фото статьи с плавным увеличением на hover */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -110,7 +113,7 @@ export function HomeNewsBento({
 
             <Link
               href={`/news/${featuredNews.slug}`}
-              className="block group-hover:text-emerald-300 transition-colors focus:outline-none focus-visible:underline"
+              className="block group-hover:text-emerald-300 transition-colors focus:outline-none focus-visible:underline after:absolute after:inset-0 after:z-20"
             >
               <h2
                 itemProp="headline"
@@ -129,14 +132,13 @@ export function HomeNewsBento({
           </div>
 
           {/* Нижняя панель с кнопкой перехода */}
-          <div className="relative z-10 pt-6 mt-6 border-t border-white/15 flex items-center justify-between">
-            <Link
-              href={`/news/${featuredNews.slug}`}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-white transition-all group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <div className="relative z-30 pt-6 mt-6 border-t border-white/15 flex items-center justify-between pointer-events-none">
+            <span
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-white transition-all shadow-xs"
             >
               <span>Batafsil oʻqish</span>
               <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </span>
             <span className="text-xs text-white/70 font-medium drop-shadow-xs hidden sm:inline">
               Fargʻona 2-son texnikumi
             </span>
@@ -148,14 +150,15 @@ export function HomeNewsBento({
         </div>
       )}
 
-      {/* Второстепенные новости (5 колонок) — фото как фон каждой карточки */}
+      {/* Второстепенные новости (5 колонок) — клик по всей карточке открывает статью */}
       <div className="lg:col-span-5 flex flex-col gap-4">
         {secondaryNews.map((news) => (
           <article
             key={news.id}
             itemScope
             itemType="https://schema.org/NewsArticle"
-            className="relative overflow-hidden rounded-xl border border-border/80 min-h-[145px] flex flex-col justify-between p-4 sm:p-5 group shadow-2xs hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary"
+            onClick={() => router.push(`/news/${news.slug}`)}
+            className="relative overflow-hidden rounded-xl border border-border/80 min-h-[145px] flex flex-col justify-between p-4 sm:p-5 group shadow-2xs hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary cursor-pointer"
           >
             {/* Фоновое фото карточки с зумом на hover */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -187,7 +190,7 @@ export function HomeNewsBento({
 
               <Link
                 href={`/news/${news.slug}`}
-                className="block focus:outline-none focus-visible:underline"
+                className="block focus:outline-none focus-visible:underline after:absolute after:inset-0 after:z-20"
               >
                 <h3
                   itemProp="headline"
@@ -202,14 +205,13 @@ export function HomeNewsBento({
               </p>
             </div>
 
-            <div className="relative z-10 pt-2 text-right">
-              <Link
-                href={`/news/${news.slug}`}
-                className="text-xs font-semibold text-white/90 group-hover:text-white inline-flex items-center gap-1 group-hover:translate-x-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+            <div className="relative z-30 pt-2 text-right pointer-events-none">
+              <span
+                className="text-xs font-semibold text-white/90 group-hover:text-white inline-flex items-center gap-1 group-hover:translate-x-1 transition-all"
               >
                 <span>Batafsil</span>
                 <ArrowRight className="size-3" />
-              </Link>
+              </span>
             </div>
           </article>
         ))}
