@@ -31,6 +31,7 @@ export default function SettingsPage(): JSX.Element {
     speakText,
     stopSpeech,
     isSpeaking,
+    activeVoiceInfo,
     resetSettings,
   } = useAccessibility();
 
@@ -38,10 +39,10 @@ export default function SettingsPage(): JSX.Element {
 
   const handleTestSpeech = () => {
     const sampleText =
-      'Siz Fargʻona shahri 2-son texnikumi rasmiy taʼlim portalining maxsus imkoniyatlar boʻlimidasiz. Ovozli sintez sinovi muvaffaqiyatli ishlamoqda.';
-    speakText(sampleText);
+      'Siz Fargʻona shahri 2-son texnikumi rasmiy taʼlim portalining maxsus imkoniyatlar boʻlimidasiz. Ovozli sintez muvaffaqiyatli ishlamoqda.';
+    speakText(sampleText, 'uz');
     setTestSpeechStatus('Ovoz namunasi yangramoqda...');
-    setTimeout(() => setTestSpeechStatus(''), 6000);
+    setTimeout(() => setTestSpeechStatus(''), 7000);
   };
 
   const THEMES: { id: A11yTheme; name: string; desc: string; sampleBg: string; sampleText: string; border: string }[] = [
@@ -328,15 +329,20 @@ export default function SettingsPage(): JSX.Element {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 max-w-md">
               <span className="font-semibold text-sm">
                 Ovoz holati: {ttsEnabled ? 'Yoqilgan' : 'Oʻchirilgan'}
               </span>
               <span className="text-xs text-muted-foreground">
-                Yoqilganda maqolalar sahifasida «Ovozli oʻqish» tugmasi paydo boʻladi.
+                Yoqilganda sahifada belgilangan har qanday matn va maqolalar avtomatik ovozli oʻqiladi.
               </span>
+              {activeVoiceInfo && (
+                <div className="text-[11px] text-muted-foreground bg-muted/60 px-2.5 py-1.5 rounded border border-border/50 mt-1">
+                  <span className="font-bold text-foreground">Tanlangan ovoz:</span> {activeVoiceInfo.voiceName} • {activeVoiceInfo.description}
+                </div>
+              )}
               {testSpeechStatus && (
-                <span className="text-xs text-primary font-medium mt-1">
+                <span className="text-xs text-primary font-medium mt-1 animate-pulse">
                   {testSpeechStatus}
                 </span>
               )}

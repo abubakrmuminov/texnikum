@@ -1,7 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { initArchitectWatchdog } from '@/lib/integrity-guard';
+import { useAppLocale } from '@/components/i18n/locale-provider';
+import {
+  resolveBestTtsVoice,
+  latinToUzbekCyrillic,
+  splitTextIntoSentences,
+  VoiceResolutionResult,
+} from '@/lib/speech-synthesis';
 
 export type A11yTheme =
   | 'default'
@@ -26,9 +33,10 @@ interface AccessibilityContextType {
   setImagesMode: (mode: A11yImagesMode) => void;
   ttsEnabled: boolean;
   setTtsEnabled: (enabled: boolean) => void;
-  speakText: (text: string) => void;
+  speakText: (text: string, customLang?: 'uz' | 'ru') => void;
   stopSpeech: () => void;
   isSpeaking: boolean;
+  activeVoiceInfo: VoiceResolutionResult | null;
   resetSettings: () => void;
   isHighContrast: boolean;
 }
@@ -42,12 +50,33 @@ export function AccessibilityProvider({
 }: {
   children: React.ReactNode;
 }): JSX.Element {
+  const { locale } = useAppLocale();
   const [theme, setThemeState] = useState<A11yTheme>('default');
   const [fontSize, setFontSizeState] = useState<A11yFontSize>('normal');
   const [letterSpacing, setLetterSpacingState] = useState<A11yLetterSpacing>('normal');
   const [imagesMode, setImagesModeState] = useState<A11yImagesMode>('show');
   const [ttsEnabled, setTtsEnabledState] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [activeVoiceInfo, setActiveVoiceInfo] = useState<VoiceResolutionResult | null>(null);
+  const speechQueueRef = useRef<{ cancel: () => void } | null>(null);
+
+  // Brauzer ovozlarini (SpeechSynthesis voices) yuklash va kuzatish
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const loadVoices = () => {
+      const avail = window.speechSynthesis.getVoices();
+      if (avail && avail.length > 0) {
+        setVoices(avail);
+        const resolved = resolveBestTtsVoice(locale, avail);
+        setActiveVoiceInfo(resolved);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }, [locale]);
 
   // Чтение сохраненных настроек из localStorage при монтировании
   useEffect(() => {
@@ -149,30 +178,116 @@ export function AccessibilityProvider({
     saveSettings({ ttsEnabled: enabled });
   };
 
-  const speakText = (text: string) => {
+  // Ovozli oʻqish rejimi (ttsEnabled) yoqilganida sahifada matn belgilansa, avtomatik oʻqish
+  useEffect(() => {
+    if (!ttsEnabled || typeof window === 'undefined') return;
+
+    const handleMouseUp = () => {
+      const selection = window.getSelection()?.toString().trim();
+      if (selection && selection.length > 3 && selection.includes(' ')) {
+        speakText(selection);
+      }
+    };
+
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ttsEnabled, locale, voices]);
+
+  const stopSpeech = () => {
+    if (speechQueueRef.current) {
+      speechQueueRef.current.cancel();
+      speechQueueRef.current = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  };
+
+  const speakText = (text: string, customLang?: 'uz' | 'ru') => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       return;
     }
-    window.speechSynthesis.cancel();
-    const cleanText = text.replace(/<[^>]*>/g, '').trim();
-    if (!cleanText) return;
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'ru-RU';
-    utterance.rate = 0.95;
+    stopSpeech();
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    const clean = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!clean) return;
 
-    window.speechSynthesis.speak(utterance);
-  };
+    // Tilni aniqlash (agar sof kirillcha boʻlsa — ruscha, aks holda joriy til yoki oʻzbekcha)
+    const hasCyrillic = /[а-яА-ЯёЁўЎқҚғҒҳҲ]/.test(clean);
+    const hasLatin = /[a-zA-Z]/.test(clean);
+    const targetLang = customLang || (hasCyrillic && !hasLatin ? 'ru' : locale);
 
-  const stopSpeech = () => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
+    const currentVoices = voices.length > 0 ? voices : window.speechSynthesis.getVoices();
+    const resolution = resolveBestTtsVoice(targetLang, currentVoices);
+    setActiveVoiceInfo(resolution);
+
+    // Agar oʻzbekcha matn rus ovozi orqali oʻqilsa, kirill alifbosiga oʻgiriladi
+    const processedText = resolution.needsTransliteration ? latinToUzbekCyrillic(clean) : clean;
+
+    const sentences = splitTextIntoSentences(processedText);
+    if (sentences.length === 0) return;
+
+    let isCancelled = false;
+    let currentIndex = 0;
+    let heartbeatTimer: NodeJS.Timeout | null = null;
+
+    speechQueueRef.current = {
+      cancel: () => {
+        isCancelled = true;
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+        window.speechSynthesis.cancel();
+      },
+    };
+
+    setIsSpeaking(true);
+
+    // Chrome TTS timeout bypass
+    heartbeatTimer = setInterval(() => {
+      if (typeof window !== 'undefined' && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 5000);
+
+    const speakSentence = (index: number) => {
+      if (isCancelled || index >= sentences.length) {
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+        setIsSpeaking(false);
+        speechQueueRef.current = null;
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(sentences[index]!);
+      if (resolution.voice) {
+        utterance.voice = resolution.voice;
+      }
+      utterance.lang = resolution.effectiveLang;
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+
+      utterance.onend = () => {
+        if (!isCancelled) {
+          speakSentence(index + 1);
+        }
+      };
+
+      utterance.onerror = (e) => {
+        if (e.error !== 'canceled' && e.error !== 'interrupted') {
+          console.warn('SpeechSynthesis error:', e.error);
+        }
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+        setIsSpeaking(false);
+        speechQueueRef.current = null;
+      };
+
+      window.speechSynthesis.speak(utterance);
+    };
+
+    speakSentence(currentIndex);
   };
 
   const resetSettings = () => {
@@ -211,6 +326,7 @@ export function AccessibilityProvider({
         speakText,
         stopSpeech,
         isSpeaking,
+        activeVoiceInfo,
         resetSettings,
         isHighContrast,
       }}

@@ -4,8 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Image as ImageIcon, Settings, Volume2, VolumeX } from 'lucide-react';
 import { useAccessibility } from './accessibility-provider';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 export function AccessibilityToolbar(): JSX.Element {
+  const { locale } = useAppLocale();
   const {
     theme,
     setTheme,
@@ -13,12 +15,45 @@ export function AccessibilityToolbar(): JSX.Element {
     setFontSize,
     imagesMode,
     setImagesMode,
-    ttsEnabled,
-    setTtsEnabled,
     isSpeaking,
+    speakText,
     stopSpeech,
     isHighContrast,
   } = useAccessibility();
+
+  const handleToolbarSpeak = () => {
+    if (isSpeaking) {
+      stopSpeech();
+      return;
+    }
+
+    // 1. Agar foydalanuvchi matn belgilagan boʻlsa, oʻshani oʻqiymiz
+    const selection = typeof window !== 'undefined' ? window.getSelection()?.toString().trim() : '';
+    if (selection && selection.length > 0) {
+      speakText(selection);
+      return;
+    }
+
+    // 2. Sahifadagi asosiy kontentni topib oʻqiymiz
+    if (typeof document !== 'undefined') {
+      const mainEl = document.getElementById('main-content');
+      if (mainEl) {
+        // Matnli bloklarni yigʻamiz (h1, h2, h3, p)
+        const textElements = Array.from(mainEl.querySelectorAll('h1, h2, h3, p'))
+          .map((el) => (el as HTMLElement).innerText?.trim())
+          .filter(Boolean);
+
+        const textToRead = textElements.join('. ').slice(0, 3000);
+        if (textToRead) {
+          speakText(textToRead);
+          return;
+        }
+      }
+
+      const pageTitle = document.title || 'Fargʻona 2-son texnikumi portali';
+      speakText(pageTitle);
+    }
+  };
 
   return (
     <aside
@@ -139,23 +174,41 @@ export function AccessibilityToolbar(): JSX.Element {
           {/* Синтез речи */}
           <button
             type="button"
-            onClick={() => {
-              if (isSpeaking) {
-                stopSpeech();
-              } else {
-                setTtsEnabled(!ttsEnabled);
-              }
-            }}
-            className={`flex items-center gap-1 px-2 py-1 rounded border border-border bg-background/60 hover:bg-accent transition-colors ${ttsEnabled || isSpeaking ? 'bg-primary/20 text-primary border-primary' : ''}`}
-            title="Ovozli oʻqish (Web Speech API)"
-            aria-label="Ovozli oʻqish"
+            onClick={handleToolbarSpeak}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded border border-border bg-background/60 hover:bg-accent transition-colors ${isSpeaking ? 'bg-primary/20 text-primary border-primary font-bold' : ''}`}
+            title={
+              isSpeaking
+                ? locale === 'uz'
+                  ? 'Ovozli oʻqishni toʻxtatish'
+                  : 'Остановить чтение'
+                : locale === 'uz'
+                  ? 'Sahifani yoki belgilangan matnni ovozli tinglash'
+                  : 'Озвучить страницу или выделенный текст'
+            }
+            aria-label={
+              isSpeaking
+                ? locale === 'uz'
+                  ? 'Toʻxtatish'
+                  : 'Остановить'
+                : locale === 'uz'
+                  ? 'Ovozli oʻqish'
+                  : 'Озвучить'
+            }
           >
             {isSpeaking ? (
               <VolumeX className="size-3.5 text-destructive animate-pulse" aria-hidden="true" />
             ) : (
               <Volume2 className="size-3.5" aria-hidden="true" />
             )}
-            <span className="hidden lg:inline">{isSpeaking ? 'Toʻxtatish' : 'Ovozli oʻqish'}</span>
+            <span className="hidden lg:inline">
+              {isSpeaking
+                ? locale === 'uz'
+                  ? 'Toʻxtatish'
+                  : 'Остановить'
+                : locale === 'uz'
+                  ? 'Ovozli oʻqish'
+                  : 'Озвучить'}
+            </span>
           </button>
 
           {/* Ссылка в полные настройки */}
