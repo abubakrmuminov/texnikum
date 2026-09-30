@@ -10,11 +10,14 @@ import {
   Mail,
 } from 'lucide-react';
 import { useAdminAuth } from '@/components/admin/admin-auth-context';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
 function LoginFormContent(): JSX.Element {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/admin';
@@ -37,7 +40,10 @@ function LoginFormContent(): JSX.Element {
     if (result.success) {
       router.push(redirectUrl);
     } else {
-      setError(result.error || 'Ошибка входа');
+      setError(
+        result.error ||
+          (isUz ? 'Kirishda xatolik yuz berdi' : 'Ошибка входа')
+      );
     }
   };
 
@@ -49,7 +55,7 @@ function LoginFormContent(): JSX.Element {
           <Link href="/">
             <Button variant="ghost" size="sm" className="text-xs gap-1.5 pl-0 hover:bg-transparent hover:text-primary">
               <ArrowLeft className="size-4" aria-hidden="true" />
-              <span>Bosh sahifaga qaytish / На главную</span>
+              <span>{isUz ? 'Bosh sahifaga qaytish' : 'На главную страницу'}</span>
             </Button>
           </Link>
         </div>
@@ -60,10 +66,12 @@ function LoginFormContent(): JSX.Element {
               CMS
             </div>
             <CardTitle className="text-xl font-bold tracking-tight">
-              Boshqaruv paneli (CMS)
+              {isUz ? 'Boshqaruv paneli (CMS)' : 'Панель управления (CMS)'}
             </CardTitle>
             <CardDescription className="text-xs">
-              Fargʻona 2-son texnikumi • Tizimga kirish
+              {isUz
+                ? 'Fargʻona 2-son politexnika texnikumi • Tizimga kirish'
+                : 'Ферганский политехнический техникум №2 • Авторизация'}
             </CardDescription>
           </CardHeader>
 
@@ -84,7 +92,7 @@ function LoginFormContent(): JSX.Element {
                   htmlFor="admin-email"
                   className="block text-xs font-semibold text-foreground mb-1"
                 >
-                  Elektron pochta (Email)
+                  {isUz ? 'Elektron pochta (Email)' : 'Электронная почта (Email)'}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" aria-hidden="true" />
@@ -106,7 +114,7 @@ function LoginFormContent(): JSX.Element {
                   htmlFor="admin-password"
                   className="block text-xs font-semibold text-foreground mb-1"
                 >
-                  Parol
+                  {isUz ? 'Parol' : 'Пароль'}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" aria-hidden="true" />
@@ -128,12 +136,16 @@ function LoginFormContent(): JSX.Element {
                 disabled={loading || !email || !password}
                 className="w-full text-xs font-semibold h-10 shadow cursor-pointer"
               >
-                {loading ? 'Tekshirilmoqda...' : 'Tizimga kirish / Войти'}
+                {loading
+                  ? (isUz ? 'Tekshirilmoqda...' : 'Проверка...')
+                  : (isUz ? 'Tizimga kirish' : 'Войти в систему')}
               </Button>
             </form>
 
             <div className="text-[11px] text-muted-foreground text-center pt-2 border-t border-border/50">
-              Xizmatdan faqat roʻyxatdan oʻtgan maʼmurlar va tahrirchilar foydalanishi mumkin.
+              {isUz
+                ? 'Xizmatdan faqat roʻyxatdan oʻtgan maʼmurlar va tahrirchilar foydalanishi mumkin.'
+                : 'Доступ разрешен только зарегистрированным администраторам и редакторам.'}
             </div>
           </CardContent>
         </Card>

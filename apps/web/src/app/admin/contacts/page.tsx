@@ -74,7 +74,9 @@ export default function AdminContactsPage() {
   const removeCampus = (index: number) => {
     if (!data) return;
     if (data.campuses.length <= 1) {
-      alert('Kamida bitta bino qolishi shart');
+      alert(
+        isUz ? 'Kamida bitta bino qolishi shart' : 'Должен остаться хотя бы один корпус'
+      );
       return;
     }
     const newCampuses = data.campuses.filter((_, i) => i !== index);
@@ -93,9 +95,9 @@ export default function AdminContactsPage() {
     if (!data) return;
     const newPhone: PhoneDirectoryItem = {
       id: `phone-${Date.now()}`,
-      title: 'Boʻlim nomi / Название отдела',
+      title: isUz ? 'Boʻlim nomi' : 'Название отдела',
       phone: '+998 (73) 244-00-00',
-      note: 'Boʻlim vazifasi / Назначение',
+      note: isUz ? 'Boʻlim vazifasi' : 'Назначение',
       orderIndex: data.phones.length + 1,
     };
     setData({ ...data, phones: [...data.phones, newPhone] });
@@ -104,7 +106,11 @@ export default function AdminContactsPage() {
   const removePhone = (index: number) => {
     if (!data) return;
     if (data.phones.length <= 1) {
-      alert('Kamida bitta telefon raqami qolishi shart');
+      alert(
+        isUz
+          ? 'Kamida bitta telefon raqami qolishi shart'
+          : 'Должен остаться хотя бы один номер телефона'
+      );
       return;
     }
     const newPhones = data.phones.filter((_, i) => i !== index);
@@ -119,10 +125,18 @@ export default function AdminContactsPage() {
     setError(null);
     try {
       await apiClient.updateContacts(data);
-      setSuccess('Aloqa maʼlumotlari muvaffaqiyatli saqlandi va saytda yangilandi!');
+      setSuccess(
+        isUz
+          ? 'Aloqa maʼlumotlari muvaffaqiyatli saqlandi va saytda yangilandi!'
+          : 'Контактные данные успешно сохранены и обновлены на сайте!'
+      );
       setTimeout(() => setSuccess(null), 4000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Saqlashda xatolik yuz berdi');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Saqlashda xatolik yuz berdi' : 'Произошла ошибка при сохранении')
+      );
     } finally {
       setIsSaving(false);
     }
@@ -131,7 +145,7 @@ export default function AdminContactsPage() {
   if (isLoading) {
     return (
       <div className="p-12 text-center text-sm text-muted-foreground">
-        Aloqa maʼlumotlari yuklanmoqda...
+        {isUz ? 'Aloqa maʼlumotlari yuklanmoqda...' : 'Загрузка контактных данных...'}
       </div>
     );
   }
@@ -194,7 +208,9 @@ export default function AdminContactsPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" />
-            {isUz ? `Texnikum binolari va boʻlinmalari (${data.campuses.length})` : `Здания и корпуса техникума (${data.campuses.length})`}
+            {isUz
+              ? `Texnikum binolari va boʻlinmalari (${data.campuses.length})`
+              : `Здания и корпуса техникума (${data.campuses.length})`}
           </h2>
           <Button
             type="button"
@@ -213,7 +229,7 @@ export default function AdminContactsPage() {
             <Card key={camp.id || idx} className="border shadow-xs flex flex-col justify-between">
               <CardHeader className="pb-3 border-b bg-muted/20 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-bold text-foreground">
-                  Корпус #{idx + 1}
+                  {isUz ? `${idx + 1}-bino` : `Корпус #${idx + 1}`}
                 </CardTitle>
                 <Button
                   type="button"
@@ -221,7 +237,7 @@ export default function AdminContactsPage() {
                   size="sm"
                   onClick={() => removeCampus(idx)}
                   className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                  title="Удалить корпус"
+                  title={isUz ? 'Binoni oʻchirish' : 'Удалить корпус'}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -229,7 +245,9 @@ export default function AdminContactsPage() {
 
               <CardContent className="p-4 space-y-3 text-xs flex-1">
                 <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Название корпуса</label>
+                  <label className="font-semibold text-foreground">
+                    {isUz ? 'Bino nomi' : 'Название корпуса'}
+                  </label>
                   <Input
                     value={camp.name}
                     onChange={(e) => handleCampusChange(idx, 'name', e.target.value)}
@@ -238,7 +256,9 @@ export default function AdminContactsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Почтовый адрес</label>
+                  <label className="font-semibold text-foreground">
+                    {isUz ? 'Pochta manzili' : 'Почтовый адрес'}
+                  </label>
                   <Input
                     value={camp.address}
                     onChange={(e) => handleCampusChange(idx, 'address', e.target.value)}
@@ -247,7 +267,9 @@ export default function AdminContactsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-medium text-muted-foreground">Отделы и кабинеты</label>
+                  <label className="font-medium text-muted-foreground">
+                    {isUz ? 'Boʻlimlar va auditoriyalar' : 'Отделы и кабинеты'}
+                  </label>
                   <Textarea
                     value={camp.departments}
                     onChange={(e) => handleCampusChange(idx, 'departments', e.target.value)}
@@ -257,7 +279,9 @@ export default function AdminContactsPage() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="font-medium text-muted-foreground">Телефон</label>
+                    <label className="font-medium text-muted-foreground">
+                      {isUz ? 'Telefon' : 'Телефон'}
+                    </label>
                     <Input
                       value={camp.phone}
                       onChange={(e) => handleCampusChange(idx, 'phone', e.target.value)}
@@ -274,7 +298,9 @@ export default function AdminContactsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-medium text-muted-foreground">График работы</label>
+                  <label className="font-medium text-muted-foreground">
+                    {isUz ? 'Ish tartibi' : 'График работы'}
+                  </label>
                   <Input
                     value={camp.workHours}
                     onChange={(e) => handleCampusChange(idx, 'workHours', e.target.value)}
@@ -282,7 +308,9 @@ export default function AdminContactsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-medium text-muted-foreground">Остановка транспорта</label>
+                  <label className="font-medium text-muted-foreground">
+                    {isUz ? 'Jamoat transporti bekati' : 'Остановка транспорта'}
+                  </label>
                   <Input
                     value={camp.transport}
                     onChange={(e) => handleCampusChange(idx, 'transport', e.target.value)}
@@ -294,12 +322,14 @@ export default function AdminContactsPage() {
         </div>
       </div>
 
-      {/* 2. Телефонный справочник */}
+      {/* 2. Telefon maʼlumotnomasi */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
             <Phone className="h-5 w-5 text-primary" />
-            Телефонный справочник отделов ({data.phones.length})
+            {isUz
+              ? `Boʻlimlar telefon maʼlumotnomasi (${data.phones.length})`
+              : `Телефонный справочник отделов (${data.phones.length})`}
           </h2>
           <Button
             type="button"
@@ -309,7 +339,7 @@ export default function AdminContactsPage() {
             className="text-xs gap-1"
           >
             <Plus className="h-3.5 w-3.5" />
-            Добавить телефон
+            {isUz ? 'Yangi telefon qoʻshish' : 'Добавить телефон'}
           </Button>
         </div>
 
@@ -317,10 +347,10 @@ export default function AdminContactsPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-muted/50 border-b text-[11px] font-semibold text-muted-foreground uppercase">
               <tr>
-                <th className="p-3">Отдел / Служба</th>
-                <th className="p-3 w-56">Номер телефона</th>
-                <th className="p-3">Назначение / Описание</th>
-                <th className="p-3 text-right w-16">Удалить</th>
+                <th className="p-3">{isUz ? 'Boʻlim / Xizmat' : 'Отдел / Служба'}</th>
+                <th className="p-3 w-56">{isUz ? 'Telefon raqami' : 'Номер телефона'}</th>
+                <th className="p-3">{isUz ? 'Vazifasi / Izoh' : 'Назначение / Описание'}</th>
+                <th className="p-3 text-right w-16">{isUz ? 'Oʻchirish' : 'Удалить'}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -356,7 +386,7 @@ export default function AdminContactsPage() {
                       size="sm"
                       onClick={() => removePhone(idx)}
                       className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                      title="Удалить"
+                      title={isUz ? 'Oʻchirish' : 'Удалить'}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -372,14 +402,16 @@ export default function AdminContactsPage() {
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
           <Navigation className="h-5 w-5 text-primary" />
-          Схема проезда и GPS-координаты для карты
+          {isUz
+            ? 'Qatnov marshruti va xarita uchun GPS-koordinatalar'
+            : 'Схема проезда и GPS-координаты для карты'}
         </h2>
 
         <Card className="border shadow-xs">
           <CardContent className="p-4 space-y-4 text-xs">
             <div className="space-y-1">
               <label className="font-semibold text-foreground">
-                Маршруты общественного транспорта
+                {isUz ? 'Jamoat transporti yoʻnalishlari' : 'Маршруты общественного транспорта'}
               </label>
               <Textarea
                 value={data.directions.bus}
@@ -396,7 +428,7 @@ export default function AdminContactsPage() {
 
             <div className="space-y-1">
               <label className="font-semibold text-foreground">
-                Ориентиры рядом с техникумом
+                {isUz ? 'Texnikum yaqinidagi moʻljallar' : 'Ориентиры рядом с техникумом'}
               </label>
               <Input
                 value={data.directions.landmark}
@@ -412,7 +444,9 @@ export default function AdminContactsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t">
               <div className="space-y-1">
-                <label className="font-medium text-muted-foreground">Широта (Latitude)</label>
+                <label className="font-medium text-muted-foreground">
+                  {isUz ? 'Kenglik (Latitude)' : 'Широта (Latitude)'}
+                </label>
                 <Input
                   type="number"
                   step="0.0001"
@@ -430,7 +464,9 @@ export default function AdminContactsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium text-muted-foreground">Долгота (Longitude)</label>
+                <label className="font-medium text-muted-foreground">
+                  {isUz ? 'Uzunlik (Longitude)' : 'Долгота (Longitude)'}
+                </label>
                 <Input
                   type="number"
                   step="0.0001"
@@ -448,7 +484,9 @@ export default function AdminContactsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium text-muted-foreground">Масштаб (Zoom)</label>
+                <label className="font-medium text-muted-foreground">
+                  {isUz ? 'Masshtab (Zoom)' : 'Масштаб (Zoom)'}
+                </label>
                 <Input
                   type="number"
                   value={data.mapCoordinates.zoom}
@@ -476,7 +514,9 @@ export default function AdminContactsPage() {
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 h-10 px-6 font-semibold shadow"
         >
           <Save className="h-4 w-4" />
-          {isSaving ? 'Сохранение...' : 'Сохранить все изменения'}
+          {isSaving
+            ? (isUz ? 'Saqlanmoqda...' : 'Сохранение...')
+            : (isUz ? 'Barcha oʻzgarishlarni saqlash' : 'Сохранить все изменения')}
         </Button>
       </div>
     </form>

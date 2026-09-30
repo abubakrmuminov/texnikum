@@ -17,14 +17,24 @@ import { Modal } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { ScheduleItem, Teacher, Parity } from '@college/shared';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
-const DAYS = [
+const DAYS_RU = [
   { id: 1, name: 'Понедельник' },
   { id: 2, name: 'Вторник' },
   { id: 3, name: 'Среда' },
   { id: 4, name: 'Четверг' },
   { id: 5, name: 'Пятница' },
   { id: 6, name: 'Суббота' },
+];
+
+const DAYS_UZ = [
+  { id: 1, name: 'Dushanba' },
+  { id: 2, name: 'Seshanba' },
+  { id: 3, name: 'Chorshanba' },
+  { id: 4, name: 'Payshanba' },
+  { id: 5, name: 'Juma' },
+  { id: 6, name: 'Shanba' },
 ];
 
 const LESSON_TIMES: Record<number, { start: string; end: string }> = {
@@ -37,6 +47,10 @@ const LESSON_TIMES: Record<number, { start: string; end: string }> = {
 };
 
 export default function AdminSchedulePage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+  const days = isUz ? DAYS_UZ : DAYS_RU;
+
   const [schedule, setSchedule] = React.useState<ScheduleItem[]>([]);
   const [teachers, setTeachers] = React.useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -53,7 +67,7 @@ export default function AdminSchedulePage() {
   const [editingItem, setEditingItem] = React.useState<ScheduleItem | null>(null);
 
   // Form State
-  const [groupName, setGroupName] = React.useState('ИС-21');
+  const [groupName, setGroupName] = React.useState('IS-21');
   const [dayOfWeek, setDayOfWeek] = React.useState<number>(1);
   const [lessonNumber, setLessonNumber] = React.useState<number>(1);
   const [timeStart, setTimeStart] = React.useState('08:30');
@@ -75,11 +89,15 @@ export default function AdminSchedulePage() {
       setSchedule(schedData);
       setTeachers(teachData.items);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить расписание');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Dars jadvalini yuklab boʻlmadi' : 'Не удалось загрузить расписание')
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadData();
@@ -103,7 +121,7 @@ export default function AdminSchedulePage() {
 
   const openCreateModal = () => {
     setEditingItem(null);
-    setGroupName(groupsList[0] || 'ИС-21');
+    setGroupName(groupsList[0] || 'IS-21');
     setDayOfWeek(1);
     setLessonNumber(1);
     setTimeStart('08:30');
@@ -138,7 +156,11 @@ export default function AdminSchedulePage() {
     setFormError(null);
 
     if (!groupName.trim() || !subject.trim() || !classroom.trim()) {
-      setFormError('Заполните обязательные поля: группа, предмет, аудитория');
+      setFormError(
+        isUz
+          ? 'Majburiy maydonlarni toʻldiring: guruh, fan, auditoriya'
+          : 'Заполните обязательные поля: группа, предмет, аудитория'
+      );
       return;
     }
 
@@ -166,31 +188,44 @@ export default function AdminSchedulePage() {
               : s
           )
         );
-        setSuccess('Занятие успешно обновлено');
+        setSuccess(
+          isUz ? 'Mashgʻulot muvaffaqiyatli yangilandi' : 'Занятие успешно обновлено'
+        );
       } else {
         const created = await apiClient.createSchedule(payload);
         const selectedTeacher = teachers.find((t) => t.id === teacherId);
         setSchedule((prev) => [{ ...created, teacher: selectedTeacher }, ...prev]);
-        setSuccess('Пара успешно добавлена в расписание');
+        setSuccess(
+          isUz ? 'Dars jadvalga muvaffaqiyatli qoʻshildi' : 'Пара успешно добавлена в расписание'
+        );
       }
       setIsModalOpen(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Ошибка при сохранении занятия');
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Darsni saqlashda xatolik yuz berdi' : 'Ошибка при сохранении занятия')
+      );
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Вы уверены, что хотите удалить пару «${name}»?`)) {
+    const confirmMsg = isUz
+      ? `Haqiqatan ham «${name}» darsini oʻchirmoqchimisiz?`
+      : `Вы уверены, что хотите удалить пару «${name}»?`;
+    if (!window.confirm(confirmMsg)) {
       return;
     }
     try {
       await apiClient.deleteSchedule(id);
       setSchedule((prev) => prev.filter((s) => s.id !== id));
-      setSuccess('Занятие удалено из сетки');
+      setSuccess(
+        isUz ? 'Mashgʻulot jadvaldan oʻchirildi' : 'Занятие удалено из сетки'
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      alert('Не удалось удалить занятие');
+      alert(isUz ? 'Darsni oʻchirib boʻlmadi' : 'Не удалось удалить занятие');
     }
   };
 
@@ -212,17 +247,29 @@ export default function AdminSchedulePage() {
   }, [schedule, selectedGroup, selectedDay, searchQuery]);
 
   const getDayName = (day: number) => {
-    return DAYS.find((d) => d.id === day)?.name || `День ${day}`;
+    return days.find((d) => d.id === day)?.name || (isUz ? `${day}-kun` : `День ${day}`);
   };
 
   const getParityBadge = (p: Parity) => {
     switch (p) {
       case 'odd':
-        return <Badge variant="outline" className="text-purple-600 border-purple-500/20 text-[10px]">Нечетная неделя</Badge>;
+        return (
+          <Badge variant="outline" className="text-purple-600 border-purple-500/20 text-[10px]">
+            {isUz ? 'Toq hafta' : 'Нечетная неделя'}
+          </Badge>
+        );
       case 'even':
-        return <Badge variant="outline" className="text-indigo-600 border-indigo-500/20 text-[10px]">Четная неделя</Badge>;
+        return (
+          <Badge variant="outline" className="text-indigo-600 border-indigo-500/20 text-[10px]">
+            {isUz ? 'Juft hafta' : 'Четная неделя'}
+          </Badge>
+        );
       default:
-        return <span className="text-xs text-muted-foreground">Каждая неделя</span>;
+        return (
+          <span className="text-xs text-muted-foreground">
+            {isUz ? 'Har hafta' : 'Каждая неделя'}
+          </span>
+        );
     }
   };
 
@@ -232,10 +279,12 @@ export default function AdminSchedulePage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Расписание занятий
+            {isUz ? 'Dars jadvali' : 'Расписание занятий'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Управление учебными парами, аудиторным фондом, группами и четностью недель
+            {isUz
+              ? 'Oʻquv juftliklari, auditoriyalar, guruhlar va haftalar ketma-ketligini boshqarish'
+              : 'Управление учебными парами, аудиторным фондом, группами и четностью недель'}
           </p>
         </div>
 
@@ -244,7 +293,7 @@ export default function AdminSchedulePage() {
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
         >
           <Plus className="h-4 w-4" />
-          Добавить пару
+          {isUz ? 'Juftlik (dars) qoʻshish' : 'Добавить пару'}
         </Button>
       </div>
 
@@ -270,7 +319,11 @@ export default function AdminSchedulePage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск по предмету, аудитории или преподавателю..."
+            placeholder={
+              isUz
+                ? 'Fan, auditoriya yoki oʻqituvchi boʻyicha qidiruv...'
+                : 'Поиск по предмету, аудитории или преподавателю...'
+            }
             className="pl-9 h-10"
           />
         </div>
@@ -281,10 +334,12 @@ export default function AdminSchedulePage() {
           onChange={(e) => setSelectedGroup(e.target.value)}
           className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
         >
-          <option value="all">Все группы ({groupsList.length})</option>
+          <option value="all">
+            {isUz ? `Barcha guruhlar (${groupsList.length})` : `Все группы (${groupsList.length})`}
+          </option>
           {groupsList.map((g) => (
             <option key={g} value={g}>
-              Группа {g}
+              {isUz ? `${g}-guruhi` : `Группа ${g}`}
             </option>
           ))}
         </select>
@@ -297,8 +352,8 @@ export default function AdminSchedulePage() {
           }
           className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
         >
-          <option value="all">Все дни недели</option>
-          {DAYS.map((d) => (
+          <option value="all">{isUz ? 'Barcha kunlar' : 'Все дни недели'}</option>
+          {days.map((d) => (
             <option key={d.id} value={d.id}>
               {d.name}
             </option>
@@ -310,13 +365,15 @@ export default function AdminSchedulePage() {
       <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Загрузка расписания занятий...
+            {isUz ? 'Dars jadvali yuklanmoqda...' : 'Загрузка расписания занятий...'}
           </div>
         ) : filteredSchedule.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">Занятия не найдены</p>
+            <p className="text-sm text-muted-foreground">
+              {isUz ? 'Mashgʻulotlar topilmadi' : 'Занятия не найдены'}
+            </p>
             <Button variant="outline" size="sm" onClick={openCreateModal}>
-              Добавить пару
+              {isUz ? 'Dars qoʻshish' : 'Добавить пару'}
             </Button>
           </div>
         ) : (
@@ -324,13 +381,13 @@ export default function AdminSchedulePage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">День / Время</th>
-                  <th className="py-3 px-4">Пара</th>
-                  <th className="py-3 px-4">Группа</th>
-                  <th className="py-3 px-4">Предмет / Аудитория</th>
-                  <th className="py-3 px-4">Преподаватель</th>
-                  <th className="py-3 px-4">Четность недели</th>
-                  <th className="py-3 px-4 text-right">Действия</th>
+                  <th className="py-3 px-4">{isUz ? 'Kun / Vaqt' : 'День / Время'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Juftlik' : 'Пара'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Guruh' : 'Группа'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Fan / Xona' : 'Предмет / Аудитория'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Oʻqituvchi' : 'Преподаватель'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Haftalik' : 'Четность недели'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -358,7 +415,7 @@ export default function AdminSchedulePage() {
                       <div className="font-medium text-foreground">{s.subject}</div>
                       <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                         <MapPin className="h-3 w-3" />
-                        Ауд. {s.classroom}
+                        {isUz ? 'Xona' : 'Ауд.'} {s.classroom}
                       </div>
                     </td>
 
@@ -381,7 +438,7 @@ export default function AdminSchedulePage() {
                           size="sm"
                           onClick={() => openEditModal(s)}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title="Редактировать"
+                          title={isUz ? 'Tahrirlash' : 'Редактировать'}
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
@@ -390,7 +447,7 @@ export default function AdminSchedulePage() {
                           size="sm"
                           onClick={() => handleDelete(s.id, `${s.subject} (${s.groupName})`)}
                           className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                          title="Удалить"
+                          title={isUz ? 'Oʻchirish' : 'Удалить'}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -408,8 +465,16 @@ export default function AdminSchedulePage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingItem ? 'Редактирование занятия' : 'Добавление пары в расписание'}
-        description="Укажите группу, день, пару, дисциплину и преподавателя"
+        title={
+          editingItem
+            ? (isUz ? 'Darsni tahrirlash' : 'Редактирование занятия')
+            : (isUz ? 'Jadvalga dars qoʻshish' : 'Добавление пары в расписание')
+        }
+        description={
+          isUz
+            ? 'Guruh, kun, juftlik raqami, fan va oʻqituvchini tanlang'
+            : 'Укажите группу, день, пару, дисциплину и преподавателя'
+        }
         maxWidth="lg"
       >
         <form onSubmit={handleSave} className="space-y-4">
@@ -422,26 +487,27 @@ export default function AdminSchedulePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">
-                Учебная группа <span className="text-destructive">*</span>
+                {isUz ? 'Oʻquv guruhi' : 'Учебная группа'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
-                placeholder="ИС-21"
+                placeholder="IS-21"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                День недели <span className="text-destructive">*</span>
+                {isUz ? 'Hafta kuni' : 'День недели'} <span className="text-destructive">*</span>
               </label>
               <select
                 value={dayOfWeek}
                 onChange={(e) => setDayOfWeek(Number(e.target.value))}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                {DAYS.map((d) => (
+                {days.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
                   </option>
@@ -451,7 +517,8 @@ export default function AdminSchedulePage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Номер пары <span className="text-destructive">*</span>
+                {isUz ? 'Juftlik raqami' : 'Номер пары'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <select
                 value={lessonNumber}
@@ -460,7 +527,7 @@ export default function AdminSchedulePage() {
               >
                 {[1, 2, 3, 4, 5, 6, 7].map((num) => (
                   <option key={num} value={num}>
-                    Пара №{num} ({LESSON_TIMES[num]?.start || '—'} – {LESSON_TIMES[num]?.end || '—'})
+                    {isUz ? `${num}-juftlik` : `Пара №${num}`} ({LESSON_TIMES[num]?.start || '—'} – {LESSON_TIMES[num]?.end || '—'})
                   </option>
                 ))}
               </select>
@@ -468,38 +535,46 @@ export default function AdminSchedulePage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Аудитория <span className="text-destructive">*</span>
+                {isUz ? 'Auditoriya (xona)' : 'Аудитория'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={classroom}
                 onChange={(e) => setClassroom(e.target.value)}
-                placeholder="302, Компьютерный класс 4"
+                placeholder={isUz ? '302, 4-kompyuter sinfi' : '302, Компьютерный класс 4'}
                 required
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-semibold text-foreground">
-                Наименование дисциплины <span className="text-destructive">*</span>
+                {isUz ? 'Fan nomi' : 'Наименование дисциплины'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="Архитектура аппаратных средств"
+                placeholder={
+                  isUz
+                    ? 'Dasturiy injiniring asoslari'
+                    : 'Архитектура аппаратных средств'
+                }
                 required
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Преподаватель
+                {isUz ? 'Oʻqituvchi' : 'Преподаватель'}
               </label>
               <select
                 value={teacherId}
                 onChange={(e) => setTeacherId(e.target.value)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="">Без привязки к преподавателю</option>
+                <option value="">
+                  {isUz ? 'Oʻqituvchi biriktirilmagan' : 'Без привязки к преподавателю'}
+                </option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.fullName} ({t.position})
@@ -510,7 +585,7 @@ export default function AdminSchedulePage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Время начала
+                {isUz ? 'Boshlanish vaqti' : 'Время начала'}
               </label>
               <Input
                 value={timeStart}
@@ -521,7 +596,7 @@ export default function AdminSchedulePage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Время окончания
+                {isUz ? 'Tugash vaqti' : 'Время окончания'}
               </label>
               <Input
                 value={timeEnd}
@@ -532,16 +607,22 @@ export default function AdminSchedulePage() {
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Четность недели
+                {isUz ? 'Haftalik turi' : 'Четность недели'}
               </label>
               <select
                 value={parity}
                 onChange={(e) => setParity(e.target.value as Parity)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="both">Каждую неделю (всегда)</option>
-                <option value="odd">Только нечетная (числитель)</option>
-                <option value="even">Только четная (знаменатель)</option>
+                <option value="both">
+                  {isUz ? 'Har hafta (doimiy)' : 'Каждую неделю (всегда)'}
+                </option>
+                <option value="odd">
+                  {isUz ? 'Faqat toq hafta (surat)' : 'Только нечетная (числитель)'}
+                </option>
+                <option value="even">
+                  {isUz ? 'Faqat juft hafta (maxraj)' : 'Только четная (знаменатель)'}
+                </option>
               </select>
             </div>
           </div>
@@ -553,10 +634,12 @@ export default function AdminSchedulePage() {
               size="sm"
               onClick={() => setIsModalOpen(false)}
             >
-              Отмена
+              {isUz ? 'Bekor qilish' : 'Отмена'}
             </Button>
             <Button type="submit" size="sm" className="bg-primary text-primary-foreground">
-              {editingItem ? 'Сохранить изменения' : 'Добавить пару'}
+              {editingItem
+                ? (isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения')
+                : (isUz ? 'Darsni qoʻshish' : 'Добавить пару')}
             </Button>
           </div>
         </form>

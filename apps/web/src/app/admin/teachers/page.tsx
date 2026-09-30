@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { Teacher } from '@college/shared';
 import { ImageUploadField } from '@/components/admin/image-upload-field';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 function slugify(text: string): string {
   const ru: Record<string, string> = {
@@ -38,6 +39,9 @@ function slugify(text: string): string {
 }
 
 export default function AdminTeachersPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+
   const [teachers, setTeachers] = React.useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -68,11 +72,15 @@ export default function AdminTeachersPage() {
       const data = await apiClient.getTeachers();
       setTeachers(data.items);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить преподавателей');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Oʻqituvchilar roʻyxatini yuklab boʻlmadi' : 'Не удалось загрузить преподавателей')
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadTeachers();
@@ -81,14 +89,14 @@ export default function AdminTeachersPage() {
   const openCreateModal = () => {
     setEditingTeacher(null);
     setFullName('');
-    setPosition('Преподаватель спецдисциплин');
-    setQualification('Высшая квалификационная категория');
+    setPosition(isUz ? 'Maxsus fanlar oʻqituvchisi' : 'Преподаватель спецдисциплин');
+    setQualification(isUz ? 'Oliy toifali oʻqituvchi' : 'Высшая квалификационная категория');
     setSubjectsStr('');
     setExperienceYears(10);
     setTeachingExpYears(8);
     setEmail('');
     setPhotoUrl('');
-    setEducation('Высшее педагогическое / техническое');
+    setEducation(isUz ? 'Oliy pedagogik / texnik maʼlumot' : 'Высшее педагогическое / техническое');
     setBio('');
     setIsActive(true);
     setFormError(null);
@@ -117,11 +125,11 @@ export default function AdminTeachersPage() {
     setFormError(null);
 
     if (!fullName.trim()) {
-      setFormError('Укажите ФИО преподавателя');
+      setFormError(isUz ? 'Oʻqituvchining F.I.O. sini kiriting' : 'Укажите ФИО преподавателя');
       return;
     }
     if (!position.trim()) {
-      setFormError('Укажите должность');
+      setFormError(isUz ? 'Lavozimni kiriting' : 'Укажите должность');
       return;
     }
 
@@ -152,31 +160,48 @@ export default function AdminTeachersPage() {
         setTeachers((prev) =>
           prev.map((t) => (t.id === editingTeacher.id ? ({ ...t, ...payload } as Teacher) : t))
         );
-        setSuccess('Данные преподавателя успешно обновлены');
+        setSuccess(
+          isUz
+            ? 'Oʻqituvchi maʼlumotlari muvaffaqiyatli yangilandi'
+            : 'Данные преподавателя успешно обновлены'
+        );
       } else {
         const created = await apiClient.createTeacher(payload);
         setTeachers((prev) => [created, ...prev]);
-        setSuccess('Преподаватель успешно добавлен в реестр');
+        setSuccess(
+          isUz
+            ? 'Oʻqituvchi roʻyxatga muvaffaqiyatli qoʻshildi'
+            : 'Преподаватель успешно добавлен в реестр'
+        );
       }
       setIsModalOpen(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Ошибка при сохранении преподавателя');
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Oʻqituvchini saqlashda xatolik yuz berdi' : 'Ошибка при сохранении преподавателя')
+      );
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Вы уверены, что хотите удалить преподавателя «${name}»?`)) {
+    const confirmMsg = isUz
+      ? `Haqiqatan ham «${name}» oʻqituvchisini oʻchirmoqchimisiz?`
+      : `Вы уверены, что хотите удалить преподавателя «${name}»?`;
+    if (!window.confirm(confirmMsg)) {
       return;
     }
 
     try {
       await apiClient.deleteTeacher(id);
       setTeachers((prev) => prev.filter((t) => t.id !== id));
-      setSuccess(`Преподаватель «${name}» удален`);
+      setSuccess(
+        isUz ? `«${name}» oʻqituvchisi oʻchirildi` : `Преподаватель «${name}» удален`
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      alert('Не удалось удалить преподавателя');
+      alert(isUz ? 'Oʻqituvchini oʻchirib boʻlmadi' : 'Не удалось удалить преподавателя');
     }
   };
 
@@ -194,10 +219,12 @@ export default function AdminTeachersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Педагогический состав
+            {isUz ? 'Pedagogik tarkib' : 'Педагогический состав'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Управление преподавателями, квалификацией, дисциплинами и стажем
+            {isUz
+              ? 'Oʻqituvchilar, ularning malakasi, oʻqitadigan fanlari va stajini boshqarish'
+              : 'Управление преподавателями, квалификацией, дисциплинами и стажем'}
           </p>
         </div>
 
@@ -206,7 +233,7 @@ export default function AdminTeachersPage() {
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
         >
           <Plus className="h-4 w-4" />
-          Добавить преподавателя
+          {isUz ? 'Oʻqituvchi qoʻshish' : 'Добавить преподавателя'}
         </Button>
       </div>
 
@@ -231,7 +258,11 @@ export default function AdminTeachersPage() {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Поиск по ФИО, должности или дисциплине..."
+          placeholder={
+            isUz
+              ? 'F.I.O., lavozim yoki fan boʻyicha qidiruv...'
+              : 'Поиск по ФИО, должности или дисциплине...'
+          }
           className="pl-9 h-10"
         />
       </div>
@@ -240,13 +271,15 @@ export default function AdminTeachersPage() {
       <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Загрузка преподавателей...
+            {isUz ? 'Oʻqituvchilar yuklanmoqda...' : 'Загрузка преподавателей...'}
           </div>
         ) : filteredTeachers.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">Преподаватели не найдены</p>
+            <p className="text-sm text-muted-foreground">
+              {isUz ? 'Oʻqituvchilar topilmadi' : 'Преподаватели не найдены'}
+            </p>
             <Button variant="outline" size="sm" onClick={openCreateModal}>
-              Добавить преподавателя
+              {isUz ? 'Oʻqituvchi qoʻshish' : 'Добавить преподавателя'}
             </Button>
           </div>
         ) : (
@@ -254,12 +287,12 @@ export default function AdminTeachersPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">Фото</th>
-                  <th className="py-3 px-4">ФИО / Должность</th>
-                  <th className="py-3 px-4">Дисциплины</th>
-                  <th className="py-3 px-4">Стаж (общ./пед.)</th>
-                  <th className="py-3 px-4">Статус</th>
-                  <th className="py-3 px-4 text-right">Действия</th>
+                  <th className="py-3 px-4">{isUz ? 'Rasm' : 'Фото'}</th>
+                  <th className="py-3 px-4">{isUz ? 'F.I.O. / Lavozim' : 'ФИО / Должность'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Fanlar' : 'Дисциплины'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Staj (umum./ped.)' : 'Стаж (общ./пед.)'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Holat' : 'Статус'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -308,18 +341,25 @@ export default function AdminTeachersPage() {
                     </td>
 
                     <td className="py-3 px-4 text-xs text-muted-foreground whitespace-nowrap">
-                      <div>Общий: {t.experienceYears} лет</div>
-                      <div>Пед: {t.teachingExperienceYears} лет</div>
+                      <div>
+                        {isUz ? 'Umumiy' : 'Общий'}: {t.experienceYears} {isUz ? 'yil' : 'лет'}
+                      </div>
+                      <div>
+                        {isUz ? 'Ped' : 'Пед'}: {t.teachingExperienceYears} {isUz ? 'yil' : 'лет'}
+                      </div>
                     </td>
 
                     <td className="py-3 px-4">
                       {t.isActive ? (
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
-                          Активен
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs"
+                        >
+                          {isUz ? 'Faol' : 'Активен'}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="bg-muted text-muted-foreground text-xs">
-                          В архиве
+                          {isUz ? 'Arxivda' : 'В архиве'}
                         </Badge>
                       )}
                     </td>
@@ -331,7 +371,7 @@ export default function AdminTeachersPage() {
                           size="sm"
                           onClick={() => openEditModal(t)}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title="Редактировать"
+                          title={isUz ? 'Tahrirlash' : 'Редактировать'}
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
@@ -340,7 +380,7 @@ export default function AdminTeachersPage() {
                           size="sm"
                           onClick={() => handleDelete(t.id, t.fullName)}
                           className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                          title="Удалить"
+                          title={isUz ? 'Oʻchirish' : 'Удалить'}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -358,8 +398,16 @@ export default function AdminTeachersPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingTeacher ? 'Редактирование преподавателя' : 'Добавление преподавателя'}
-        description="Заполните анкетные данные преподавателя в соответствии со статьей 37 Закона РУз «Об образовании»"
+        title={
+          editingTeacher
+            ? (isUz ? 'Oʻqituvchi maʼlumotlarini tahrirlash' : 'Редактирование преподавателя')
+            : (isUz ? 'Yangi oʻqituvchi qoʻshish' : 'Добавление преподавателя')
+        }
+        description={
+          isUz
+            ? '«Taʼlim toʻgʻrisida»gi Qonunning 37-moddasi talablariga muvofiq oʻqituvchi anketasini toʻldiring'
+            : 'Заполните анкетные данные преподавателя в соответствии со статьей 37 Закона РУз «Об образовании»'
+        }
         maxWidth="xl"
       >
         <form onSubmit={handleSave} className="space-y-4">
@@ -372,53 +420,62 @@ export default function AdminTeachersPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-semibold text-foreground">
-                ФИО преподавателя <span className="text-destructive">*</span>
+                {isUz ? 'Oʻqituvchining F.I.O.' : 'ФИО преподавателя'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Qodirov Alisher Rustamovich / Кадиров Алишер Рустамович"
+                placeholder="Qodirov Alisher Rustamovich"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Должность <span className="text-destructive">*</span>
+                {isUz ? 'Lavozimi' : 'Должность'} <span className="text-destructive">*</span>
               </label>
               <Input
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                placeholder="Преподаватель спецдисциплин"
+                placeholder={isUz ? 'Maxsus fanlar oʻqituvchisi' : 'Преподаватель спецдисциплин'}
                 required
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Квалификационная категория
+                {isUz ? 'Malaka toifasi' : 'Квалификационная категория'}
               </label>
               <Input
                 value={qualification}
                 onChange={(e) => setQualification(e.target.value)}
-                placeholder="Высшая квалификационная категория"
+                placeholder={
+                  isUz ? 'Oliy toifali oʻqituvchi' : 'Высшая квалификационная категория'
+                }
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Преподаваемые дисциплины (через запятую)
+                {isUz
+                  ? 'Oʻqitadigan fanlari (vergul bilan ajrating)'
+                  : 'Преподаваемые дисциплины (через запятую)'}
               </label>
               <Input
                 value={subjectsStr}
                 onChange={(e) => setSubjectsStr(e.target.value)}
-                placeholder="Информатика, Базы данных, Веб-разработка"
+                placeholder={
+                  isUz
+                    ? 'Informatika, Maʼlumotlar bazasi, Web-dasturlash'
+                    : 'Информатика, Базы данных, Веб-разработка'
+                }
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Общий стаж работы (лет)
+                {isUz ? 'Umumiy ish staji (yil)' : 'Общий стаж работы (лет)'}
               </label>
               <Input
                 type="number"
@@ -430,7 +487,9 @@ export default function AdminTeachersPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Стаж работы по специальности / пед. (лет)
+                {isUz
+                  ? 'Pedagogik / mutaxassislik staji (yil)'
+                  : 'Стаж работы по специальности / пед. (лет)'}
               </label>
               <Input
                 type="number"
@@ -442,7 +501,7 @@ export default function AdminTeachersPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Электронная почта
+                {isUz ? 'Elektron pochta' : 'Электронная почта'}
               </label>
               <Input
                 type="email"
@@ -456,8 +515,12 @@ export default function AdminTeachersPage() {
               <ImageUploadField
                 value={photoUrl}
                 onChange={setPhotoUrl}
-                label="Oʻqituvchi fotosurati / Фотография преподавателя"
-                description="Rasmiy portret fotosurati (JPG, PNG, WEBP, 10 MB gacha)"
+                label={isUz ? 'Oʻqituvchi fotosurati' : 'Фотография преподавателя'}
+                description={
+                  isUz
+                    ? 'Rasmiy portret fotosurati (JPG, PNG, WEBP, 10 MB gacha)'
+                    : 'Официальная портретная фотография (JPG, PNG, WEBP, до 10 МБ)'
+                }
                 bucket="news-media"
                 aspectRatio="portrait"
               />
@@ -465,36 +528,50 @@ export default function AdminTeachersPage() {
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Уровень образования / Наименование направления подготовки
+                {isUz
+                  ? 'Maʼlumot darajasi / Mutaxassislik yoʻnalishi'
+                  : 'Уровень образования / Наименование направления подготовки'}
               </label>
               <Input
                 value={education}
                 onChange={(e) => setEducation(e.target.value)}
-                placeholder="Высшее образование, Информационные системы и технологии"
+                placeholder={
+                  isUz
+                    ? 'Oliy maʼlumot, Axborot tizimlari va texnologiyalari'
+                    : 'Высшее образование, Информационные системы и технологии'
+                }
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Краткая биография и достижения
+                {isUz ? 'Qisqa tarjimai hol va yutuqlar' : 'Краткая биография и достижения'}
               </label>
               <Textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 rows={3}
-                placeholder="Почетный работник СПО, автор методических разработок..."
+                placeholder={
+                  isUz
+                    ? 'Oʻrta maxsus taʼlim aʼlochisi, koʻplab uslubiy qoʻllanmalar muallifi...'
+                    : 'Почетный работник СПО, автор методических разработок...'
+                }
               />
             </div>
 
             <div className="sm:col-span-2 pt-2">
-              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
+              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                 />
-                <span>Активный преподаватель (отображать на сайте)</span>
+                <span>
+                  {isUz
+                    ? 'Faol oʻqituvchi (saytda koʻrsatish)'
+                    : 'Активный преподаватель (отображать на сайте)'}
+                </span>
               </label>
             </div>
           </div>
@@ -506,10 +583,12 @@ export default function AdminTeachersPage() {
               size="sm"
               onClick={() => setIsModalOpen(false)}
             >
-              Отмена
+              {isUz ? 'Bekor qilish' : 'Отмена'}
             </Button>
             <Button type="submit" size="sm" className="bg-primary text-primary-foreground">
-              {editingTeacher ? 'Сохранить изменения' : 'Добавить'}
+              {editingTeacher
+                ? (isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения')
+                : (isUz ? 'Qoʻshish' : 'Добавить')}
             </Button>
           </div>
         </form>

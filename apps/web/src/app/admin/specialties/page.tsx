@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { Specialty, BaseEducation } from '@college/shared';
 import { ImageUploadField } from '@/components/admin/image-upload-field';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 function slugify(text: string): string {
   const ru: Record<string, string> = {
@@ -38,6 +39,9 @@ function slugify(text: string): string {
 }
 
 export default function AdminSpecialtiesPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+
   const [specialties, setSpecialties] = React.useState<Specialty[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -52,7 +56,7 @@ export default function AdminSpecialtiesPage() {
   const [code, setCode] = React.useState('');
   const [name, setName] = React.useState('');
   const [qualification, setQualification] = React.useState('');
-  const [durationText, setDurationText] = React.useState('3 года 10 месяцев');
+  const [durationText, setDurationText] = React.useState('3 yil 10 oy');
   const [durationMonths, setDurationMonths] = React.useState<number>(46);
   const [baseEducation, setBaseEducation] = React.useState<BaseEducation>('9_classes');
   const [budgetPlaces, setBudgetPlaces] = React.useState<number>(50);
@@ -71,11 +75,15 @@ export default function AdminSpecialtiesPage() {
       const data = await apiClient.getSpecialties();
       setSpecialties(data.items);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить специальности');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Mutaxassisliklarni yuklab boʻlmadi' : 'Не удалось загрузить специальности')
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadSpecialties();
@@ -85,8 +93,10 @@ export default function AdminSpecialtiesPage() {
     setEditingItem(null);
     setCode('40610101');
     setName('');
-    setQualification('Dasturiy injiniring texnigi / Техник программной инженерии');
-    setDurationText('3 года 10 месяцев');
+    setQualification(
+      isUz ? 'Dasturiy injiniring texnigi' : 'Техник программной инженерии'
+    );
+    setDurationText(isUz ? '3 yil 10 oy' : '3 года 10 месяцев');
     setDurationMonths(46);
     setBaseEducation('9_classes');
     setBudgetPlaces(50);
@@ -126,7 +136,11 @@ export default function AdminSpecialtiesPage() {
     setFormError(null);
 
     if (!code.trim() || !name.trim()) {
-      setFormError('Укажите код и наименование специальности');
+      setFormError(
+        isUz
+          ? 'Mutaxassislik kodi va nomini kiriting'
+          : 'Укажите код и наименование специальности'
+      );
       return;
     }
 
@@ -155,30 +169,43 @@ export default function AdminSpecialtiesPage() {
         setSpecialties((prev) =>
           prev.map((s) => (s.id === editingItem.id ? ({ ...s, ...payload } as Specialty) : s))
         );
-        setSuccess('Специальность успешно обновлена');
+        setSuccess(
+          isUz ? 'Mutaxassislik muvaffaqiyatli yangilandi' : 'Специальность успешно обновлена'
+        );
       } else {
         const created = await apiClient.createSpecialty(payload);
         setSpecialties((prev) => [created, ...prev]);
-        setSuccess('Специальность добавлена в каталог');
+        setSuccess(
+          isUz ? 'Mutaxassislik katalogga qoʻshildi' : 'Специальность добавлена в каталог'
+        );
       }
       setIsModalOpen(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Ошибка при сохранении специальности');
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Mutaxassislikni saqlashda xatolik yuz berdi' : 'Ошибка при сохранении специальности')
+      );
     }
   };
 
   const handleDelete = async (id: string, itemName: string) => {
-    if (!window.confirm(`Вы уверены, что хотите удалить специальность «${itemName}»?`)) {
+    const confirmMsg = isUz
+      ? `Haqiqatan ham «${itemName}» mutaxassisligini oʻchirmoqchimisiz?`
+      : `Вы уверены, что хотите удалить специальность «${itemName}»?`;
+    if (!window.confirm(confirmMsg)) {
       return;
     }
     try {
       await apiClient.deleteSpecialty(id);
       setSpecialties((prev) => prev.filter((s) => s.id !== id));
-      setSuccess(`Специальность «${itemName}» удалена`);
+      setSuccess(
+        isUz ? `«${itemName}» mutaxassisligi oʻchirildi` : `Специальность «${itemName}» удалена`
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      alert('Не удалось удалить специальность');
+      alert(isUz ? 'Mutaxassislikni oʻchirib boʻlmadi' : 'Не удалось удалить специальность');
     }
   };
 
@@ -196,10 +223,12 @@ export default function AdminSpecialtiesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Специальности и профессии
+            {isUz ? 'Mutaxassisliklar va kasblar' : 'Специальности и профессии'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Управление образовательными программами техникума, контрольными цифрами приема (грант / контракт) и описаниями
+            {isUz
+              ? 'Texnikum taʼlim dasturlari, qabul reja koʻrsatkichlari (grant / toʻlov-kontrakt) va tavsiflarini boshqarish'
+              : 'Управление образовательными программами техникума, контрольными цифрами приема (грант / контракт) и описаниями'}
           </p>
         </div>
 
@@ -208,7 +237,7 @@ export default function AdminSpecialtiesPage() {
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
         >
           <Plus className="h-4 w-4" />
-          Добавить специальность
+          {isUz ? 'Mutaxassislik qoʻshish' : 'Добавить специальность'}
         </Button>
       </div>
 
@@ -233,7 +262,9 @@ export default function AdminSpecialtiesPage() {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Поиск по коду (40610101), названию..."
+          placeholder={
+            isUz ? 'Kodi (40610101), nomi boʻyicha qidiruv...' : 'Поиск по коду (40610101), названию...'
+          }
           className="pl-9 h-10"
         />
       </div>
@@ -242,13 +273,15 @@ export default function AdminSpecialtiesPage() {
       <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Загрузка специальностей...
+            {isUz ? 'Mutaxassisliklar yuklanmoqda...' : 'Загрузка специальностей...'}
           </div>
         ) : filteredSpecialties.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">Специальности не найдены</p>
+            <p className="text-sm text-muted-foreground">
+              {isUz ? 'Mutaxassisliklar topilmadi' : 'Специальности не найдены'}
+            </p>
             <Button variant="outline" size="sm" onClick={openCreateModal}>
-              Добавить специальность
+              {isUz ? 'Mutaxassislik qoʻshish' : 'Добавить специальность'}
             </Button>
           </div>
         ) : (
@@ -256,12 +289,12 @@ export default function AdminSpecialtiesPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">Код / Название</th>
-                  <th className="py-3 px-4">Квалификация</th>
-                  <th className="py-3 px-4">Срок / База</th>
-                  <th className="py-3 px-4">Места (грант / контр.)</th>
-                  <th className="py-3 px-4">Балл аттестата</th>
-                  <th className="py-3 px-4 text-right">Действия</th>
+                  <th className="py-3 px-4">{isUz ? 'Kod / Nomi' : 'Код / Название'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Malaka' : 'Квалификация'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Muddat / Negiz' : 'Срок / База'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Oʻrinlar (grant / kontr.)' : 'Места (грант / контр.)'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Oʻtish balli' : 'Балл аттестата'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -287,18 +320,19 @@ export default function AdminSpecialtiesPage() {
                       <div>{s.durationText}</div>
                       <Badge variant="outline" className="text-[10px] mt-0.5">
                         {s.baseEducation === '9_classes'
-                          ? 'На базе 9 кл.'
+                          ? (isUz ? '9-sinf negizida' : 'На базе 9 кл.')
                           : s.baseEducation === '11_classes'
-                          ? 'На базе 11 кл.'
-                          : '9 и 11 кл.'}
+                          ? (isUz ? '11-sinf negizida' : 'На базе 11 кл.')
+                          : (isUz ? '9 va 11-sinf' : '9 и 11 кл.')}
                       </Badge>
                     </td>
 
                     <td className="py-3 px-4 text-xs text-foreground">
                       <div className="flex items-center gap-1.5 font-medium">
                         <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-emerald-600 font-bold">{s.budgetPlaces}</span> г /{' '}
-                        <span>{s.commercialPlaces}</span> к
+                        <span className="text-emerald-600 font-bold">{s.budgetPlaces}</span>{' '}
+                        {isUz ? 'gr' : 'г'} /{' '}
+                        <span>{s.commercialPlaces}</span> {isUz ? 'k' : 'к'}
                       </div>
                     </td>
 
@@ -319,7 +353,7 @@ export default function AdminSpecialtiesPage() {
                           size="sm"
                           onClick={() => openEditModal(s)}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title="Редактировать"
+                          title={isUz ? 'Tahrirlash' : 'Редактировать'}
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
@@ -328,7 +362,7 @@ export default function AdminSpecialtiesPage() {
                           size="sm"
                           onClick={() => handleDelete(s.id, s.name)}
                           className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                          title="Удалить"
+                          title={isUz ? 'Oʻchirish' : 'Удалить'}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -346,8 +380,16 @@ export default function AdminSpecialtiesPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingItem ? 'Редактирование специальности' : 'Добавление специальности техникума'}
-        description="Заполните параметры образовательной программы и контрольные цифры приема"
+        title={
+          editingItem
+            ? (isUz ? 'Mutaxassislikni tahrirlash' : 'Редактирование специальности')
+            : (isUz ? 'Yangi mutaxassislik qoʻshish' : 'Добавление специальности техникума')
+        }
+        description={
+          isUz
+            ? 'Taʼlim dasturi parametrlari va qabul reja koʻrsatkichlarini kiriting'
+            : 'Заполните параметры образовательной программы и контрольные цифры приема'
+        }
         maxWidth="xl"
       >
         <form onSubmit={handleSave} className="space-y-4">
@@ -360,7 +402,8 @@ export default function AdminSpecialtiesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">
-                Код специальности <span className="text-destructive">*</span>
+                {isUz ? 'Mutaxassislik kodi' : 'Код специальности'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={code}
@@ -372,57 +415,65 @@ export default function AdminSpecialtiesPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">
-                Наименование специальности <span className="text-destructive">*</span>
+                {isUz ? 'Mutaxassislik nomi' : 'Наименование специальности'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Kompyuter injiniringi / Компьютерный инжиниринг"
+                placeholder="Kompyuter injiniringi"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Присваиваемая квалификация <span className="text-destructive">*</span>
+                {isUz ? 'Beriladigan malaka' : 'Присваиваемая квалификация'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={qualification}
                 onChange={(e) => setQualification(e.target.value)}
-                placeholder="Dasturchi / Техник-программист"
+                placeholder="Dasturchi-texnik"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Базовое образование для поступления
+                {isUz ? 'Taʼlim negizi' : 'Базовое образование для поступления'}
               </label>
               <select
                 value={baseEducation}
                 onChange={(e) => setBaseEducation(e.target.value as BaseEducation)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="9_classes">9-sinf negizida (На базе 9 классов)</option>
-                <option value="11_classes">11-sinf negizida (На базе 11 классов)</option>
-                <option value="both">9 va 11-sinf (На базе 9 и 11 классов)</option>
+                <option value="9_classes">
+                  {isUz ? '9-sinf negizida' : 'На базе 9 классов'}
+                </option>
+                <option value="11_classes">
+                  {isUz ? '11-sinf negizida' : 'На базе 11 классов'}
+                </option>
+                <option value="both">
+                  {isUz ? '9 va 11-sinf negizida' : 'На базе 9 и 11 классов'}
+                </option>
               </select>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Срок обучения (текст)
+                {isUz ? 'Oʻqish muddati (matn)' : 'Срок обучения (текст)'}
               </label>
               <Input
                 value={durationText}
                 onChange={(e) => setDurationText(e.target.value)}
-                placeholder="3 года 10 месяцев"
+                placeholder={isUz ? '3 yil 10 oy' : '3 года 10 месяцев'}
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Срок обучения в месяцах
+                {isUz ? 'Oʻqish muddati (oy)' : 'Срок обучения в месяцах'}
               </label>
               <Input
                 type="number"
@@ -433,7 +484,7 @@ export default function AdminSpecialtiesPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Мест по государственному гранту
+                {isUz ? 'Davlat granti boʻyicha oʻrinlar' : 'Мест по государственному гранту'}
               </label>
               <Input
                 type="number"
@@ -445,7 +496,7 @@ export default function AdminSpecialtiesPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Мест на платно-контрактной основе
+                {isUz ? 'Toʻlov-kontrakt boʻyicha oʻrinlar' : 'Мест на платно-контрактной основе'}
               </label>
               <Input
                 type="number"
@@ -457,7 +508,7 @@ export default function AdminSpecialtiesPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Стоимость обучения (сум/год)
+                {isUz ? 'Yillik kontrakt miqdori (soʻm)' : 'Стоимость обучения (сум/год)'}
               </label>
               <Input
                 type="number"
@@ -469,7 +520,9 @@ export default function AdminSpecialtiesPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Проходной балл аттестата прошлого года
+                {isUz
+                  ? 'Oʻtgan yilgi oʻtish bali (attestat)'
+                  : 'Проходной балл аттестата прошлого года'}
               </label>
               <Input
                 type="number"
@@ -484,8 +537,12 @@ export default function AdminSpecialtiesPage() {
               <ImageUploadField
                 value={coverImageUrl}
                 onChange={setCoverImageUrl}
-                label="Mutaxassislik rasmi / Обложка специальности"
-                description="Yoʻnalish sahifasining asosiy rasmi (16:9, JPG, PNG, WEBP, 10 MB gacha)"
+                label={isUz ? 'Mutaxassislik rasmi' : 'Обложка специальности'}
+                description={
+                  isUz
+                    ? 'Yoʻnalish sahifasining asosiy rasmi (16:9, JPG, PNG, WEBP, 10 MB gacha)'
+                    : 'Основное изображение страницы направления (16:9, JPG, PNG, WEBP, до 10 МБ)'
+                }
                 bucket="news-media"
                 aspectRatio="video"
               />
@@ -493,37 +550,51 @@ export default function AdminSpecialtiesPage() {
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Описание специальности
+                {isUz ? 'Mutaxassislik tavsifi' : 'Описание специальности'}
               </label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                placeholder="Специальность готовит специалистов по разработке..."
+                placeholder={
+                  isUz
+                    ? 'Ushbu mutaxassislik dasturiy taʼminot yaratish, sinash va tatbiq etish...'
+                    : 'Специальность готовит специалистов по разработке...'
+                }
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">
-                Карьерные перспективы и кем работают выпускники
+                {isUz
+                  ? 'Karyera imkoniyatlari va bitiruvchilar qayerda ishlaydi'
+                  : 'Карьерные перспективы и кем работают выпускники'}
               </label>
               <Textarea
                 value={careerOpportunities}
                 onChange={(e) => setCareerOpportunities(e.target.value)}
                 rows={2}
-                placeholder="Младший веб-разработчик, инженер по тестированию, системный аналитик..."
+                placeholder={
+                  isUz
+                    ? 'Kichik web-dasturchi, testlovchi muhandis, tizim administratori...'
+                    : 'Младший веб-разработчик, инженер по тестированию, системный аналитик...'
+                }
               />
             </div>
 
             <div className="sm:col-span-2 pt-2">
-              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
+              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                 />
-                <span>Активная программа (отображать в разделе «Поступающим» и «Специальности»)</span>
+                <span>
+                  {isUz
+                    ? 'Faol dastur («Abituriyentlarga» va «Mutaxassisliklar» boʻlimida koʻrsatish)'
+                    : 'Активная программа (отображать в разделе «Поступающим» и «Специальности»)'}
+                </span>
               </label>
             </div>
           </div>
@@ -535,10 +606,12 @@ export default function AdminSpecialtiesPage() {
               size="sm"
               onClick={() => setIsModalOpen(false)}
             >
-              Отмена
+              {isUz ? 'Bekor qilish' : 'Отмена'}
             </Button>
             <Button type="submit" size="sm" className="bg-primary text-primary-foreground">
-              {editingItem ? 'Сохранить изменения' : 'Создать специальность'}
+              {editingItem
+                ? (isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения')
+                : (isUz ? 'Mutaxassislikni yaratish' : 'Создать специальность')}
             </Button>
           </div>
         </form>

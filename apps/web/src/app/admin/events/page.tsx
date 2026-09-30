@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { EventItem, EventCategory } from '@college/shared';
 import { ImageUploadField } from '@/components/admin/image-upload-field';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 function slugify(text: string): string {
   const ru: Record<string, string> = {
@@ -40,6 +41,9 @@ function slugify(text: string): string {
 }
 
 export default function AdminEventsPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+
   const [events, setEvents] = React.useState<EventItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -70,11 +74,15 @@ export default function AdminEventsPage() {
       const data = await apiClient.getEvents();
       setEvents(data.items);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить мероприятия');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Tadbirlarni yuklab boʻlmadi' : 'Не удалось загрузить мероприятия')
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadEvents();
@@ -85,9 +93,9 @@ export default function AdminEventsPage() {
     setTitle('');
     setDescription('');
     setEventDate(new Date(Date.now() + 86400000 * 3).toISOString().substring(0, 16));
-    setLocation('Главный корпус, Актовый зал');
+    setLocation(isUz ? 'Bosh bino, Faollar zali' : 'Главный корпус, Актовый зал');
     setCategory('open_doors');
-    setOrganizer('Приемная комиссия колледжа');
+    setOrganizer(isUz ? 'Texnikum qabul komissiyasi' : 'Приемная комиссия колледжа');
     setRegistrationUrl('');
     setCoverImageUrl('');
     setIsFeatured(false);
@@ -117,7 +125,11 @@ export default function AdminEventsPage() {
     setFormError(null);
 
     if (!title.trim() || !description.trim() || !eventDate.trim()) {
-      setFormError('Заполните обязательные поля: название, описание, дату');
+      setFormError(
+        isUz
+          ? 'Majburiy maydonlarni toʻldiring: nomi, tavsifi, sanasi'
+          : 'Заполните обязательные поля: название, описание, дату'
+      );
       return;
     }
 
@@ -141,16 +153,24 @@ export default function AdminEventsPage() {
         setEvents((prev) =>
           prev.map((it) => (it.id === editingItem.id ? ({ ...it, ...payload } as EventItem) : it))
         );
-        setSuccess('Мероприятие успешно обновлено');
+        setSuccess(
+          isUz ? 'Tadbir muvaffaqiyatli yangilandi' : 'Мероприятие успешно обновлено'
+        );
       } else {
         const created = await apiClient.createEvent(payload);
         setEvents((prev) => [created, ...prev]);
-        setSuccess('Мероприятие добавлено в календарь');
+        setSuccess(
+          isUz ? 'Tadbir taqvimga qoʻshildi' : 'Мероприятие добавлено в календарь'
+        );
       }
       setIsModalOpen(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Ошибка при сохранении мероприятия');
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Tadbirni saqlashda xatolik yuz berdi' : 'Ошибка при сохранении мероприятия')
+      );
     }
   };
 
@@ -162,21 +182,26 @@ export default function AdminEventsPage() {
         prev.map((e) => (e.id === item.id ? { ...e, isPublished: nextStatus } : e))
       );
     } catch {
-      alert('Не удалось изменить статус публикации');
+      alert(isUz ? 'Nashr holatini oʻzgartirib boʻlmadi' : 'Не удалось изменить статус публикации');
     }
   };
 
   const handleDelete = async (id: string, itemName: string) => {
-    if (!window.confirm(`Вы уверены, что хотите удалить мероприятие «${itemName}»?`)) {
+    const confirmMsg = isUz
+      ? `Haqiqatan ham «${itemName}» tadbirini oʻchirmoqchimisiz?`
+      : `Вы уверены, что хотите удалить мероприятие «${itemName}»?`;
+    if (!window.confirm(confirmMsg)) {
       return;
     }
     try {
       await apiClient.deleteEvent(id);
       setEvents((prev) => prev.filter((it) => it.id !== id));
-      setSuccess(`Мероприятие «${itemName}» удалено`);
+      setSuccess(
+        isUz ? `«${itemName}» tadbiri oʻchirildi` : `Мероприятие «${itemName}» удалено`
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      alert('Не удалось удалить мероприятие');
+      alert(isUz ? 'Tadbirni oʻchirib boʻlmadi' : 'Не удалось удалить мероприятие');
     }
   };
 
@@ -194,15 +219,31 @@ export default function AdminEventsPage() {
   const getCategoryBadge = (cat: EventCategory) => {
     switch (cat) {
       case 'open_doors':
-        return <Badge variant="outline" className="text-primary border-primary/20">День открытых дверей</Badge>;
+        return (
+          <Badge variant="outline" className="text-primary border-primary/20">
+            {isUz ? 'Ochiq eshiklar kuni' : 'День открытых дверей'}
+          </Badge>
+        );
       case 'science':
-        return <Badge variant="outline" className="text-emerald-600 border-emerald-500/20">Наука</Badge>;
+        return (
+          <Badge variant="outline" className="text-emerald-600 border-emerald-500/20">
+            {isUz ? 'Fan va olimpiada' : 'Наука'}
+          </Badge>
+        );
       case 'sports':
-        return <Badge variant="outline" className="text-amber-600 border-amber-500/20">Спорт</Badge>;
+        return (
+          <Badge variant="outline" className="text-amber-600 border-amber-500/20">
+            {isUz ? 'Sport' : 'Спорт'}
+          </Badge>
+        );
       case 'culture':
-        return <Badge variant="outline" className="text-purple-600 border-purple-500/20">Культура</Badge>;
+        return (
+          <Badge variant="outline" className="text-purple-600 border-purple-500/20">
+            {isUz ? 'Madaniyat' : 'Культура'}
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">Общее</Badge>;
+        return <Badge variant="outline">{isUz ? 'Umumiy' : 'Общее'}</Badge>;
     }
   };
 
@@ -212,10 +253,12 @@ export default function AdminEventsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Календарь событий и мероприятий
+            {isUz ? 'Tadbirlar taqvimi' : 'Календарь событий и мероприятий'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Управление днями открытых дверей, олимпиадами, конференциями и студенческими событиями
+            {isUz
+              ? 'Ochiq eshiklar kuni, olimpiadalar, konferensiyalar va talabalar tadbirlarini boshqarish'
+              : 'Управление днями открытых дверей, олимпиадами, конференциями и студенческими событиями'}
           </p>
         </div>
 
@@ -224,7 +267,7 @@ export default function AdminEventsPage() {
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
         >
           <Plus className="h-4 w-4" />
-          Добавить событие
+          {isUz ? 'Tadbir qoʻshish' : 'Добавить событие'}
         </Button>
       </div>
 
@@ -250,7 +293,9 @@ export default function AdminEventsPage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск по названию или месту..."
+            placeholder={
+              isUz ? 'Nomi yoki joyi boʻyicha qidiruv...' : 'Поиск по названию или месту...'
+            }
             className="pl-9 h-10"
           />
         </div>
@@ -260,12 +305,14 @@ export default function AdminEventsPage() {
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
         >
-          <option value="all">Все категории</option>
-          <option value="open_doors">День открытых дверей</option>
-          <option value="science">Наука</option>
-          <option value="sports">Спорт</option>
-          <option value="culture">Культура</option>
-          <option value="general">Общее</option>
+          <option value="all">{isUz ? 'Barcha toifalar' : 'Все категории'}</option>
+          <option value="open_doors">
+            {isUz ? 'Ochiq eshiklar kuni' : 'День открытых дверей'}
+          </option>
+          <option value="science">{isUz ? 'Fan va olimpiadalar' : 'Наука'}</option>
+          <option value="sports">{isUz ? 'Sport' : 'Спорт'}</option>
+          <option value="culture">{isUz ? 'Madaniyat' : 'Культура'}</option>
+          <option value="general">{isUz ? 'Umumiy' : 'Общее'}</option>
         </select>
       </div>
 
@@ -273,13 +320,15 @@ export default function AdminEventsPage() {
       <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Загрузка событий...
+            {isUz ? 'Tadbirlar yuklanmoqda...' : 'Загрузка событий...'}
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">События не найдены</p>
+            <p className="text-sm text-muted-foreground">
+              {isUz ? 'Tadbirlar topilmadi' : 'События не найдены'}
+            </p>
             <Button variant="outline" size="sm" onClick={openCreateModal}>
-              Создать событие
+              {isUz ? 'Tadbir yaratish' : 'Создать событие'}
             </Button>
           </div>
         ) : (
@@ -287,12 +336,12 @@ export default function AdminEventsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">Событие</th>
-                  <th className="py-3 px-4">Категория</th>
-                  <th className="py-3 px-4">Дата и время</th>
-                  <th className="py-3 px-4">Место проведения</th>
-                  <th className="py-3 px-4">Статус</th>
-                  <th className="py-3 px-4 text-right">Действия</th>
+                  <th className="py-3 px-4">{isUz ? 'Tadbir' : 'Событие'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Toifa' : 'Категория'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Sana va vaqt' : 'Дата и время'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Oʻtkazilish joyi' : 'Место проведения'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Holat' : 'Статус'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -305,21 +354,19 @@ export default function AdminEventsPage() {
                       </div>
                     </td>
 
-                    <td className="py-3 px-4">
-                      {getCategoryBadge(e.category)}
-                    </td>
+                    <td className="py-3 px-4">{getCategoryBadge(e.category)}</td>
 
                     <td className="py-3 px-4 text-xs text-muted-foreground whitespace-nowrap">
                       <div className="flex items-center gap-1 font-medium text-foreground">
                         <Calendar className="h-3.5 w-3.5 text-primary" />
-                        {new Date(e.eventDate).toLocaleDateString('ru-RU', {
+                        {new Date(e.eventDate).toLocaleDateString(isUz ? 'uz-UZ' : 'ru-RU', {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric',
                         })}
                       </div>
                       <div className="text-[11px] text-muted-foreground">
-                        {new Date(e.eventDate).toLocaleTimeString('ru-RU', {
+                        {new Date(e.eventDate).toLocaleTimeString(isUz ? 'uz-UZ' : 'ru-RU', {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
@@ -335,12 +382,18 @@ export default function AdminEventsPage() {
 
                     <td className="py-3 px-4">
                       {e.isPublished ? (
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
-                          Опубликовано
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs"
+                        >
+                          {isUz ? 'Eʼlon qilingan' : 'Опубликовано'}
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs">
-                          Скрыто
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs"
+                        >
+                          {isUz ? 'Yashirin' : 'Скрыто'}
                         </Badge>
                       )}
                     </td>
@@ -352,7 +405,15 @@ export default function AdminEventsPage() {
                           size="sm"
                           onClick={() => handleTogglePublish(e)}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title={e.isPublished ? 'Скрыть событие' : 'Опубликовать'}
+                          title={
+                            isUz
+                              ? e.isPublished
+                                ? 'Tadbirni yashirish'
+                                : 'Eʼlon qilish'
+                              : e.isPublished
+                              ? 'Скрыть событие'
+                              : 'Опубликовать'
+                          }
                         >
                           {e.isPublished ? (
                             <EyeOff className="h-3.5 w-3.5 text-amber-600" />
@@ -365,7 +426,7 @@ export default function AdminEventsPage() {
                           size="sm"
                           onClick={() => openEditModal(e)}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title="Редактировать"
+                          title={isUz ? 'Tahrirlash' : 'Редактировать'}
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
@@ -374,7 +435,7 @@ export default function AdminEventsPage() {
                           size="sm"
                           onClick={() => handleDelete(e.id, e.title)}
                           className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                          title="Удалить"
+                          title={isUz ? 'Oʻchirish' : 'Удалить'}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -392,8 +453,16 @@ export default function AdminEventsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingItem ? 'Редактирование мероприятия' : 'Создание мероприятия'}
-        description="Заполните информацию о мероприятии колледжа и расписание"
+        title={
+          editingItem
+            ? (isUz ? 'Tadbirni tahrirlash' : 'Редактирование мероприятия')
+            : (isUz ? 'Yangi tadbir yaratish' : 'Создание мероприятия')
+        }
+        description={
+          isUz
+            ? 'Texnikum tadbiri maʼlumotlari va oʻtkazilish rejasini kiriting'
+            : 'Заполните информацию о мероприятии колледжа и расписание'
+        }
         maxWidth="lg"
       >
         <form onSubmit={handleSave} className="space-y-4">
@@ -406,12 +475,17 @@ export default function AdminEventsPage() {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">
-                Название мероприятия <span className="text-destructive">*</span>
+                {isUz ? 'Tadbir nomi' : 'Название мероприятия'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="День открытых дверей IT-отделения"
+                placeholder={
+                  isUz
+                    ? 'Axborot texnologiyalari boʻlimining ochiq eshiklar kuni'
+                    : 'День открытых дверей IT-отделения'
+                }
                 required
               />
             </div>
@@ -419,24 +493,35 @@ export default function AdminEventsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Категория события
+                  {isUz ? 'Tadbir toifasi' : 'Категория события'}
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as EventCategory)}
                   className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 >
-                  <option value="open_doors">День открытых дверей</option>
-                  <option value="science">Наука и олимпиады</option>
-                  <option value="sports">Спорт и соревнования</option>
-                  <option value="culture">Культура и фестивали</option>
-                  <option value="general">Общее мероприятие</option>
+                  <option value="open_doors">
+                    {isUz ? 'Ochiq eshiklar kuni' : 'День открытых дверей'}
+                  </option>
+                  <option value="science">
+                    {isUz ? 'Fan va olimpiadalar' : 'Наука и олимпиады'}
+                  </option>
+                  <option value="sports">
+                    {isUz ? 'Sport va musobaqalar' : 'Спорт и соревнования'}
+                  </option>
+                  <option value="culture">
+                    {isUz ? 'Madaniyat va festivallar' : 'Культура и фестивали'}
+                  </option>
+                  <option value="general">
+                    {isUz ? 'Umumiy tadbir' : 'Общее мероприятие'}
+                  </option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Дата и время начала <span className="text-destructive">*</span>
+                  {isUz ? 'Boshlanish sanasi va vaqti' : 'Дата и время начала'}{' '}
+                  <span className="text-destructive">*</span>
                 </label>
                 <Input
                   type="datetime-local"
@@ -449,12 +534,17 @@ export default function AdminEventsPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Место проведения <span className="text-destructive">*</span>
+                {isUz ? 'Oʻtkazilish joyi' : 'Место проведения'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Главный корпус, Актовый зал (ул. Студенческая, 10)"
+                placeholder={
+                  isUz
+                    ? 'Bosh bino, Faollar zali (Talabalar koʻchasi, 10)'
+                    : 'Главный корпус, Актовый зал (ул. Студенческая, 10)'
+                }
                 required
               />
             </div>
@@ -462,24 +552,26 @@ export default function AdminEventsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Организатор / Отделение
+                  {isUz ? 'Tashkilotchi / Boʻlim' : 'Организатор / Отделение'}
                 </label>
                 <Input
                   value={organizer}
                   onChange={(e) => setOrganizer(e.target.value)}
-                  placeholder="Приемная комиссия колледжа"
+                  placeholder={
+                    isUz ? 'Texnikum qabul komissiyasi' : 'Приемная комиссия колледжа'
+                  }
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Ссылка на регистрацию (если есть)
+                  {isUz ? 'Roʻyxatdan oʻtish havolasi (mavjud boʻlsa)' : 'Ссылка на регистрацию (если есть)'}
                 </label>
                 <Input
                   type="url"
                   value={registrationUrl}
                   onChange={(e) => setRegistrationUrl(e.target.value)}
-                  placeholder="https://forms.yandex.ru/..."
+                  placeholder="https://forms.gle/..."
                 />
               </div>
             </div>
@@ -488,8 +580,12 @@ export default function AdminEventsPage() {
               <ImageUploadField
                 value={coverImageUrl}
                 onChange={setCoverImageUrl}
-                label="Tadbir muqovasi / Обложка мероприятия"
-                description="Tadbir banneri (16:9, JPG, PNG, WEBP, 10 MB gacha)"
+                label={isUz ? 'Tadbir muqovasi' : 'Обложка мероприятия'}
+                description={
+                  isUz
+                    ? 'Tadbir banneri (16:9, JPG, PNG, WEBP, 10 MB gacha)'
+                    : 'Баннер мероприятия (16:9, JPG, PNG, WEBP, до 10 МБ)'
+                }
                 bucket="news-media"
                 aspectRatio="video"
               />
@@ -497,35 +593,46 @@ export default function AdminEventsPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Краткое описание мероприятия <span className="text-destructive">*</span>
+                {isUz ? 'Tadbirning qisqa tavsifi' : 'Краткое описание мероприятия'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                placeholder="Знакомство с преподавателями, экскурсия по лабораториям..."
+                placeholder={
+                  isUz
+                    ? 'Oʻqituvchilar bilan tanishuv, laboratoriyalar boʻylab ekskursiya...'
+                    : 'Знакомство с преподавателями, экскурсия по лабораториям...'
+                }
                 required
               />
             </div>
 
             <div className="flex flex-col gap-2 pt-2">
-              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
+              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={isPublished}
                   onChange={(e) => setIsPublished(e.target.checked)}
                   className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                 />
-                <span>Опубликовать в общем календаре</span>
+                <span>
+                  {isUz ? 'Umumiy taqvimda eʼlon qilish' : 'Опубликовать в общем календаре'}
+                </span>
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
+              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={isFeatured}
                   onChange={(e) => setIsFeatured(e.target.checked)}
                   className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                 />
-                <span>Закрепить как главное предстоящее событие</span>
+                <span>
+                  {isUz
+                    ? 'Asosiy kutilayotgan tadbir sifatida mahkamlash'
+                    : 'Закрепить как главное предстоящее событие'}
+                </span>
               </label>
             </div>
           </div>
@@ -537,10 +644,12 @@ export default function AdminEventsPage() {
               size="sm"
               onClick={() => setIsModalOpen(false)}
             >
-              Отмена
+              {isUz ? 'Bekor qilish' : 'Отмена'}
             </Button>
             <Button type="submit" size="sm" className="bg-primary text-primary-foreground">
-              {editingItem ? 'Сохранить изменения' : 'Создать'}
+              {editingItem
+                ? (isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения')
+                : (isUz ? 'Yaratish' : 'Создать')}
             </Button>
           </div>
         </form>

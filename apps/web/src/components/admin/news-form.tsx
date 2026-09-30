@@ -17,6 +17,7 @@ import { WysiwygEditor } from './wysiwyg-editor';
 import { NewsItem, NewsCategory, NewsStatus } from '@college/shared';
 import { apiClient } from '@/lib/api-client';
 import { ImageUploadField } from '@/components/admin/image-upload-field';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 interface NewsFormProps {
   initialData?: NewsItem;
@@ -47,6 +48,8 @@ export function NewsForm({
   isEditing = false,
 }: NewsFormProps) {
   const router = useRouter();
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
 
   const [title, setTitle] = React.useState(initialData?.title || '');
   const [slug, setSlug] = React.useState(initialData?.slug || '');
@@ -90,19 +93,19 @@ export function NewsForm({
     setSuccess(null);
 
     if (!title.trim()) {
-      setError('Укажите заголовок новости');
+      setError(isUz ? 'Maqola sarlavhasini kiriting' : 'Укажите заголовок новости');
       return;
     }
     if (!slug.trim()) {
-      setError('Укажите slug для URL');
+      setError(isUz ? 'URL uchun slug kiriting' : 'Укажите slug для URL');
       return;
     }
     if (!leadText.trim()) {
-      setError('Укажите краткое описание (лид)');
+      setError(isUz ? 'Qisqa tavsifni (lid) kiriting' : 'Укажите краткое описание (лид)');
       return;
     }
     if (!contentHtml.trim()) {
-      setError('Текст статьи не может быть пустым');
+      setError(isUz ? 'Maqola matni boʻsh boʻlishi mumkin emas' : 'Текст статьи не может быть пустым');
       return;
     }
 
@@ -132,10 +135,10 @@ export function NewsForm({
 
       if (isEditing && initialData?.id) {
         await apiClient.updateNews(initialData.id, payload);
-        setSuccess('Материал успешно обновлен!');
+        setSuccess(isUz ? 'Maqola muvaffaqiyatli yangilandi!' : 'Материал успешно обновлен!');
       } else {
         await apiClient.createNews(payload);
-        setSuccess('Материал успешно создан!');
+        setSuccess(isUz ? 'Maqola muvaffaqiyatli yaratildi!' : 'Материал успешно создан!');
       }
 
       setTimeout(() => {
@@ -146,7 +149,7 @@ export function NewsForm({
       setError(
         err instanceof Error
           ? err.message
-          : 'Произошла непредвиденная ошибка при сохранении'
+          : (isUz ? 'Saqlashda kutilmagan xatolik yuz berdi' : 'Произошла непредвиденная ошибка при сохранении')
       );
     } finally {
       setIsSubmitting(false);
@@ -166,16 +169,20 @@ export function NewsForm({
             className="h-9 px-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
-            Назад к списку
+            {isUz ? 'Roʻyxatga qaytish' : 'Назад к списку'}
           </Button>
           <div>
             <h1 className="text-xl font-bold text-foreground">
-              {isEditing ? 'Редактирование публикации' : 'Новая публикация'}
+              {isEditing
+                ? (isUz ? 'Maqolani tahrirlash' : 'Редактирование публикации')
+                : (isUz ? 'Yangi nashr' : 'Новая публикация')}
             </h1>
             <p className="text-xs text-muted-foreground">
               {isEditing
                 ? `ID: ${initialData?.id}`
-                : 'Заполните обязательные поля и выберите статус публикации'}
+                : (isUz
+                    ? 'Majburiy maydonlarni toʻldiring va nashr holatini tanlang'
+                    : 'Заполните обязательные поля и выберите статус публикации')}
             </p>
           </div>
         </div>
@@ -188,7 +195,7 @@ export function NewsForm({
             disabled={isSubmitting}
             onClick={() => handleSave(NewsStatus.DRAFT)}
           >
-            Сохранить как черновик
+            {isUz ? 'Qoralama sifatida saqlash' : 'Сохранить как черновик'}
           </Button>
           <Button
             type="button"
@@ -199,7 +206,9 @@ export function NewsForm({
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Save className="h-4 w-4 mr-1.5" />
-            {isEditing ? 'Сохранить изменения' : 'Опубликовать'}
+            {isEditing
+              ? (isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения')
+              : (isUz ? 'Eʼlon qilish' : 'Опубликовать')}
           </Button>
         </div>
       </div>
@@ -225,17 +234,26 @@ export function NewsForm({
           {/* Title */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-foreground">
-              Заголовок публикации <span className="text-destructive">*</span>
+              {isUz ? 'Nashr sarlavhasi' : 'Заголовок публикации'}{' '}
+              <span className="text-destructive">*</span>
             </label>
             <Input
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="Например: Студенты колледжа победили в региональном чемпионате..."
+              placeholder={
+                isUz
+                  ? 'Masalan: Texnikum talabalari xalqaro chempionatda gʻolib chiqdi...'
+                  : 'Например: Студенты колледжа победили в региональном чемпионате...'
+              }
               className="text-base font-medium h-11"
               maxLength={180}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Рекомендуется от 10 до 120 символов</span>
+              <span>
+                {isUz
+                  ? '10 dan 120 gacha belgilar tavsiya etiladi'
+                  : 'Рекомендуется от 10 до 120 символов'}
+              </span>
               <span>{title.length}/180</span>
             </div>
           </div>
@@ -244,7 +262,8 @@ export function NewsForm({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-foreground">
-                URL-идентификатор (slug) <span className="text-destructive">*</span>
+                {isUz ? 'URL identifikatori (slug)' : 'URL-идентификатор (slug)'}{' '}
+                <span className="text-destructive">*</span>
               </label>
               <button
                 type="button"
@@ -255,7 +274,9 @@ export function NewsForm({
                 className="text-xs text-primary hover:underline flex items-center gap-1"
               >
                 <Sparkles className="h-3 w-3" />
-                {autoSlug ? 'Ручной ввод' : 'Автогенерация из заголовка'}
+                {autoSlug
+                  ? (isUz ? 'Qoʻlda kiritish' : 'Ручной ввод')
+                  : (isUz ? 'Sarlavhadan avtomatik yaratish' : 'Автогенерация из заголовка')}
               </button>
             </div>
             <div className="flex items-center rounded-md border bg-muted/30 px-3">
@@ -275,17 +296,26 @@ export function NewsForm({
           {/* Lead Text */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              Краткое содержание (лид) <span className="text-destructive">*</span>
+              {isUz ? 'Qisqa mazmuni (lid)' : 'Краткое содержание (лид)'}{' '}
+              <span className="text-destructive">*</span>
             </label>
             <Textarea
               value={leadText}
               onChange={(e) => setLeadText(e.target.value)}
-              placeholder="1–2 предложения с главной сутью новости для анонса и поисковых систем..."
+              placeholder={
+                isUz
+                  ? 'Qidiruv tizimlari va eʼlon uchun yangilikning 1–2 jumlali asosiy mazmuni...'
+                  : '1–2 предложения с главной сутью новости для анонса и поисковых систем...'
+              }
               rows={3}
               maxLength={300}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Отображается на карточке в ленте и в мета-тегах</span>
+              <span>
+                {isUz
+                  ? 'Lenta kartochkasida va qidiruv tizimlarida koʻrsatiladi'
+                  : 'Отображается на карточке в ленте и в мета-тегах'}
+              </span>
               <span>{leadText.length}/300</span>
             </div>
           </div>
@@ -304,29 +334,35 @@ export function NewsForm({
           <div className="rounded-xl border bg-card p-5 space-y-4 shadow-2xs">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2 border-b pb-2">
               <Calendar className="h-4 w-4 text-primary" />
-              Статус и публикация
+              {isUz ? 'Holat va eʼlon qilish' : 'Статус и публикация'}
             </h3>
 
             {/* Status Select */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Статус материала
+                {isUz ? 'Material holati' : 'Статус материала'}
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as NewsStatus)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <option value={NewsStatus.PUBLISHED}>Опубликовано (на сайте)</option>
-                <option value={NewsStatus.DRAFT}>Черновик (скрыто)</option>
-                <option value={NewsStatus.ARCHIVED}>Архив</option>
+                <option value={NewsStatus.PUBLISHED}>
+                  {isUz ? 'Eʼlon qilingan (saytda)' : 'Опубликовано (на сайте)'}
+                </option>
+                <option value={NewsStatus.DRAFT}>
+                  {isUz ? 'Qoralama (yashirin)' : 'Черновик (скрыто)'}
+                </option>
+                <option value={NewsStatus.ARCHIVED}>
+                  {isUz ? 'Arxiv' : 'Архив'}
+                </option>
               </select>
             </div>
 
             {/* Publication Date */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Дата и время публикации
+                {isUz ? 'Eʼlon qilinish sanasi va vaqti' : 'Дата и время публикации'}
               </label>
               <Input
                 type="datetime-local"
@@ -335,7 +371,9 @@ export function NewsForm({
                 className="text-xs"
               />
               <p className="text-[11px] text-muted-foreground">
-                Можно установить будущую дату для отложенной публикации
+                {isUz
+                  ? 'Kechiktirilgan eʼlon uchun kelajak sanasini belgilashingiz mumkin'
+                  : 'Можно установить будущую дату для отложенной публикации'}
               </p>
             </div>
 
@@ -348,7 +386,11 @@ export function NewsForm({
                   onChange={(e) => setIsFeatured(e.target.checked)}
                   className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                 />
-                <span>Закрепить на главной (Главная новость)</span>
+                <span>
+                  {isUz
+                    ? 'Bosh sahifada mahkamlash (Asosiy yangilik)'
+                    : 'Закрепить на главной (Главная новость)'}
+                </span>
               </label>
             </div>
           </div>
@@ -356,11 +398,11 @@ export function NewsForm({
           {/* Category Card */}
           <div className="rounded-xl border bg-card p-5 space-y-3 shadow-2xs">
             <h3 className="font-semibold text-sm text-foreground border-b pb-2">
-              Рубрика и классификация
+              {isUz ? 'Rukn va klassifikatsiya' : 'Рубрика и классификация'}
             </h3>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Рубрика
+                {isUz ? 'Rukn' : 'Рубрика'}
               </label>
               <select
                 value={categoryId}
@@ -381,8 +423,12 @@ export function NewsForm({
             <ImageUploadField
               value={coverImageUrl}
               onChange={setCoverImageUrl}
-              label="Maqola muqovasi / Обложка материала"
-              description="Sayt bosh sahifasi va yangiliklar lentasida koʻrinadigan asosiy rasm"
+              label={isUz ? 'Maqola muqovasi' : 'Обложка материала'}
+              description={
+                isUz
+                  ? 'Sayt bosh sahifasi va yangiliklar lentasida koʻrinadigan asosiy rasm'
+                  : 'Основное изображение для карточки в ленте и на главной странице'
+              }
               bucket="news-media"
               aspectRatio="video"
             />

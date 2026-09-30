@@ -14,10 +14,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAdminAuth } from '@/components/admin/admin-auth-context';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 import { apiClient } from '@/lib/api-client';
 import { UserProfile, UserRole } from '@college/shared';
 
 export default function AdminUsersPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
   const { user: currentUser, hasRole } = useAdminAuth();
   const [users, setUsers] = React.useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -33,11 +36,17 @@ export default function AdminUsersPage() {
       const data = await apiClient.getUsers();
       setUsers(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить список пользователей');
+      setError(
+        err instanceof Error
+          ? err.message
+          : isUz
+          ? 'Foydalanuvchilar roʻyxatini yuklab boʻlmadi'
+          : 'Не удалось загрузить список пользователей'
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadUsers();
@@ -45,7 +54,11 @@ export default function AdminUsersPage() {
 
   const handleRoleChange = async (userId: string, newRole: UserRole, userFullName: string) => {
     if (!isAdmin) {
-      alert('Только администратор может изменять роли пользователей');
+      alert(
+        isUz
+          ? 'Faqat administrator foydalanuvchilar rolini oʻzgartirishi mumkin'
+          : 'Только администратор может изменять роли пользователей'
+      );
       return;
     }
 
@@ -54,10 +67,18 @@ export default function AdminUsersPage() {
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       );
-      setSuccess(`Роль пользователя «${userFullName}» изменена на: ${getRoleLabel(newRole)}`);
+      setSuccess(
+        isUz
+          ? `«${userFullName}» foydalanuvchisining roli oʻzgartirildi: ${getRoleLabel(newRole)}`
+          : `Роль пользователя «${userFullName}» изменена на: ${getRoleLabel(newRole)}`
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      alert('Не удалось обновить роль пользователя');
+      alert(
+        isUz
+          ? 'Foydalanuvchi rolini yangilab boʻlmadi'
+          : 'Не удалось обновить роль пользователя'
+      );
     }
   };
 
@@ -67,36 +88,36 @@ export default function AdminUsersPage() {
         return (
           <Badge className="bg-red-500/10 text-red-600 border-red-500/20 gap-1 text-xs">
             <ShieldAlert className="h-3 w-3" />
-            Администратор
+            {isUz ? 'Administrator' : 'Администратор'}
           </Badge>
         );
       case UserRole.EDITOR:
         return (
           <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1 text-xs">
             <ShieldCheck className="h-3 w-3" />
-            Редактор
+            {isUz ? 'Muharrir' : 'Редактор'}
           </Badge>
         );
       case UserRole.MODERATOR:
         return (
           <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 gap-1 text-xs">
             <Shield className="h-3 w-3" />
-            Модератор
+            {isUz ? 'Moderator' : 'Модератор'}
           </Badge>
         );
       default:
-        return <Badge variant="outline">Пользователь</Badge>;
+        return <Badge variant="outline">{isUz ? 'Foydalanuvchi' : 'Пользователь'}</Badge>;
     }
   };
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
       case UserRole.ADMIN:
-        return 'Администратор (полный доступ)';
+        return isUz ? 'Administrator (toʻliq huquq)' : 'Администратор (полный доступ)';
       case UserRole.EDITOR:
-        return 'Редактор (новости, события, страницы)';
+        return isUz ? 'Muharrir (yangiliklar, tadbirlar, sahifalar)' : 'Редактор (новости, события, страницы)';
       case UserRole.MODERATOR:
-        return 'Модератор (просмотр и черновики)';
+        return isUz ? 'Moderator (koʻrish va qoralama)' : 'Модератор (просмотр и черновики)';
       default:
         return role;
     }
@@ -117,9 +138,13 @@ export default function AdminUsersPage() {
         <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
           <ShieldAlert className="h-6 w-6" />
         </div>
-        <h2 className="text-xl font-bold text-foreground">Доступ ограничен</h2>
+        <h2 className="text-xl font-bold text-foreground">
+          {isUz ? 'Ruxsat cheklangan' : 'Доступ ограничен'}
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Управление учетными записями и правами доступа доступно только главному администратору колледжа.
+          {isUz
+            ? 'Foydalanuvchilar hisoblari va huquqlarini boshqarish faqat kollej bosh administratoriga ruxsat etilgan.'
+            : 'Управление учетными записями и правами доступа доступно только главному администратору колледжа.'}
         </p>
       </div>
     );
@@ -132,10 +157,12 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Users className="h-6 w-6 text-primary" />
-            Пользователи и роли (RBAC)
+            {isUz ? 'Foydalanuvchilar va rollar (RBAC)' : 'Пользователи и роли (RBAC)'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Управление учетными записями персонала колледжа и распределение уровней доступа
+            {isUz
+              ? 'Kollej xodimlari hisoblarini boshqarish va kirish huquqlari darajalarini taqsimlash'
+              : 'Управление учетными записями персонала колледжа и распределение уровней доступа'}
           </p>
         </div>
       </div>
@@ -161,7 +188,7 @@ export default function AdminUsersPage() {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Поиск по имени или email..."
+          placeholder={isUz ? 'FIO yoki email boʻyicha qidiruv...' : 'Поиск по имени или email...'}
           className="pl-9 h-10"
         />
       </div>
@@ -170,22 +197,22 @@ export default function AdminUsersPage() {
       <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Загрузка списка пользователей...
+            {isUz ? 'Foydalanuvchilar roʻyxati yuklanmoqda...' : 'Загрузка списка пользователей...'}
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Пользователи не найдены
+            {isUz ? 'Foydalanuvchilar topilmadi' : 'Пользователи не найдены'}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">Пользователь</th>
+                  <th className="py-3 px-4">{isUz ? 'Foydalanuvchi' : 'Пользователь'}</th>
                   <th className="py-3 px-4">Email</th>
-                  <th className="py-3 px-4">Текущая роль</th>
-                  <th className="py-3 px-4">Изменить уровень доступа</th>
-                  <th className="py-3 px-4 text-right">Регистрация</th>
+                  <th className="py-3 px-4">{isUz ? 'Joriy roli' : 'Текущая роль'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Kirish darajasini oʻzgartirish' : 'Изменить уровень доступа'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Roʻyxatdan oʻtgan' : 'Регистрация'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -204,7 +231,7 @@ export default function AdminUsersPage() {
                               {u.fullName}
                               {isCurrent && (
                                 <Badge variant="outline" className="text-[10px] py-0">
-                                  Вы
+                                  {isUz ? 'Siz' : 'Вы'}
                                 </Badge>
                               )}
                             </div>
@@ -232,16 +259,22 @@ export default function AdminUsersPage() {
                           }
                           className="h-9 rounded-md border border-input bg-background px-3 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                         >
-                          <option value={UserRole.ADMIN}>Администратор (Admin)</option>
-                          <option value={UserRole.EDITOR}>Редактор (Editor)</option>
-                          <option value={UserRole.MODERATOR}>Модератор (Moderator)</option>
+                          <option value={UserRole.ADMIN}>
+                            {isUz ? 'Administrator (Admin)' : 'Администратор (Admin)'}
+                          </option>
+                          <option value={UserRole.EDITOR}>
+                            {isUz ? 'Muharrir (Editor)' : 'Редактор (Editor)'}
+                          </option>
+                          <option value={UserRole.MODERATOR}>
+                            {isUz ? 'Moderator (Moderator)' : 'Модератор (Moderator)'}
+                          </option>
                         </select>
                       </td>
 
                       <td className="py-3 px-4 text-right text-xs text-muted-foreground whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1">
                           <Clock className="h-3 w-3" />
-                          {new Date(u.createdAt).toLocaleDateString('ru-RU')}
+                          {new Date(u.createdAt).toLocaleDateString(isUz ? 'uz-UZ' : 'ru-RU')}
                         </div>
                       </td>
                     </tr>

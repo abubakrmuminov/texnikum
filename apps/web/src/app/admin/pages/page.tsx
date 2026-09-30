@@ -19,8 +19,12 @@ import { Badge } from '@/components/ui/badge';
 import { WysiwygEditor } from '@/components/admin/wysiwyg-editor';
 import { apiClient } from '@/lib/api-client';
 import { PageItem, PageSection } from '@college/shared';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 export default function AdminPagesPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+
   const [pages, setPages] = React.useState<PageItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -47,11 +51,15 @@ export default function AdminPagesPage() {
       const data = await apiClient.getPages();
       setPages(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить разделы сайта');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Sahifalar roʻyxatini yuklab boʻlmadi' : 'Не удалось загрузить разделы сайта')
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadPages();
@@ -75,7 +83,11 @@ export default function AdminPagesPage() {
     setFormError(null);
 
     if (!title.trim() || !contentHtml.trim()) {
-      setFormError('Sahifa sarlavhasi va matnini toʻldiring');
+      setFormError(
+        isUz
+          ? 'Sahifa sarlavhasi va matnini toʻldiring'
+          : 'Заполните заголовок и текст страницы'
+      );
       return;
     }
 
@@ -95,11 +107,19 @@ export default function AdminPagesPage() {
           item.id === editingPage.id ? ({ ...item, ...payload } as PageItem) : item
         )
       );
-      setSuccess(`«${title}» sahifasi muvaffaqiyatli saqlandi`);
+      setSuccess(
+        isUz
+          ? `«${title}» sahifasi muvaffaqiyatli saqlandi`
+          : `Раздел «${title}» успешно сохранен`
+      );
       setIsModalOpen(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Sahifani saqlashda xatolik yuz berdi');
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Sahifani saqlashda xatolik yuz berdi' : 'Ошибка при сохранении страницы')
+      );
     }
   };
 
@@ -113,7 +133,11 @@ export default function AdminPagesPage() {
         )
       );
     } catch {
-      alert('Sahifa nashr holatini oʻzgartirib boʻlmadi');
+      alert(
+        isUz
+          ? 'Sahifa nashr holatini oʻzgartirib boʻlmadi'
+          : 'Не удалось изменить статус публикации раздела'
+      );
     }
   };
 
@@ -131,17 +155,37 @@ export default function AdminPagesPage() {
   const getSectionBadge = (sec: PageSection) => {
     switch (sec) {
       case 'info':
-        return <Badge variant="outline" className="text-primary border-primary/20">Rasmiy maʼlumot (OʻRQ-637)</Badge>;
+        return (
+          <Badge variant="outline" className="text-primary border-primary/20">
+            {isUz ? 'Rasmiy maʼlumot (OʻRQ-637)' : 'Сведения об ОО (ст. 37)'}
+          </Badge>
+        );
       case 'sveden':
-        return <Badge variant="outline" className="text-primary border-primary/20">Rasmiy boʻlim</Badge>;
+        return (
+          <Badge variant="outline" className="text-primary border-primary/20">
+            {isUz ? 'Rasmiy boʻlim' : 'Сведения об ОО'}
+          </Badge>
+        );
       case 'about':
-        return <Badge variant="outline" className="text-muted-foreground">Texnikum haqida</Badge>;
+        return (
+          <Badge variant="outline" className="text-muted-foreground">
+            {isUz ? 'Texnikum haqida' : 'Об учреждении'}
+          </Badge>
+        );
       case 'applicants':
-        return <Badge variant="outline" className="text-emerald-600 border-emerald-500/20">Abituriyentlarga</Badge>;
+        return (
+          <Badge variant="outline" className="text-emerald-600 border-emerald-500/20">
+            {isUz ? 'Abituriyentlarga' : 'Поступающим'}
+          </Badge>
+        );
       case 'students':
-        return <Badge variant="outline" className="text-purple-600 border-purple-500/20">Talabalarga</Badge>;
+        return (
+          <Badge variant="outline" className="text-purple-600 border-purple-500/20">
+            {isUz ? 'Talabalarga' : 'Студентам'}
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">Umumiy</Badge>;
+        return <Badge variant="outline">{isUz ? 'Umumiy' : 'Общее'}</Badge>;
     }
   };
 
@@ -152,10 +196,14 @@ export default function AdminPagesPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <FileCheck2 className="h-6 w-6 text-primary" />
-            Rasmiy maʼlumotlar va meʼyoriy sahifalar
+            {isUz
+              ? 'Rasmiy maʼlumotlar va meʼyoriy sahifalar'
+              : 'Официальные сведения и нормативные разделы'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Oʻzbekiston Respublikasi «Taʼlim toʻgʻrisida»gi Qonuni (OʻRQ-637, 37-modda) boʻyicha 12 ta majburiy boʻlim va axborot sahifalarini boshqarish
+            {isUz
+              ? 'Oʻzbekiston Respublikasi «Taʼlim toʻgʻrisida»gi Qonuni (OʻRQ-637, 37-modda) boʻyicha 12 ta majburiy boʻlim va axborot sahifalarini boshqarish'
+              : 'Управление 12 обязательными подразделами открытости по ст. 37 Закона РУз «Об образовании»'}
           </p>
         </div>
       </div>
@@ -182,7 +230,11 @@ export default function AdminPagesPage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Sahifa nomi yoki slug boʻyicha qidiruv..."
+            placeholder={
+              isUz
+                ? 'Sahifa nomi yoki slug boʻyicha qidiruv...'
+                : 'Поиск по названию или slug...'
+            }
             className="pl-9 h-10"
           />
         </div>
@@ -192,12 +244,18 @@ export default function AdminPagesPage() {
           onChange={(e) => setSectionFilter(e.target.value)}
           className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
         >
-          <option value="all">Barcha boʻlimlar ({pages.length})</option>
-          <option value="info">Rasmiy maʼlumotlar (OʻRQ-637, 37-modda)</option>
-          <option value="about">Texnikum haqida</option>
-          <option value="applicants">Abituriyentlarga</option>
-          <option value="students">Talabalarga</option>
-          <option value="general">Umumiy</option>
+          <option value="all">
+            {isUz ? `Barcha boʻlimlar (${pages.length})` : `Все подразделы (${pages.length})`}
+          </option>
+          <option value="info">
+            {isUz
+              ? 'Rasmiy maʼlumotlar (OʻRQ-637, 37-modda)'
+              : 'Сведения об ОО (ст. 37 Закона РУз)'}
+          </option>
+          <option value="about">{isUz ? 'Texnikum haqida' : 'Об учреждении'}</option>
+          <option value="applicants">{isUz ? 'Abituriyentlarga' : 'Поступающим'}</option>
+          <option value="students">{isUz ? 'Talabalarga' : 'Студентам'}</option>
+          <option value="general">{isUz ? 'Umumiy' : 'Общее'}</option>
         </select>
       </div>
 
@@ -209,18 +267,20 @@ export default function AdminPagesPage() {
           </div>
         ) : filteredPages.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">Sahifalar topilmadi</p>
+            <p className="text-sm text-muted-foreground">
+              {isUz ? 'Sahifalar topilmadi' : 'Разделы не найдены'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">Boʻlim / Nomi</th>
+                  <th className="py-3 px-4">{isUz ? 'Boʻlim / Nomi' : 'Раздел / Наименование'}</th>
                   <th className="py-3 px-4">URL (slug)</th>
-                  <th className="py-3 px-4">Kategoriya</th>
-                  <th className="py-3 px-4">Holati</th>
-                  <th className="py-3 px-4 text-right">Amallar</th>
+                  <th className="py-3 px-4">{isUz ? 'Toifa' : 'Категория'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Holati' : 'Статус'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -248,11 +308,11 @@ export default function AdminPagesPage() {
                     <td className="py-3 px-4">
                       {p.isPublished ? (
                         <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
-                          Chop etilgan
+                          {isUz ? 'Chop etilgan' : 'Опубликовано'}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs">
-                          Yashirilgan
+                          {isUz ? 'Yashirilgan' : 'Скрыто'}
                         </Badge>
                       )}
                     </td>
@@ -262,7 +322,7 @@ export default function AdminPagesPage() {
                         <Link
                           href={p.section === 'info' || p.section === 'sveden' ? `/info/${p.slug}` : `/${p.slug}`}
                           target="_blank"
-                          title="Sahifani saytda koʻrish"
+                          title={isUz ? 'Sahifani saytda koʻrish' : 'Открыть страницу на сайте'}
                         >
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                             <ExternalLink className="h-3.5 w-3.5" />
@@ -274,7 +334,15 @@ export default function AdminPagesPage() {
                           size="sm"
                           onClick={() => handleTogglePublish(p)}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title={p.isPublished ? 'Sahifani yashirish' : 'Chop etish'}
+                          title={
+                            isUz
+                              ? p.isPublished
+                                ? 'Sahifani yashirish'
+                                : 'Chop etish'
+                              : p.isPublished
+                              ? 'Скрыть раздел'
+                              : 'Опубликовать'
+                          }
                         >
                           {p.isPublished ? (
                             <EyeOff className="h-3.5 w-3.5 text-amber-600" />
@@ -288,7 +356,7 @@ export default function AdminPagesPage() {
                           size="sm"
                           onClick={() => openEditModal(p)}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title="Tahrirlash"
+                          title={isUz ? 'Tahrirlash' : 'Редактировать'}
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
@@ -307,7 +375,11 @@ export default function AdminPagesPage() {
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={`Boʻlimni tahrirlash: ${editingPage.title}`}
+          title={
+            isUz
+              ? `Boʻlimni tahrirlash: ${editingPage.title}`
+              : `Редактирование подраздела: ${editingPage.title}`
+          }
           description={`URL: /info/${editingPage.slug}`}
           maxWidth="2xl"
         >
@@ -321,7 +393,8 @@ export default function AdminPagesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5 sm:col-span-2">
                 <label className="text-xs font-semibold text-foreground">
-                  Sahifa sarlavhasi <span className="text-destructive">*</span>
+                  {isUz ? 'Sahifa sarlavhasi' : 'Заголовок раздела'}{' '}
+                  <span className="text-destructive">*</span>
                 </label>
                 <Input
                   value={title}
@@ -332,40 +405,48 @@ export default function AdminPagesPage() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Boʻlim toifasi
+                  {isUz ? 'Boʻlim toifasi' : 'Категория раздела'}
                 </label>
                 <select
                   value={section}
                   onChange={(e) => setSection(e.target.value as PageSection)}
                   className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 >
-                  <option value="info">Rasmiy maʼlumotlar (OʻRQ-637, 37-modda)</option>
-                  <option value="about">Texnikum haqida</option>
-                  <option value="applicants">Abituriyentlarga</option>
-                  <option value="students">Talabalarga</option>
-                  <option value="general">Umumiy</option>
+                  <option value="info">
+                    {isUz
+                      ? 'Rasmiy maʼlumotlar (OʻRQ-637, 37-modda)'
+                      : 'Сведения об ОО (ст. 37 Закона РУз)'}
+                  </option>
+                  <option value="about">{isUz ? 'Texnikum haqida' : 'Об учреждении'}</option>
+                  <option value="applicants">{isUz ? 'Abituriyentlarga' : 'Поступающим'}</option>
+                  <option value="students">{isUz ? 'Talabalarga' : 'Студентам'}</option>
+                  <option value="general">{isUz ? 'Umumiy' : 'Общее'}</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Meta Title (qidiruv tizimlari uchun)
+                  {isUz ? 'Meta Title (qidiruv tizimlari uchun)' : 'Meta Title (для поиска)'}
                 </label>
                 <Input
                   value={metaTitle}
                   onChange={(e) => setMetaTitle(e.target.value)}
-                  placeholder="SEO sarlavhasi"
+                  placeholder={isUz ? 'SEO sarlavhasi' : 'SEO заголовок'}
                 />
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Meta Description (sahifa tavsifi)
+                  {isUz ? 'Meta Description (sahifa tavsifi)' : 'Meta Description (описание страницы)'}
                 </label>
                 <Input
                   value={metaDescription}
                   onChange={(e) => setMetaDescription(e.target.value)}
-                  placeholder="Qidiruv tizimlari uchun qisqacha tavsif..."
+                  placeholder={
+                    isUz
+                      ? 'Qidiruv tizimlari uchun qisqacha tavsif...'
+                      : 'Краткое описание страницы для поисковиков...'
+                  }
                 />
               </div>
 
@@ -373,20 +454,28 @@ export default function AdminPagesPage() {
                 <WysiwygEditor
                   value={contentHtml}
                   onChange={setContentHtml}
-                  label="Sahifaning HTML-matni va jadvallari"
+                  label={
+                    isUz
+                      ? 'Sahifaning HTML-matni va jadvallari'
+                      : 'Текст подраздела, таблицы и документы'
+                  }
                   minHeight="320px"
                 />
               </div>
 
               <div className="sm:col-span-2 pt-2">
-                <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={isPublished}
                     onChange={(e) => setIsPublished(e.target.checked)}
                     className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                   />
-                  <span>Sahifa saytda ochiq koʻrinishda chop etilsin</span>
+                  <span>
+                    {isUz
+                      ? 'Sahifa saytda ochiq koʻrinishda chop etilsin'
+                      : 'Опубликовать подраздел в открытом доступе на сайте'}
+                  </span>
                 </label>
               </div>
             </div>
@@ -398,10 +487,10 @@ export default function AdminPagesPage() {
                 size="sm"
                 onClick={() => setIsModalOpen(false)}
               >
-                Bekor qilish
+                {isUz ? 'Bekor qilish' : 'Отмена'}
               </Button>
               <Button type="submit" size="sm" className="bg-primary text-primary-foreground">
-                Oʻzgarishlarni saqlash
+                {isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения'}
               </Button>
             </div>
           </form>

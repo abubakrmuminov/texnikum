@@ -15,10 +15,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/dialog';
 import { useAdminAuth } from '@/components/admin/admin-auth-context';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 import { apiClient } from '@/lib/api-client';
 import { AuditLogItem, AuditAction, UserRole } from '@college/shared';
 
 export default function AdminAuditPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
   const { hasRole } = useAdminAuth();
   const isAdmin = hasRole(UserRole.ADMIN);
 
@@ -40,11 +43,17 @@ export default function AdminAuditPage() {
       const data = await apiClient.getAuditLogs({ limit: 100 });
       setLogs(data.items);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить журнал аудита');
+      setError(
+        err instanceof Error
+          ? err.message
+          : isUz
+          ? 'Audit jurnalini yuklab boʻlmadi'
+          : 'Не удалось загрузить журнал аудита'
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadAuditLogs();
@@ -87,9 +96,13 @@ export default function AdminAuditPage() {
         <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
           <ShieldAlert className="h-6 w-6" />
         </div>
-        <h2 className="text-xl font-bold text-foreground">Доступ ограничен</h2>
+        <h2 className="text-xl font-bold text-foreground">
+          {isUz ? 'Ruxsat cheklangan' : 'Доступ ограничен'}
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Журнал аудита действий в системе доступен только главному администратору.
+          {isUz
+            ? 'Tizim audit jurnali faqat bosh administratorga ruxsat etilgan.'
+            : 'Журнал аудита действий в системе доступен только главному администратору.'}
         </p>
       </div>
     );
@@ -102,10 +115,12 @@ export default function AdminAuditPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <History className="h-6 w-6 text-primary" />
-            Журнал аудита системы
+            {isUz ? 'Tizim audit jurnali' : 'Журнал аудита системы'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Протоколирование всех административных операций: создание, модификация, публикации и удаление записей
+            {isUz
+              ? 'Barcha maʼmuriy amallarni roʻyxatga olish: yozuvlarni yaratish, oʻzgartirish, eʼlon qilish va oʻchirish'
+              : 'Протоколирование всех административных операций: создание, модификация, публикации и удаление записей'}
           </p>
         </div>
       </div>
@@ -125,7 +140,7 @@ export default function AdminAuditPage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск по сущности или ID..."
+            placeholder={isUz ? 'Mohiyat yoki ID boʻyicha qidiruv...' : 'Поиск по сущности или ID...'}
             className="pl-9 h-10"
           />
         </div>
@@ -137,7 +152,7 @@ export default function AdminAuditPage() {
             onChange={(e) => setActionFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
           >
-            <option value="all">Все действия</option>
+            <option value="all">{isUz ? 'Barcha amallar' : 'Все действия'}</option>
             <option value="CREATE">CREATE</option>
             <option value="UPDATE">UPDATE</option>
             <option value="DELETE">DELETE</option>
@@ -150,15 +165,15 @@ export default function AdminAuditPage() {
             onChange={(e) => setEntityFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
           >
-            <option value="all">Все сущности</option>
-            <option value="news">Новости (news)</option>
-            <option value="teachers">Преподаватели (teachers)</option>
-            <option value="specialties">Специальности (specialties)</option>
-            <option value="events">События (events)</option>
-            <option value="schedule">Расписание (schedule)</option>
-            <option value="pages">Страницы (pages)</option>
-            <option value="media">Медиа (media)</option>
-            <option value="users">Пользователи (users)</option>
+            <option value="all">{isUz ? 'Barcha boʻlimlar' : 'Все сущности'}</option>
+            <option value="news">{isUz ? 'Yangiliklar (news)' : 'Новости (news)'}</option>
+            <option value="teachers">{isUz ? 'Oʻqituvchilar (teachers)' : 'Преподаватели (teachers)'}</option>
+            <option value="specialties">{isUz ? 'Mutaxassisliklar (specialties)' : 'Специальности (specialties)'}</option>
+            <option value="events">{isUz ? 'Tadbirlar (events)' : 'События (events)'}</option>
+            <option value="schedule">{isUz ? 'Dars jadvali (schedule)' : 'Расписание (schedule)'}</option>
+            <option value="pages">{isUz ? 'Sahifalar (pages)' : 'Страницы (pages)'}</option>
+            <option value="media">{isUz ? 'Mediateka (media)' : 'Медиа (media)'}</option>
+            <option value="users">{isUz ? 'Foydalanuvchilar (users)' : 'Пользователи (users)'}</option>
           </select>
         </div>
       </div>
@@ -167,23 +182,23 @@ export default function AdminAuditPage() {
       <div className="rounded-xl border bg-card shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            Загрузка записей аудита...
+            {isUz ? 'Audit yozuvlari yuklanmoqda...' : 'Загрузка записей аудита...'}
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="p-12 text-center text-sm text-muted-foreground">
-            События аудита не найдены
+            {isUz ? 'Audit hodisalari topilmadi' : 'События аудита не найдены'}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
                 <tr>
-                  <th className="py-3 px-4">Время</th>
-                  <th className="py-3 px-4">Действие</th>
-                  <th className="py-3 px-4">Сущность</th>
-                  <th className="py-3 px-4">ID записи</th>
-                  <th className="py-3 px-4">IP адрес</th>
-                  <th className="py-3 px-4 text-right">Детали</th>
+                  <th className="py-3 px-4">{isUz ? 'Vaqt' : 'Время'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Amal' : 'Действие'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Boʻlim / Mohiyat' : 'Сущность'}</th>
+                  <th className="py-3 px-4">{isUz ? 'Yozuv ID' : 'ID записи'}</th>
+                  <th className="py-3 px-4">{isUz ? 'IP manzil' : 'IP адрес'}</th>
+                  <th className="py-3 px-4 text-right">{isUz ? 'Tafsilotlar' : 'Детали'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -192,7 +207,7 @@ export default function AdminAuditPage() {
                     <td className="py-3 px-4 text-xs text-muted-foreground whitespace-nowrap">
                       <div className="flex items-center gap-1 font-mono">
                         <Calendar className="h-3 w-3 text-muted-foreground" />
-                        {new Date(log.createdAt).toLocaleString('ru-RU')}
+                        {new Date(log.createdAt).toLocaleString(isUz ? 'uz-UZ' : 'ru-RU')}
                       </div>
                     </td>
 
@@ -222,7 +237,7 @@ export default function AdminAuditPage() {
                         className="h-8 px-2 text-xs text-primary hover:text-primary/80"
                       >
                         <Eye className="h-3.5 w-3.5 mr-1" />
-                        Снимок (Diff)
+                        {isUz ? 'Surat (Diff)' : 'Снимок (Diff)'}
                       </Button>
                     </td>
                   </tr>
@@ -238,15 +253,23 @@ export default function AdminAuditPage() {
         <Modal
           isOpen={Boolean(selectedLog)}
           onClose={() => setSelectedLog(null)}
-          title={`Детали операции: ${selectedLog.action} (${selectedLog.entityType})`}
-          description={`Запись: ${selectedLog.entityId} • Время: ${new Date(selectedLog.createdAt).toLocaleString('ru-RU')}`}
+          title={
+            isUz
+              ? `Amal tafsilotlari: ${selectedLog.action} (${selectedLog.entityType})`
+              : `Детали операции: ${selectedLog.action} (${selectedLog.entityType})`
+          }
+          description={
+            isUz
+              ? `Yozuv: ${selectedLog.entityId} • Vaqt: ${new Date(selectedLog.createdAt).toLocaleString('uz-UZ')}`
+              : `Запись: ${selectedLog.entityId} • Время: ${new Date(selectedLog.createdAt).toLocaleString('ru-RU')}`
+          }
           maxWidth="xl"
         >
           <div className="space-y-4 text-xs">
             {selectedLog.oldValues && (
               <div>
                 <h4 className="font-semibold text-muted-foreground mb-1">
-                  Предыдущее состояние (Old Values):
+                  {isUz ? 'Oldingi holati (Old Values):' : 'Предыдущее состояние (Old Values):'}
                 </h4>
                 <pre className="p-3 rounded-lg bg-muted font-mono overflow-x-auto text-[11px] leading-relaxed">
                   {JSON.stringify(selectedLog.oldValues, null, 2)}
@@ -257,7 +280,7 @@ export default function AdminAuditPage() {
             {selectedLog.newValues && (
               <div>
                 <h4 className="font-semibold text-muted-foreground mb-1">
-                  Новое состояние (New Values):
+                  {isUz ? 'Yangi holati (New Values):' : 'Новое состояние (New Values):'}
                 </h4>
                 <pre className="p-3 rounded-lg bg-muted font-mono overflow-x-auto text-[11px] leading-relaxed">
                   {JSON.stringify(selectedLog.newValues, null, 2)}
@@ -267,7 +290,9 @@ export default function AdminAuditPage() {
 
             {!selectedLog.oldValues && !selectedLog.newValues && (
               <p className="text-muted-foreground italic">
-                Данные снимка отсутствуют или были очищены политикой ротации.
+                {isUz
+                  ? 'Surat maʼlumotlari mavjud emas yoki tozalangan.'
+                  : 'Данные снимка отсутствуют или были очищены политикой ротации.'}
               </p>
             )}
 
@@ -277,7 +302,7 @@ export default function AdminAuditPage() {
                 size="sm"
                 onClick={() => setSelectedLog(null)}
               >
-                Закрыть
+                {isUz ? 'Yopish' : 'Закрыть'}
               </Button>
             </div>
           </div>

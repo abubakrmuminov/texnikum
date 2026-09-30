@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     'Oʻzbekiston Respublikasining «Taʼlim toʻgʻrisida»gi Qonuni (OʻRQ-637, 37-modda) va PF-158-son Farmoniga muvofiq rasmiy axborotlar.',
 };
 
-export const INFO_SECTIONS = [
+const INFO_SECTIONS = [
   {
     slug: 'info-common',
     title: 'Umumiy maʼlumotlar',

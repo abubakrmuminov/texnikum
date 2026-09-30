@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { MediaFile, StorageBucket } from '@college/shared';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -28,6 +29,9 @@ function formatBytes(bytes: number): string {
 }
 
 export default function AdminMediaPage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+
   const [files, setFiles] = React.useState<MediaFile[]>([]);
   const [selectedBucket, setSelectedBucket] = React.useState<StorageBucket>('news-media');
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -46,11 +50,15 @@ export default function AdminMediaPage() {
       const data = await apiClient.getMediaFiles(bucket);
       setFiles(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить файлы');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Fayllarni yuklab boʻlmadi' : 'Не удалось загрузить файлы')
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isUz]);
 
   React.useEffect(() => {
     loadMedia(selectedBucket);
@@ -70,16 +78,26 @@ export default function AdminMediaPage() {
 
         // Validation for size
         if (file.size > 20 * 1024 * 1024) {
-          throw new Error(`Файл «${file.name}» превышает лимит 20 МБ`);
+          throw new Error(
+            isUz
+              ? `«${file.name}» fayli hajmi 20 MB limitidan katta`
+              : `Файл «${file.name}» превышает лимит 20 МБ`
+          );
         }
 
         const uploaded = await apiClient.uploadMedia(file, selectedBucket);
         setFiles((prev) => [uploaded, ...prev]);
       }
-      setSuccess('Файлы успешно загружены в хранилище');
+      setSuccess(
+        isUz ? 'Fayllar xotiraga muvaffaqiyatli yuklandi' : 'Файлы успешно загружены в хранилище'
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Ошибка при загрузке файлов');
+      setError(
+        err instanceof Error
+          ? err.message
+          : (isUz ? 'Fayllarni yuklashda xatolik yuz berdi' : 'Ошибка при загрузке файлов')
+      );
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -99,16 +117,21 @@ export default function AdminMediaPage() {
   };
 
   const handleDelete = async (file: MediaFile) => {
-    if (!window.confirm(`Удалить файл «${file.originalName}» из хранилища?`)) {
+    const confirmMsg = isUz
+      ? `«${file.originalName}» faylini oʻchirib tashlamoqchimisiz?`
+      : `Удалить файл «${file.originalName}» из хранилища?`;
+    if (!window.confirm(confirmMsg)) {
       return;
     }
     try {
       await apiClient.deleteMediaFile(file.id);
       setFiles((prev) => prev.filter((f) => f.id !== file.id));
-      setSuccess(`Файл «${file.originalName}» удален`);
+      setSuccess(
+        isUz ? `«${file.originalName}» fayli oʻchirildi` : `Файл «${file.originalName}» удален`
+      );
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      alert('Не удалось удалить файл');
+      alert(isUz ? 'Faylni oʻchirib boʻlmadi' : 'Не удалось удалить файл');
     }
   };
 
@@ -125,10 +148,12 @@ export default function AdminMediaPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <FolderOpen className="h-6 w-6 text-primary" />
-            Медиатека и документы
+            {isUz ? 'Mediateka va hujjatlar' : 'Медиатека и документы'}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Управление файловыми хранилищами Supabase Storage: изображения для публикаций и скан-копии документов
+            {isUz
+              ? 'Supabase Storage fayl xotiralarini boshqarish: maqolalar uchun suratlar va rasmiy hujjatlar nusxalari'
+              : 'Управление файловыми хранилищами Supabase Storage: изображения для публикаций и скан-копии документов'}
           </p>
         </div>
 
@@ -151,7 +176,9 @@ export default function AdminMediaPage() {
             className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
           >
             <Upload className="h-4 w-4" />
-            {isUploading ? 'Загрузка...' : 'Загрузить файлы'}
+            {isUploading
+              ? (isUz ? 'Yuklanmoqda...' : 'Загрузка...')
+              : (isUz ? 'Fayllarni yuklash' : 'Загрузить файлы')}
           </Button>
         </div>
       </div>
@@ -182,7 +209,7 @@ export default function AdminMediaPage() {
           }`}
         >
           <ImageIcon className="h-4 w-4" />
-          Медиа новостей (news-media)
+          {isUz ? 'Yangiliklar rasmlari (news-media)' : 'Медиа новостей (news-media)'}
         </button>
 
         <button
@@ -194,7 +221,7 @@ export default function AdminMediaPage() {
           }`}
         >
           <FileText className="h-4 w-4" />
-          Официальные документы (official-docs)
+          {isUz ? 'Rasmiy hujjatlar (official-docs)' : 'Официальные документы (official-docs)'}
         </button>
       </div>
 
@@ -204,7 +231,9 @@ export default function AdminMediaPage() {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Поиск по имени файла..."
+          placeholder={
+            isUz ? 'Fayl nomi boʻyicha qidiruv...' : 'Поиск по имени файла...'
+          }
           className="pl-9 h-10"
         />
       </div>
@@ -212,17 +241,21 @@ export default function AdminMediaPage() {
       {/* Media Grid */}
       {isLoading ? (
         <div className="p-12 text-center text-sm text-muted-foreground rounded-xl border bg-card">
-          Загрузка файлов...
+          {isUz ? 'Fayllar yuklanmoqda...' : 'Загрузка файлов...'}
         </div>
       ) : filteredFiles.length === 0 ? (
         <div className="p-12 text-center rounded-xl border bg-card space-y-3">
-          <p className="text-sm text-muted-foreground">В этом бакете пока нет файлов</p>
+          <p className="text-sm text-muted-foreground">
+            {isUz
+              ? 'Ushbu xotirada (baketda) hozircha fayllar mavjud emas'
+              : 'В этом бакете пока нет файлов'}
+          </p>
           <Button
             variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
           >
-            Загрузить первый файл
+            {isUz ? 'Birinchi faylni yuklash' : 'Загрузить первый файл'}
           </Button>
         </div>
       ) : (
@@ -271,7 +304,7 @@ export default function AdminMediaPage() {
                       {file.originalName}
                     </h3>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {new Date(file.createdAt).toLocaleDateString('ru-RU')}
+                      {new Date(file.createdAt).toLocaleDateString(isUz ? 'uz-UZ' : 'ru-RU')}
                     </p>
                   </div>
 
@@ -282,17 +315,17 @@ export default function AdminMediaPage() {
                       size="sm"
                       onClick={() => handleCopyUrl(file.id, file.publicUrl)}
                       className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 flex-1 justify-start"
-                      title="Скопировать публичный URL"
+                      title={isUz ? 'Ommaviy URL nusxasini olish' : 'Скопировать публичный URL'}
                     >
                       {copiedId === file.id ? (
                         <>
                           <Check className="h-3.5 w-3.5 text-emerald-600" />
-                          <span className="text-emerald-600">Скопировано</span>
+                          <span className="text-emerald-600">{isUz ? 'Nusxalandi' : 'Скопировано'}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-3.5 w-3.5" />
-                          <span>Копировать URL</span>
+                          <span>{isUz ? 'Havolani nusxalash' : 'Копировать URL'}</span>
                         </>
                       )}
                     </Button>
@@ -302,7 +335,7 @@ export default function AdminMediaPage() {
                       size="sm"
                       onClick={() => handleDelete(file)}
                       className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                      title="Удалить файл"
+                      title={isUz ? 'Faylni oʻchirish' : 'Удалить файл'}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

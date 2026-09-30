@@ -3,12 +3,15 @@
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { NewsForm } from '@/components/admin/news-form';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 import { apiClient } from '@/lib/api-client';
 import { NewsItem, NewsCategory } from '@college/shared';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export default function EditNewsArticlePage() {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
   const params = useParams();
   const router = useRouter();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
@@ -34,22 +37,30 @@ export default function EditNewsArticlePage() {
         if (found) {
           setNewsItem(found);
         } else {
-          setError('Публикация не найдена в базе данных');
+          setError(
+            isUz ? 'Nashr maʼlumotlar bazasida topilmadi' : 'Публикация не найдена в базе данных'
+          );
         }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Ошибка при загрузке материала');
+        setError(
+          err instanceof Error
+            ? err.message
+            : isUz
+            ? 'Materialni yuklashda xatolik yuz berdi'
+            : 'Ошибка при загрузке материала'
+        );
       } finally {
         setIsLoading(false);
       }
     }
 
     loadData();
-  }, [id]);
+  }, [id, isUz]);
 
   if (isLoading) {
     return (
       <div className="p-12 text-center text-sm text-muted-foreground">
-        Загрузка данных публикации...
+        {isUz ? 'Nashr maʼlumotlari yuklanmoqda...' : 'Загрузка данных публикации...'}
       </div>
     );
   }
@@ -57,10 +68,12 @@ export default function EditNewsArticlePage() {
   if (error || !newsItem) {
     return (
       <div className="p-8 max-w-lg mx-auto text-center space-y-4">
-        <p className="text-destructive font-semibold">{error || 'Материал не найден'}</p>
+        <p className="text-destructive font-semibold">
+          {error || (isUz ? 'Material topilmadi' : 'Материал не найден')}
+        </p>
         <Button variant="outline" size="sm" onClick={() => router.push('/admin/news')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Вернуться к новостям
+          {isUz ? 'Yangiliklar roʻyxatiga qaytish' : 'Вернуться к новостям'}
         </Button>
       </div>
     );

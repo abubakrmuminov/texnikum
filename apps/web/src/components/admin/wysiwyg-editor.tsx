@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useAppLocale } from '@/components/i18n/locale-provider';
 
 interface WysiwygEditorProps {
   value: string;
@@ -34,10 +35,18 @@ export function WysiwygEditor({
   value,
   onChange,
   minHeight = '360px',
-  placeholder = 'Введите текст новости, приказа или статьи...',
-  label = 'Содержание материала',
+  placeholder,
+  label,
   error,
 }: WysiwygEditorProps) {
+  const { locale } = useAppLocale();
+  const isUz = locale === 'uz';
+
+  const defaultPlaceholder = isUz
+    ? 'Yangilik, buyruq yoki maqola matnini kiriting...'
+    : 'Введите текст новости, приказа или статьи...';
+  const defaultLabel = isUz ? 'Material mazmuni' : 'Содержание материала';
+
   const [activeTab, setActiveTab] = React.useState<'edit' | 'preview'>('edit');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -75,17 +84,41 @@ export function WysiwygEditor({
     }, 0);
   };
 
-  const handleInsertH2 = () => insertFormat('\n## ', '\n', 'Подзаголовок H2');
-  const handleInsertH3 = () => insertFormat('\n### ', '\n', 'Подзаголовок H3');
-  const handleInsertBold = () => insertFormat('**', '**', 'жирный текст');
-  const handleInsertItalic = () => insertFormat('*', '*', 'курсив');
-  const handleInsertQuote = () => insertFormat('\n> ', '\n', 'Цитата или комментарий руководства');
-  const handleInsertUl = () => insertFormat('\n- ', '\n', 'Элемент списка');
-  const handleInsertOl = () => insertFormat('\n1. ', '\n', 'Первый пункт');
-  const handleInsertLink = () => insertFormat('[', '](https://example.com)', 'Текст ссылки');
-  const handleInsertImage = () => insertFormat('![Описание фото](', ')', 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800');
+  const handleInsertH2 = () =>
+    insertFormat('\n## ', '\n', isUz ? 'H2 kichik sarlavhasi' : 'Подзаголовок H2');
+  const handleInsertH3 = () =>
+    insertFormat('\n### ', '\n', isUz ? 'H3 kichik sarlavhasi' : 'Подзаголовок H3');
+  const handleInsertBold = () =>
+    insertFormat('**', '**', isUz ? 'qalin matn' : 'жирный текст');
+  const handleInsertItalic = () =>
+    insertFormat('*', '*', isUz ? 'kursiv matn' : 'курсив');
+  const handleInsertQuote = () =>
+    insertFormat(
+      '\n> ',
+      '\n',
+      isUz ? 'Rahbariyat iqtibosi yoki rasmiy izoh' : 'Цитата или комментарий руководства'
+    );
+  const handleInsertUl = () =>
+    insertFormat('\n- ', '\n', isUz ? 'Roʻyxat bandi' : 'Элемент списка');
+  const handleInsertOl = () =>
+    insertFormat('\n1. ', '\n', isUz ? 'Birinchi band' : 'Первый пункт');
+  const handleInsertLink = () =>
+    insertFormat('[', '](https://example.com)', isUz ? 'Havola matni' : 'Текст ссылки');
+  const handleInsertImage = () =>
+    insertFormat(
+      isUz ? '![Rasm tavsifi](' : '![Описание фото](',
+      ')',
+      'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800'
+    );
   const handleInsertTable = () => {
-    const tableTemplate = `
+    const tableTemplate = isUz
+      ? `
+| Koʻrsatkich nomi | Qiymat | Izoh |
+| ----------------- | ------ | ---- |
+| Nazorat reja oʻrinlari | 150 ta | Davlat granti |
+| Oʻtish balli | 4.6 | Kunduzgi |
+`
+      : `
 | Наименование показателя | Значение | Примечание |
 | ----------------------- | -------- | ---------- |
 | Контрольные цифры       | 150 мест | Бюджет     |
@@ -94,13 +127,19 @@ export function WysiwygEditor({
     insertFormat(tableTemplate, '');
   };
   const handleInsertDirective = () => {
-    const docTemplate = `\n> 📄 **Приказ №124/ОД от 15.09.2026**\n> «Об организации учебного процесса и утверждении графиков сессий»\n`;
+    const docTemplate = isUz
+      ? `\n> 📄 **124/OD-sonli buyruq, 15.09.2026**\n> «Oʻquv jarayonini tashkil etish va sessiyalar jadvalini tasdiqlash toʻgʻrisida»\n`
+      : `\n> 📄 **Приказ №124/ОД от 15.09.2026**\n> «Об организации учебного процесса и утверждении графиков сессий»\n`;
     insertFormat(docTemplate, '');
   };
 
   // Convert basic markdown tags to styled preview HTML safely without heavy external deps
   const renderPreviewHtml = (text: string) => {
-    if (!text) return '<p class="text-muted-foreground italic">Текст статьи пока пуст.</p>';
+    if (!text) {
+      return isUz
+        ? '<p class="text-muted-foreground italic">Maqola matni hali kiritilmagan.</p>'
+        : '<p class="text-muted-foreground italic">Текст статьи пока пуст.</p>';
+    }
 
     // Simple markdown to HTML renderer
     let html = text
@@ -129,16 +168,16 @@ export function WysiwygEditor({
     <div className="space-y-1.5 w-full">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground">
-          {label}
+          {label || defaultLabel}
         </label>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Type className="h-3.5 w-3.5" />
-            {wordCount} слов
+            {wordCount} {isUz ? 'soʻz' : 'слов'}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
-            ~{readingTime} мин чтения
+            ~{readingTime} {isUz ? 'daqiqalik mutolaa' : 'мин чтения'}
           </span>
         </div>
       </div>
@@ -153,7 +192,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertH2}
               className="h-8 px-2 text-xs font-bold"
-              title="Заголовок H2"
+              title={isUz ? 'H2 kichik sarlavhasi' : 'Заголовок H2'}
             >
               <Heading2 className="h-4 w-4 mr-0.5" />
               H2
@@ -164,7 +203,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertH3}
               className="h-8 px-2 text-xs font-bold"
-              title="Заголовок H3"
+              title={isUz ? 'H3 kichik sarlavhasi' : 'Заголовок H3'}
             >
               <Heading3 className="h-4 w-4 mr-0.5" />
               H3
@@ -176,7 +215,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertBold}
               className="h-8 w-8 p-0"
-              title="Полужирный"
+              title={isUz ? 'Qalin' : 'Полужирный'}
             >
               <Bold className="h-4 w-4" />
             </Button>
@@ -186,7 +225,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertItalic}
               className="h-8 w-8 p-0"
-              title="Курсив"
+              title={isUz ? 'Kursiv' : 'Курсив'}
             >
               <Italic className="h-4 w-4" />
             </Button>
@@ -197,7 +236,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertUl}
               className="h-8 w-8 p-0"
-              title="Маркированный список"
+              title={isUz ? 'Belgilangan roʻyxat' : 'Маркированный список'}
             >
               <List className="h-4 w-4" />
             </Button>
@@ -207,7 +246,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertOl}
               className="h-8 w-8 p-0"
-              title="Нумерованный список"
+              title={isUz ? 'Raqamli roʻyxat' : 'Нумерованный список'}
             >
               <ListOrdered className="h-4 w-4" />
             </Button>
@@ -217,7 +256,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertQuote}
               className="h-8 w-8 p-0"
-              title="Цитата"
+              title={isUz ? 'Iqtibos' : 'Цитата'}
             >
               <Quote className="h-4 w-4" />
             </Button>
@@ -228,7 +267,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertLink}
               className="h-8 w-8 p-0"
-              title="Ссылка"
+              title={isUz ? 'Havola' : 'Ссылка'}
             >
               <LinkIcon className="h-4 w-4" />
             </Button>
@@ -238,7 +277,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertImage}
               className="h-8 w-8 p-0"
-              title="Изображение"
+              title={isUz ? 'Rasm' : 'Изображение'}
             >
               <ImageIcon className="h-4 w-4" />
             </Button>
@@ -248,7 +287,7 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertTable}
               className="h-8 w-8 p-0"
-              title="Таблица"
+              title={isUz ? 'Jadval' : 'Таблица'}
             >
               <TableIcon className="h-4 w-4" />
             </Button>
@@ -258,10 +297,10 @@ export function WysiwygEditor({
               size="sm"
               onClick={handleInsertDirective}
               className="h-8 px-2 text-xs text-primary"
-              title="Вставить официальный приказ"
+              title={isUz ? 'Rasmiy buyruq kiritish' : 'Вставить официальный приказ'}
             >
               <FileText className="h-3.5 w-3.5 mr-1" />
-              Приказ
+              {isUz ? 'Buyruq' : 'Приказ'}
             </Button>
           </div>
 
@@ -277,7 +316,7 @@ export function WysiwygEditor({
               }`}
             >
               <Edit3 className="h-3.5 w-3.5" />
-              Редактор
+              {isUz ? 'Muharrir' : 'Редактор'}
             </button>
             <button
               type="button"
@@ -289,7 +328,7 @@ export function WysiwygEditor({
               }`}
             >
               <Eye className="h-3.5 w-3.5" />
-              Предпросмотр
+              {isUz ? 'Koʻrib chiqish' : 'Предпросмотр'}
             </button>
           </div>
         </div>
@@ -301,7 +340,7 @@ export function WysiwygEditor({
               ref={textareaRef}
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              placeholder={placeholder}
+              placeholder={placeholder || defaultPlaceholder}
               className="w-full border-0 focus-visible:ring-0 focus-visible:ring-offset-0 font-mono text-sm leading-relaxed p-0 resize-y"
               style={{ minHeight }}
             />
