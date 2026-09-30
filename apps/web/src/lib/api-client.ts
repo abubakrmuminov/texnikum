@@ -654,8 +654,20 @@ async function safeMutation<T>(
     const headers: Record<string, string> = {
       Accept: 'application/json',
     };
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
+    let authToken = token;
+    if (!authToken && typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('college_admin_session');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          authToken = parsed?.token || undefined;
+        }
+      } catch {
+        // Ignore session read error
+      }
+    }
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
     }
     let bodyData: BodyInit | undefined;
     if (body instanceof FormData) {
@@ -801,9 +813,8 @@ export const api = {
   getNewsBySlug: async (slug: string) => {
     const currentNews = getAllCurrentNews();
     const fallback =
-      currentNews.find((n) => n.slug === slug || n.id === slug) ||
-      currentNews[0]!;
-    return safeFetch(`/news/${slug}`, fallback);
+      currentNews.find((n) => n.slug === slug || n.id === slug) || null;
+    return safeFetch<NewsItem | null>(`/news/${slug}`, fallback);
   },
 
   getCategories: async () => {
@@ -829,8 +840,8 @@ export const api = {
   },
 
   getTeacherBySlug: async (slug: string) => {
-    const fallback = FALLBACK_TEACHERS.find((t) => t.slug === slug || t.id === slug) || FALLBACK_TEACHERS[0]!;
-    return safeFetch(`/teachers/${slug}`, fallback);
+    const fallback = FALLBACK_TEACHERS.find((t) => t.slug === slug || t.id === slug) || null;
+    return safeFetch<Teacher | null>(`/teachers/${slug}`, fallback);
   },
 
   getDepartments: async () => {
@@ -855,8 +866,8 @@ export const api = {
   },
 
   getSpecialtyBySlug: async (slug: string) => {
-    const fallback = FALLBACK_SPECIALTIES.find((s) => s.slug === slug || s.id === slug) || FALLBACK_SPECIALTIES[0]!;
-    return safeFetch(`/specialties/${slug}`, fallback);
+    const fallback = FALLBACK_SPECIALTIES.find((s) => s.slug === slug || s.id === slug) || null;
+    return safeFetch<Specialty | null>(`/specialties/${slug}`, fallback);
   },
 
   // События
@@ -877,8 +888,8 @@ export const api = {
   },
 
   getEventBySlug: async (slug: string) => {
-    const fallback = FALLBACK_EVENTS.find((e) => e.slug === slug || e.id === slug) || FALLBACK_EVENTS[0]!;
-    return safeFetch(`/events/${slug}`, fallback);
+    const fallback = FALLBACK_EVENTS.find((e) => e.slug === slug || e.id === slug) || null;
+    return safeFetch<EventItem | null>(`/events/${slug}`, fallback);
   },
 
   // Расписание
@@ -905,8 +916,8 @@ export const api = {
   },
 
   getPageBySlug: async (slug: string) => {
-    const fallback = FALLBACK_PAGES.find((p) => p.slug === slug) || FALLBACK_PAGES[0]!;
-    return safeFetch(`/pages/${slug}`, fallback);
+    const fallback = FALLBACK_PAGES.find((p) => p.slug === slug) || null;
+    return safeFetch<PageItem | null>(`/pages/${slug}`, fallback);
   },
 
   // ---------------------------------------------------------------------------

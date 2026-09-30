@@ -18,21 +18,21 @@ import { UpdateNewsDto } from './dto/update-news.dto';
 @Injectable()
 export class NewsService {
   private categories: NewsCategory[] = [
-    { id: 1, name: 'Официально', slug: 'oficialno', colorBadge: 'slate', createdAt: '2026-09-01T00:00:00Z' },
-    { id: 2, name: 'Студенческая жизнь', slug: 'studencheskaya-zhizn', colorBadge: 'indigo', createdAt: '2026-09-01T00:00:00Z' },
-    { id: 3, name: 'Наука и инновации', slug: 'nauka-i-innovacii', colorBadge: 'purple', createdAt: '2026-09-01T00:00:00Z' },
-    { id: 4, name: 'Спорт и достижения', slug: 'sport-i-dostizheniya', colorBadge: 'emerald', createdAt: '2026-09-01T00:00:00Z' },
-    { id: 5, name: 'Абитуриенту', slug: 'abiturientu', colorBadge: 'amber', createdAt: '2026-09-01T00:00:00Z' },
+    { id: 1, name: 'Rasmiy', slug: 'rasmiy', colorBadge: 'slate', createdAt: '2026-09-01T00:00:00Z' },
+    { id: 2, name: 'Talabalar hayoti', slug: 'talabalar-hayoti', colorBadge: 'indigo', createdAt: '2026-09-01T00:00:00Z' },
+    { id: 3, name: 'Fan va innovatsiyalar', slug: 'fan-va-innovatsiyalar', colorBadge: 'purple', createdAt: '2026-09-01T00:00:00Z' },
+    { id: 4, name: 'Sport va yutuqlar', slug: 'sport-va-yutuqlar', colorBadge: 'emerald', createdAt: '2026-09-01T00:00:00Z' },
+    { id: 5, name: 'Abituriyentga', slug: 'abituriyentga', colorBadge: 'amber', createdAt: '2026-09-01T00:00:00Z' },
   ];
 
   private newsList: NewsItem[] = [
     {
       id: '10000000-0000-0000-0000-000000000001',
-      title: 'Студенты колледжа завоевали золото на чемпионате профессионального мастерства «Профессионалы 2026»',
-      slug: 'studenty-kolledzha-zavoevali-zoloto-chempionat-professionaly-2026',
+      title: 'Texnikum talabalari «WorldSkills Uzbekistan 2026» kasbiy mahorat chempionatida oltin medalni qoʻlga kiritishdi',
+      slug: 'texnikum-talabalari-worldskills-uzbekistan-2026-oltin-medal',
       categoryId: 3,
-      leadText: 'В финале регионального этапа чемпионата команда колледжа заняла первые места в ключевых ИТ-компетенциях.',
-      contentHtml: '<p class="lead">Студенты нашего колледжа заняли первые места в компетенциях «Веб-технологии» и «Сетевое и системное администрирование».</p>',
+      leadText: 'Viloyat va respublika bosqichida texnikumimiz jamoasi «Veb-texnologiyalar» hamda «Tarmoq va tizim maʼmurligi» yoʻnalishlarida faxrli 1-oʻrinni egalladi.',
+      contentHtml: '<p class="lead">2026-yil 20–25-mart kunlari oʻtkazilgan «WorldSkills Uzbekistan» milliy kasbiy mahorat chempionatida Fargʻona 2-son texnikumi iqtidorli talabalari yuqori amaliy tayyorgarlik darajasini namoyish etishdi.</p>',
       coverImageUrl: '/images/news/champion-2026.webp',
       readingTimeMin: 4,
       status: NewsStatus.PUBLISHED,
@@ -44,11 +44,11 @@ export class NewsService {
     },
     {
       id: '10000000-0000-0000-0000-000000000002',
-      title: 'Приемная кампания 2026: контрольные цифры приема, правила подачи документов и новые бюджетные места',
-      slug: 'priemnaya-kampaniya-2026-pravila-priema-i-kcp',
+      title: 'Qabul 2026: davlat granti oʻrinlari, my.edu.uz orqali ariza topshirish tartibi va yoʻnalishlar',
+      slug: 'qabul-2026-davlat-granti-va-hujjat-topshirish-tartibi',
       categoryId: 5,
-      leadText: 'Приемная комиссия колледжа информирует выпускников 9-х и 11-х классов о порядке подачи заявлений на 2026/2027 учебный год.',
-      contentHtml: '<p class="lead">С 20 июня открыт прием заявлений на очную форму обучения. Выделено 150 бюджетных мест.</p>',
+      leadText: 'Fargʻona shahri 2-son texnikumi qabul komissiyasi 9 va 11-sinf bitiruvchilarini 2026/2027 oʻquv yili uchun qabul shartlari bilan tanishtiradi.',
+      contentHtml: '<p class="lead">2026-yil 20-iyundan boshlab texnikumda kunduzgi taʼlim shakli boʻyicha oʻrta maxsus professional taʼlim dasturlariga arizalar qabul qilinadi. Joriy oʻquv yilida davlat granti asosida 75 ta maqsadli oʻrin ajratildi.</p>',
       coverImageUrl: '/images/news/admissions-2026.webp',
       readingTimeMin: 3,
       status: NewsStatus.PUBLISHED,
@@ -57,6 +57,38 @@ export class NewsService {
       publishedAt: '2026-09-26T10:00:00Z',
       createdAt: '2026-09-26T09:00:00Z',
       updatedAt: '2026-09-26T10:00:00Z',
+    },
+    {
+      id: '10000000-0000-0000-0000-000000000003',
+      title: 'Fargʻona 2-son texnikumida bulutli hisoblash va sunʼiy intellekt laboratoriyasi ochildi',
+      slug: 'texnikumda-bulutli-hisoblash-va-ai-laboratoriyasi-ochildi',
+      categoryId: 3,
+      leadText: 'Raqamli taʼlim texnologiyalarini rivojlantirish dasturi doirasida texnikumda 25 oʻrinli yangi innovatsion laboratoriya ishga tushirildi.',
+      contentHtml: '<p class="lead">Yangi laboratoriya zamonaviy server uskunalari, yuqori tezlikdagi optik tolali aloqa hamda amaliy IT-loyihalarni amalga oshirish uchun dasturiy vositalar bilan toʻliq jihozlandi.</p>',
+      coverImageUrl: '/images/news/lab-opening.webp',
+      readingTimeMin: 3,
+      status: NewsStatus.PUBLISHED,
+      isFeatured: false,
+      authorId: 'a0000000-0000-0000-0000-000000000001',
+      publishedAt: '2026-09-24T12:00:00Z',
+      createdAt: '2026-09-24T11:00:00Z',
+      updatedAt: '2026-09-24T12:00:00Z',
+    },
+    {
+      id: '10000000-0000-0000-0000-000000000004',
+      title: 'Texnikum voleybol jamoasi Fargʻona viloyati texnikumlari oʻrtasidagi spartakiada gʻolibi boʻldi',
+      slug: 'texnikum-voleybol-jamoasi-viloyat-spartakiadasida-golib',
+      categoryId: 4,
+      leadText: 'Final uchrashuvida texnikumimiz sportchilari murosasiz kurashda 3:1 hisobida gʻalaba qozonib, kubok sohibiga aylanishdi.',
+      contentHtml: '<p class="lead">Shahrimiz sport majmuasida oʻtkazilgan professional taʼlim muassasalari spartakiadasida texnikum voleybol terma jamoasi barcha oʻyinlarda ishonchli oʻyin koʻrsatib, 1-oʻrinni egalladi.</p>',
+      coverImageUrl: '/images/news/volleyball-cup.webp',
+      readingTimeMin: 2,
+      status: NewsStatus.PUBLISHED,
+      isFeatured: false,
+      authorId: 'a0000000-0000-0000-0000-000000000001',
+      publishedAt: '2026-09-22T15:00:00Z',
+      createdAt: '2026-09-22T14:00:00Z',
+      updatedAt: '2026-09-22T15:00:00Z',
     },
   ];
 
@@ -160,6 +192,44 @@ export class NewsService {
 
   async findFeatured(): Promise<ApiResponse<NewsItem | null>> {
     return this.cacheService.getOrSet('news:featured', 120, async () => {
+      if (this.supabaseService.isReady()) {
+        const supabase = this.supabaseService.getClient();
+        if (supabase) {
+          const { data, error } = await supabase
+            .from('news')
+            .select('*, news_categories(*)')
+            .eq('status', NewsStatus.PUBLISHED)
+            .order('is_featured', { ascending: false })
+            .order('published_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (!error && data) {
+            const item: NewsItem = {
+              id: String(data.id),
+              title: String(data.title),
+              slug: String(data.slug),
+              categoryId: Number(data.category_id),
+              leadText: String(data.lead_text),
+              contentHtml: String(data.content_html),
+              coverImageUrl: data.cover_image_url ? String(data.cover_image_url) : null,
+              readingTimeMin: Number(data.reading_time_min),
+              status: data.status as NewsStatus,
+              isFeatured: Boolean(data.is_featured),
+              authorId: data.author_id ? String(data.author_id) : null,
+              publishedAt: data.published_at ? String(data.published_at) : null,
+              createdAt: String(data.created_at),
+              updatedAt: String(data.updated_at),
+            };
+            return {
+              success: true,
+              data: item,
+              timestamp: new Date().toISOString(),
+            };
+          }
+        }
+      }
+
       const featured =
         this.newsList.find((n) => n.isFeatured && n.status === NewsStatus.PUBLISHED) ||
         this.newsList[0] ||
@@ -174,6 +244,46 @@ export class NewsService {
 
   async findOne(slugOrId: string): Promise<ApiResponse<NewsItem>> {
     return this.cacheService.getOrSet(`news:detail:${slugOrId}`, 180, async () => {
+      if (this.supabaseService.isReady()) {
+        const supabase = this.supabaseService.getClient();
+        if (supabase) {
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+          let dbQuery = supabase
+            .from('news')
+            .select('*, news_categories(*)');
+          if (isUuid) {
+            dbQuery = dbQuery.or(`id.eq.${slugOrId},slug.eq.${slugOrId}`);
+          } else {
+            dbQuery = dbQuery.eq('slug', slugOrId);
+          }
+
+          const { data, error } = await dbQuery.maybeSingle();
+          if (!error && data) {
+            const item: NewsItem = {
+              id: String(data.id),
+              title: String(data.title),
+              slug: String(data.slug),
+              categoryId: Number(data.category_id),
+              leadText: String(data.lead_text),
+              contentHtml: String(data.content_html),
+              coverImageUrl: data.cover_image_url ? String(data.cover_image_url) : null,
+              readingTimeMin: Number(data.reading_time_min),
+              status: data.status as NewsStatus,
+              isFeatured: Boolean(data.is_featured),
+              authorId: data.author_id ? String(data.author_id) : null,
+              publishedAt: data.published_at ? String(data.published_at) : null,
+              createdAt: String(data.created_at),
+              updatedAt: String(data.updated_at),
+            };
+            return {
+              success: true,
+              data: item,
+              timestamp: new Date().toISOString(),
+            };
+          }
+        }
+      }
+
       const item = this.newsList.find((n) => n.slug === slugOrId || n.id === slugOrId);
       if (!item) {
         throw new NotFoundException(`Новость «${slugOrId}» не найдена`);
@@ -215,6 +325,28 @@ export class NewsService {
       updatedAt: new Date().toISOString(),
     };
 
+    if (this.supabaseService.isReady()) {
+      const supabase = this.supabaseService.getClient();
+      if (supabase) {
+        const { data, error } = await supabase.from('news').insert({
+          title: newItem.title,
+          slug: newItem.slug,
+          category_id: newItem.categoryId,
+          lead_text: newItem.leadText,
+          content_html: newItem.contentHtml,
+          cover_image_url: newItem.coverImageUrl,
+          reading_time_min: newItem.readingTimeMin,
+          status: newItem.status,
+          is_featured: newItem.isFeatured,
+          published_at: newItem.publishedAt,
+        }).select().maybeSingle();
+
+        if (!error && data) {
+          newItem.id = String(data.id);
+        }
+      }
+    }
+
     this.newsList.unshift(newItem);
     await this.auditService.log(user.id, 'CREATE', 'news', newItem.id, newItem as unknown as Record<string, unknown>);
     await this.cacheService.delByPattern('news:*');
@@ -228,27 +360,79 @@ export class NewsService {
   }
 
   async update(id: string, dto: UpdateNewsDto, user: UserProfile): Promise<ApiResponse<NewsItem>> {
-    const index = this.newsList.findIndex((n) => n.id === id);
-    if (index === -1) {
+    let existingItem = this.newsList.find((n) => n.id === id || n.slug === id);
+
+    if (this.supabaseService.isReady()) {
+      const supabase = this.supabaseService.getClient();
+      if (supabase) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        let updateQuery = supabase.from('news').update({
+          ...(dto.title !== undefined && { title: dto.title }),
+          ...(dto.slug !== undefined && { slug: dto.slug }),
+          ...(dto.categoryId !== undefined && { category_id: Number(dto.categoryId) }),
+          ...(dto.leadText !== undefined && { lead_text: dto.leadText }),
+          ...(dto.contentHtml !== undefined && { content_html: dto.contentHtml }),
+          ...(dto.coverImageUrl !== undefined && { cover_image_url: dto.coverImageUrl }),
+          ...(dto.readingTimeMin !== undefined && { reading_time_min: dto.readingTimeMin }),
+          ...(dto.status !== undefined && { status: dto.status }),
+          ...(dto.isFeatured !== undefined && { is_featured: dto.isFeatured }),
+          ...(dto.publishedAt !== undefined && { published_at: dto.publishedAt }),
+          updated_at: new Date().toISOString(),
+        });
+
+        if (isUuid) {
+          updateQuery = updateQuery.eq('id', id);
+        } else {
+          updateQuery = updateQuery.or(`id.eq.${id},slug.eq.${id}`);
+        }
+
+        const { data, error } = await updateQuery.select().maybeSingle();
+        if (!error && data) {
+          existingItem = {
+            id: String(data.id),
+            title: String(data.title),
+            slug: String(data.slug),
+            categoryId: Number(data.category_id),
+            leadText: String(data.lead_text),
+            contentHtml: String(data.content_html),
+            coverImageUrl: data.cover_image_url ? String(data.cover_image_url) : null,
+            readingTimeMin: Number(data.reading_time_min),
+            status: data.status as NewsStatus,
+            isFeatured: Boolean(data.is_featured),
+            authorId: data.author_id ? String(data.author_id) : null,
+            publishedAt: data.published_at ? String(data.published_at) : null,
+            createdAt: String(data.created_at),
+            updatedAt: String(data.updated_at),
+          };
+        }
+      }
+    }
+
+    if (!existingItem) {
       throw new NotFoundException(`Новость с ID «${id}» не найдена`);
     }
 
-    const oldItem = this.newsList[index]!;
     const updatedItem: NewsItem = {
-      ...oldItem,
+      ...existingItem,
       ...dto,
-      categoryId: dto.categoryId ? Number(dto.categoryId) : oldItem.categoryId,
+      categoryId: dto.categoryId ? Number(dto.categoryId) : existingItem.categoryId,
       updatedAt: new Date().toISOString(),
     };
 
-    this.newsList[index] = updatedItem;
+    const index = this.newsList.findIndex((n) => n.id === id || n.slug === id);
+    if (index !== -1) {
+      this.newsList[index] = updatedItem;
+    } else {
+      this.newsList.unshift(updatedItem);
+    }
+
     await this.auditService.log(
       user.id,
       'UPDATE',
       'news',
       id,
       updatedItem as unknown as Record<string, unknown>,
-      oldItem as unknown as Record<string, unknown>,
+      existingItem as unknown as Record<string, unknown>,
     );
     await this.cacheService.delByPattern('news:*');
 
@@ -261,13 +445,27 @@ export class NewsService {
   }
 
   async delete(id: string, user: UserProfile): Promise<ApiResponse<{ deleted: boolean }>> {
-    const index = this.newsList.findIndex((n) => n.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Новость с ID «${id}» не найдена`);
+    if (this.supabaseService.isReady()) {
+      const supabase = this.supabaseService.getClient();
+      if (supabase) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        let deleteQuery = supabase.from('news').delete();
+        if (isUuid) {
+          deleteQuery = deleteQuery.eq('id', id);
+        } else {
+          deleteQuery = deleteQuery.or(`id.eq.${id},slug.eq.${id}`);
+        }
+        await deleteQuery;
+      }
     }
 
-    const oldItem = this.newsList[index]!;
-    this.newsList.splice(index, 1);
+    const index = this.newsList.findIndex((n) => n.id === id || n.slug === id);
+    let oldItem: NewsItem | undefined;
+    if (index !== -1) {
+      oldItem = this.newsList[index];
+      this.newsList.splice(index, 1);
+    }
+
     await this.auditService.log(user.id, 'DELETE', 'news', id, undefined, oldItem as unknown as Record<string, unknown>);
     await this.cacheService.delByPattern('news:*');
 

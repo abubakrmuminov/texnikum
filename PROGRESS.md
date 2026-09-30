@@ -161,6 +161,13 @@
       - **Журнал аудита (`admin/audit`)**: фильтры операций («CREATE», «UPDATE», «DELETE», «PUBLISH», «ARCHIVE»), сущностей, модальное окно диффа («Old Values» / «New Values»).
       - **Авторизация (`admin/login`)**: форма входа, валидация и предупреждения.
     - Успешная сборка: 77/77 страниц Next.js собраны с 0 ошибок, строгий TypeScript `tsc --noEmit` без ошибок как в `@college/web`, так и в `@college/api`.
+  - **Исправление маршрутизации и выборки детальных новостей по слагу (News Slug Routing & Supabase Sync Fix)**:
+    - **Причина дефекта**: в методе `NewsService.findOne(slugOrId)` отсутствовал запрос к Supabase (метод искал только в локальном массиве `newsList`), из-за чего бэкенд возвращал 404 на любые новости из БД. На фронтенде метод `getNewsBySlug` при ошибке 404 ошибочно откатывался к первому элементу массива `currentNews[0]` («WorldSkills Uzbekistan 2026»), подменяя открываемую статью независимо от слага в URL.
+    - **Решение**:
+      - В `apps/api/src/modules/news/news.service.ts` реализован прямой запрос к Supabase в `findOne` (по `slug` или `id`), а также в `create`, `update`, `delete` и `findFeatured`.
+      - Синхронизированы начальные узбекские статьи в бэкенде `NewsService.newsList`.
+      - В `apps/web/src/lib/api-client.ts` убран ошибочный fallback на нулевой элемент в `getNewsBySlug`, `getTeacherBySlug`, `getSpecialtyBySlug`, `getEventBySlug`, `getPageBySlug`. Если материал не найден, возвращается `null` и Next.js корректно вызывает `notFound()`.
+      - В `safeMutation` внедрено автоматическое извлечение сохраненного токена администратора (`college_admin_session`) для авторизованных запросов к API.
 
 ## In Progress
 - Все поставленные задачи выполнены.
