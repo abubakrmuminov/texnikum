@@ -15,6 +15,38 @@ import { CreateNewsDto } from './dto/create-news.dto';
 import { QueryNewsDto } from './dto/query-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
 
+const CATEGORY_UUID_MAP: Record<number, string> = {
+  1: 'b0000000-0000-0000-0000-000000000001',
+  2: 'b0000000-0000-0000-0000-000000000002',
+  3: 'b0000000-0000-0000-0000-000000000003',
+  4: 'b0000000-0000-0000-0000-000000000004',
+  5: 'b0000000-0000-0000-0000-000000000005',
+};
+
+const CATEGORY_NUM_MAP: Record<string, number> = {
+  'b0000000-0000-0000-0000-000000000001': 1,
+  'b0000000-0000-0000-0000-000000000002': 2,
+  'b0000000-0000-0000-0000-000000000003': 3,
+  'b0000000-0000-0000-0000-000000000004': 4,
+  'b0000000-0000-0000-0000-000000000005': 5,
+};
+
+function toCategoryUuid(cat: string | number | undefined): string {
+  if (typeof cat === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cat)) {
+    return cat;
+  }
+  const num = Number(cat);
+  return CATEGORY_UUID_MAP[num] || 'b0000000-0000-0000-0000-000000000001';
+}
+
+function toCategoryNum(catId: unknown): number {
+  if (typeof catId === 'number' && !isNaN(catId)) return catId;
+  const str = String(catId);
+  if (CATEGORY_NUM_MAP[str]) return CATEGORY_NUM_MAP[str];
+  const parsed = parseInt(str, 10);
+  return isNaN(parsed) ? 1 : parsed;
+}
+
 @Injectable()
 export class NewsService {
   private categories: NewsCategory[] = [
@@ -121,6 +153,11 @@ export class NewsService {
             dbQuery = dbQuery.eq('status', NewsStatus.PUBLISHED);
           }
 
+          if (query.category) {
+            const catUuid = toCategoryUuid(query.category);
+            dbQuery = dbQuery.eq('category_id', catUuid);
+          }
+
           if (query.search) {
             dbQuery = dbQuery.ilike('title', `%${query.search}%`);
           }
@@ -134,7 +171,7 @@ export class NewsService {
               id: String(d.id),
               title: String(d.title),
               slug: String(d.slug),
-              categoryId: Number(d.category_id),
+              categoryId: toCategoryNum(d.category_id),
               leadText: String(d.lead_text),
               contentHtml: String(d.content_html),
               coverImageUrl: d.cover_image_url ? String(d.cover_image_url) : null,
@@ -209,7 +246,7 @@ export class NewsService {
               id: String(data.id),
               title: String(data.title),
               slug: String(data.slug),
-              categoryId: Number(data.category_id),
+              categoryId: toCategoryNum(data.category_id),
               leadText: String(data.lead_text),
               contentHtml: String(data.content_html),
               coverImageUrl: data.cover_image_url ? String(data.cover_image_url) : null,
@@ -263,7 +300,7 @@ export class NewsService {
               id: String(data.id),
               title: String(data.title),
               slug: String(data.slug),
-              categoryId: Number(data.category_id),
+              categoryId: toCategoryNum(data.category_id),
               leadText: String(data.lead_text),
               contentHtml: String(data.content_html),
               coverImageUrl: data.cover_image_url ? String(data.cover_image_url) : null,
@@ -331,7 +368,7 @@ export class NewsService {
         const { data, error } = await supabase.from('news').insert({
           title: newItem.title,
           slug: newItem.slug,
-          category_id: newItem.categoryId,
+          category_id: toCategoryUuid(newItem.categoryId),
           lead_text: newItem.leadText,
           content_html: newItem.contentHtml,
           cover_image_url: newItem.coverImageUrl,
@@ -341,7 +378,9 @@ export class NewsService {
           published_at: newItem.publishedAt,
         }).select().maybeSingle();
 
-        if (!error && data) {
+        if (error) {
+          console.error('[Supabase Insert Error]:', error);
+        } else if (data) {
           newItem.id = String(data.id);
         }
       }
@@ -369,7 +408,7 @@ export class NewsService {
         let updateQuery = supabase.from('news').update({
           ...(dto.title !== undefined && { title: dto.title }),
           ...(dto.slug !== undefined && { slug: dto.slug }),
-          ...(dto.categoryId !== undefined && { category_id: Number(dto.categoryId) }),
+          ...(dto.categoryId !== undefined && { category_id: toCategoryUuid(dto.categoryId) }),
           ...(dto.leadText !== undefined && { lead_text: dto.leadText }),
           ...(dto.contentHtml !== undefined && { content_html: dto.contentHtml }),
           ...(dto.coverImageUrl !== undefined && { cover_image_url: dto.coverImageUrl }),
@@ -387,12 +426,14 @@ export class NewsService {
         }
 
         const { data, error } = await updateQuery.select().maybeSingle();
-        if (!error && data) {
+        if (error) {
+          console.error('[Supabase Update Error]:', error);
+        } else if (data) {
           existingItem = {
             id: String(data.id),
             title: String(data.title),
             slug: String(data.slug),
-            categoryId: Number(data.category_id),
+            categoryId: toCategoryNum(data.category_id),
             leadText: String(data.lead_text),
             contentHtml: String(data.content_html),
             coverImageUrl: data.cover_image_url ? String(data.cover_image_url) : null,

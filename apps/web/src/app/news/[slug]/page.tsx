@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TtsButton } from '@/components/accessibility/tts-button';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface NewsPageProps {
   params: {
     slug: string;

@@ -39,13 +39,39 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Отсутствует токен авторизации (Bearer token)');
     }
 
-    // В режиме разработки с тестовым токеном
-    if (token === 'dev-admin-token' || (!this.supabaseService.isReady() && token)) {
+    // В режиме разработки или при использовании сессионных токенов панели администратора
+    if (token === 'dev-admin-token' || token.startsWith('session-admin') || (!this.supabaseService.isReady() && token)) {
       request.user = {
         id: 'a0000000-0000-0000-0000-000000000001',
-        email: 'admin@college.edu.ru',
-        fullName: 'Иванов Алексей Сергеевич (Admin)',
+        email: 'admin@texnikum2.uz',
+        fullName: 'Karimov Jasur Alisherovich (Admin)',
         role: UserRole.ADMIN,
+        avatarUrl: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return true;
+    }
+
+    if (token.startsWith('session-editor')) {
+      request.user = {
+        id: 'a0000000-0000-0000-0000-000000000002',
+        email: 'editor@texnikum2.uz',
+        fullName: 'Yusupova Nilufar Rustamovna (Editor)',
+        role: UserRole.EDITOR,
+        avatarUrl: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return true;
+    }
+
+    if (token.startsWith('session-moderator')) {
+      request.user = {
+        id: 'a0000000-0000-0000-0000-000000000003',
+        email: 'moderator@texnikum2.uz',
+        fullName: 'Ahmedov Sardor Baxtiyorovich (Moderator)',
+        role: UserRole.MODERATOR,
         avatarUrl: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

@@ -619,10 +619,22 @@ export const FALLBACK_AUDIT: AuditLogItem[] = [
 // -----------------------------------------------------------------------------
 // ТИПИЗИРОВАННЫЙ КЛИЕНТ ЗАПРОСОВ К API С БЕСШОВНЫМ FALLBACK
 // -----------------------------------------------------------------------------
-async function safeFetch<T>(endpoint: string, fallbackData: T): Promise<T> {
+async function safeFetch<T>(
+  endpoint: string,
+  fallbackData: T,
+  fetchOptions?: { revalidate?: number; cache?: RequestCache },
+): Promise<T> {
   try {
+    const nextOpts: { revalidate?: number } = {};
+    if (fetchOptions?.revalidate !== undefined) {
+      nextOpts.revalidate = fetchOptions.revalidate;
+    } else if (!fetchOptions?.cache) {
+      nextOpts.revalidate = 30;
+    }
+
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-      next: { revalidate: 60 },
+      ...(Object.keys(nextOpts).length > 0 ? { next: nextOpts } : {}),
+      ...(fetchOptions?.cache ? { cache: fetchOptions.cache } : {}),
       headers: { Accept: 'application/json' },
     });
     if (!res.ok) {
@@ -683,15 +695,22 @@ async function safeMutation<T>(
       body: bodyData,
     });
     if (!res.ok) {
-      return fallbackData as T;
+      const errorJson = (await res.json().catch(() => null)) as { message?: string | string[] } | null;
+      const errorMessage = errorJson?.message
+        ? (Array.isArray(errorJson.message) ? errorJson.message.join(', ') : errorJson.message)
+        : `Server xatosi (${res.status}): ${res.statusText}`;
+      throw new Error(errorMessage);
     }
     const json = (await res.json()) as { success?: boolean; data?: T };
     if (json && json.data !== undefined) {
       return json.data;
     }
     return (fallbackData || json) as T;
-  } catch {
-    return fallbackData as T;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      throw err;
+    }
+    throw new Error('Tarmoq xatosi yoki server bilan aloqa uzildi');
   }
 }
 
@@ -814,7 +833,7 @@ export const api = {
     const currentNews = getAllCurrentNews();
     const fallback =
       currentNews.find((n) => n.slug === slug || n.id === slug) || null;
-    return safeFetch<NewsItem | null>(`/news/${slug}`, fallback);
+    return safeFetch<NewsItem | null>(`/news/${slug}`, fallback, { cache: 'no-store' });
   },
 
   getCategories: async () => {
@@ -930,25 +949,10 @@ export const api = {
 
   // Новости CRUD
   createNews: async (data: Partial<NewsItem>, token?: string): Promise<NewsItem> => {
-    const newItem: NewsItem = {
-      id: crypto.randomUUID(),
-      title: data.title || 'Новая публикация',
-      slug: data.slug || `news-${Date.now()}`,
-      categoryId: data.categoryId || 1,
-      leadText: data.leadText || '',
-      contentHtml: data.contentHtml || '',
-      coverImageUrl: data.coverImageUrl || null,
-      readingTimeMin: data.readingTimeMin || 3,
-      status: data.status || NewsStatus.DRAFT,
-      isFeatured: Boolean(data.isFeatured),
-      authorId: data.authorId || FALLBACK_USERS[0]!.id,
-      publishedAt: data.status === NewsStatus.PUBLISHED ? new Date().toISOString() : null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const createdItem = await safeMutation<NewsItem>('/news', 'POST', data, token);
 
     const currentLocal = getLocalNews();
-    if (newItem.isFeatured) {
+    if (createdItem.isFeatured) {
       currentLocal.forEach((n) => {
         n.isFeatured = false;
       });
@@ -956,20 +960,19 @@ export const api = {
         n.isFeatured = false;
       });
     }
-    saveLocalNews([newItem, ...currentLocal]);
-    FALLBACK_NEWS.unshift(newItem);
+    saveLocalNews([createdItem, ...currentLocal.filter((n) => n.id !== createdItem.id)]);
+    const fallbackIndex = FALLBACK_NEWS.findIndex((n) => n.id === createdItem.id || n.slug === createdItem.slug);
+    if (fallbackIndex !== -1) {
+      FALLBACK_NEWS[fallbackIndex] = createdItem;
+    } else {
+      FALLBACK_NEWS.unshift(createdItem);
+    }
 
-    return safeMutation('/news', 'POST', data, token, newItem);
+    return createdItem;
   },
 
   updateNews: async (id: string, data: Partial<NewsItem>, token?: string): Promise<NewsItem> => {
-    const currentNews = getAllCurrentNews();
-    const existing = currentNews.find((n) => n.id === id) || FALLBACK_NEWS[0]!;
-    const updated: NewsItem = {
-      ...existing,
-      ...data,
-      updatedAt: new Date().toISOString(),
-    };
+    const updated = await safeMutation<NewsItem>(`/news/${id}`, 'PATCH', data, token);
 
     const currentLocal = getLocalNews();
     const index = currentLocal.findIndex((n) => n.id === id);
@@ -987,7 +990,7 @@ export const api = {
       FALLBACK_NEWS.unshift(updated);
     }
 
-    return safeMutation(`/news/${id}`, 'PATCH', data, token, updated);
+    return updated;
   },
 
   deleteNews: async (id: string, token?: string): Promise<{ success: boolean }> => {

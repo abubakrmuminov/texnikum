@@ -167,7 +167,17 @@
       - В `apps/api/src/modules/news/news.service.ts` реализован прямой запрос к Supabase в `findOne` (по `slug` или `id`), а также в `create`, `update`, `delete` и `findFeatured`.
       - Синхронизированы начальные узбекские статьи в бэкенде `NewsService.newsList`.
       - В `apps/web/src/lib/api-client.ts` убран ошибочный fallback на нулевой элемент в `getNewsBySlug`, `getTeacherBySlug`, `getSpecialtyBySlug`, `getEventBySlug`, `getPageBySlug`. Если материал не найден, возвращается `null` и Next.js корректно вызывает `notFound()`.
-      - В `safeMutation` внедрено автоматическое извлечение сохраненного токена администратора (`college_admin_session`) для авторизованных запросов к API.
+  - **Исправление ошибки 404 при открытии созданных в админке новостей (Persistence & Auth Fix)**:
+    - **Причина дефекта**:
+      1. Токены админ-панели (`session-admin-*`, `session-editor-*`) отклонялись сервером с ошибкой `401 Unauthorized`, так как `JwtAuthGuard` ожидал только `'dev-admin-token'` или валидный Supabase JWT.
+      2. При создании новости `categoryId: 1` передавался как число, вызывая в PostgreSQL базы данных ошибку синтаксиса `22P02: invalid input syntax for type uuid: "1"` (в Supabase колонка `category_id` является внешним ключом `UUID`).
+      3. Вспомогательная функция `safeMutation` при любой HTTP-ошибке (401 или 400) не выбрасывала исключение, а молча возвращала клиентский черновик, из-за чего форма админки сообщала об успешном сохранении, хотя запись в БД не создавалась. Серверные компоненты Next.js при запросе страницы `/news/[slug]` опрашивали API, не находили несуществующую статью в БД и вызывали `notFound()`.
+    - **Решение**:
+      - В `apps/api/src/modules/auth/guards/jwt-auth.guard.ts` добавлена нативная поддержка сессионных токенов панели администратора (`session-admin-*`, `session-editor-*`, `session-moderator-*`) с корректным сопоставлением ролей и профилей.
+      - В `apps/api/src/modules/news/news.service.ts` реализован двунаправленный маппинг идентификаторов категорий между числовыми кодами (1..5) и UUID базы данных Supabase (`toCategoryUuid` / `toCategoryNum`), что гарантирует корректную запись в таблицу `news` и чтение из нее.
+      - В `apps/web/src/lib/api-client.ts` метод `safeMutation` теперь проверяет статус ответа сервера и выбрасывает ошибку при HTTP >= 400 с текстом от бэкенда, а `createNews` и `updateNews` сохраняют и возвращают реальную запись из БД.
+      - На странице `apps/web/src/app/news/[slug]/page.tsx` включен динамический рендеринг (`export const dynamic = 'force-dynamic'`, `export const revalidate = 0`), обеспечивающий мгновенный доступ к новым публикациям без необходимости перезапуска сборки.
+      - Сквозное тестирование подтвердило: статья успешно записывается в Supabase, API возвращает 200 OK, а публичная страница открывается без 404.
 
 ## In Progress
 - Все поставленные задачи выполнены.
