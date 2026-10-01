@@ -70,8 +70,8 @@ function LoginFormContent(): JSX.Element {
             </CardTitle>
             <CardDescription className="text-xs">
               {isUz
-                ? 'Fargʻona 2-son politexnika texnikumi • Tizimga kirish'
-                : 'Ферганский политехнический техникум №2 • Авторизация'}
+                ? 'Muassasa boshqaruv tizimi • Tizimga kirish'
+                : 'Система управления учреждением • Авторизация'}
             </CardDescription>
           </CardHeader>
 
@@ -102,7 +102,7 @@ function LoginFormContent(): JSX.Element {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@texnikum2.uz"
+                    placeholder="admin@texnikum.uz"
                     className="pl-9 text-xs"
                     autoComplete="email"
                   />

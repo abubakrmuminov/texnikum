@@ -3,14 +3,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { collegeApi } from '@/lib/api-client';
 import { NewsFeed } from '@/components/news/news-feed';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 export const metadata: Metadata = {
-  title: 'Yangiliklar va voqealar — Fargʻona 2-son texnikumi',
+  title: 'Yangiliklar va voqealar',
   description:
-    'Texnikum hayotiga oid soʻnggi yangiliklar, talabalar va oʻqituvchilar yutuqlari, rasmiy buyruqlar va muhim eʼlonlar.',
+    'Muassasa hayotiga oid soʻnggi yangiliklar, talabalar va oʻqituvchilar yutuqlari, rasmiy buyruqlar va muhim eʼlonlar.',
 };
 
 export default async function NewsPage(): Promise<JSX.Element> {
+  await assertModuleEnabled('/news');
   const [newsResponse, categories] = await Promise.all([
     collegeApi.getNews({ limit: 30 }),
     collegeApi.getCategories(),

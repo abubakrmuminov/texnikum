@@ -13,6 +13,7 @@ import { collegeApi, FALLBACK_EVENTS } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TtsButton } from '@/components/accessibility/tts-button';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 interface EventPageProps {
   params: {
@@ -29,15 +30,16 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: EventPageProps): Promise<Metadata> {
   const event = await collegeApi.getEventBySlug(params.slug);
   if (!event) {
-    return { title: 'Tadbir topilmadi — Fargʻona 2-son texnikumi' };
+    return { title: 'Tadbir topilmadi' };
   }
   return {
-    title: `${event.title} — Fargʻona 2-son texnikumi`,
+    title: event.title,
     description: event.description,
   };
 }
 
 export default async function EventDetailPage({ params }: EventPageProps): Promise<JSX.Element> {
+  await assertModuleEnabled('/events');
   const event = await collegeApi.getEventBySlug(params.slug);
 
   if (!event) {

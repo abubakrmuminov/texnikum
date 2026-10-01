@@ -15,6 +15,7 @@ import { collegeApi, FALLBACK_TEACHERS } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 interface TeacherPageProps {
   params: {
@@ -31,15 +32,16 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: TeacherPageProps): Promise<Metadata> {
   const teacher = await collegeApi.getTeacherBySlug(params.slug);
   if (!teacher) {
-    return { title: 'Oʻqituvchi topilmadi — Fargʻona 2-son texnikumi' };
+    return { title: 'Oʻqituvchi topilmadi' };
   }
   return {
-    title: `${teacher.fullName} — Fargʻona 2-son texnikumi oʻqituvchisi`,
+    title: `${teacher.fullName} — Pedagog`,
     description: `${teacher.position}. Fanlar: ${teacher.subjects.join(', ')}.`,
   };
 }
 
 export default async function TeacherDetailPage({ params }: TeacherPageProps): Promise<JSX.Element> {
+  await assertModuleEnabled('/teachers');
   const teacher = await collegeApi.getTeacherBySlug(params.slug);
 
   if (!teacher) {

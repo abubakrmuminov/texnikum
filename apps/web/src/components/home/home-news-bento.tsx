@@ -7,6 +7,7 @@ import { ArrowRight, Clock } from 'lucide-react';
 import { NewsItem, NewsStatus } from '@college/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useInstitution } from '@/components/institution/institution-provider';
 
 interface HomeNewsBentoProps {
   initialFeaturedNews: NewsItem | null;
@@ -36,6 +37,7 @@ export function HomeNewsBento({
   initialSecondaryNews,
 }: HomeNewsBentoProps): JSX.Element {
   const router = useRouter();
+  const { shortName } = useInstitution();
   const [featuredNews, setFeaturedNews] = useState<NewsItem | null>(initialFeaturedNews);
   const [secondaryNews, setSecondaryNews] = useState<NewsItem[]>(initialSecondaryNews);
 
@@ -140,7 +142,7 @@ export function HomeNewsBento({
               <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
             </span>
             <span className="text-xs text-white/70 font-medium drop-shadow-xs hidden sm:inline">
-              Fargʻona 2-son texnikumi
+              {shortName || 'Matbuot xizmati'}
             </span>
           </div>
         </article>

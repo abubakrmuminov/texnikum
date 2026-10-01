@@ -7,6 +7,7 @@ import {
   NewsItem,
   NewsStatus,
   PageItem,
+  PageRevision,
   ScheduleItem,
   Specialty,
   StorageBucket,
@@ -15,6 +16,23 @@ import {
   UserRole,
   ContactsData,
   OnboardingState,
+  InstitutionPublicSettings,
+  InstitutionFullSettings,
+  SetupStatusResponse,
+  NavigationItem,
+  NavigationMenuLocation,
+  CreateNavigationItemPayload,
+  UpdateNavigationItemPayload,
+  DeleteNavigationItemPayload,
+  FACTORY_NAVIGATION_ITEMS,
+  buildNavigationTree,
+  ThemePresetId,
+  ThemePreset,
+  ThemeSettings,
+  THEME_PRESETS,
+  ReusableBlock,
+  CreateReusableBlockPayload,
+  UpdateReusableBlockPayload,
 } from '@college/shared';
 import type { AdministratorMember, AuditAction } from '@college/shared';
 
@@ -44,7 +62,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
     categoryId: 3,
     leadText: 'Viloyat va respublika bosqichida texnikumimiz jamoasi «Veb-texnologiyalar» hamda «Tarmoq va tizim maʼmurligi» yoʻnalishlarida faxrli 1-oʻrinni egalladi.',
     contentHtml: `
-      <p class="lead">2026-yil 20–25-mart kunlari oʻtkazilgan «WorldSkills Uzbekistan» milliy kasbiy mahorat chempionatida Fargʻona 2-son texnikumi iqtidorli talabalari yuqori amaliy tayyorgarlik darajasini namoyish etishdi.</p>
+      <p class="lead">2026-yil 20–25-mart kunlari oʻtkazilgan «WorldSkills Uzbekistan» milliy kasbiy mahorat chempionatida texnikumimiz iqtidorli talabalari yuqori amaliy tayyorgarlik darajasini namoyish etishdi.</p>
       <h2>«Veb-texnologiyalar» yoʻnalishidagi gʻalaba</h2>
       <p>«Kompyuter injiniringi va dasturiy taʼminot» mutaxassisligi 3-bosqich talabasi Sardor Karimov murabbiy Ahmedov Sardor Baxtiyorovich rahbarligida murakkab modullarni: mikroxizmatlar arxitekturasi, RESTful API va WCAG standartlariga mos zamonaviy foydalanuvchi interfeysini muvaffaqiyatli ishlab chiqdi.</p>
       <blockquote class="border-l-4 border-primary pl-4 italic my-4">«Chempionatdagi gʻalaba — zamonaviy laboratoriyalarimizdagi doimiy amaliy mashgʻulotlar va ustoz-shogird anʼanasining amaliy mevasidir», — dedi axborot texnologiyalari boʻlimi mudiri Jasur Karimov.</blockquote>
@@ -66,7 +84,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
     title: 'Qabul 2026: davlat granti oʻrinlari, my.edu.uz orqali ariza topshirish tartibi va yoʻnalishlar',
     slug: 'qabul-2026-davlat-granti-va-hujjat-topshirish-tartibi',
     categoryId: 5,
-    leadText: 'Fargʻona shahri 2-son texnikumi qabul komissiyasi 9 va 11-sinf bitiruvchilarini 2026/2027 oʻquv yili uchun qabul shartlari bilan tanishtiradi.',
+    leadText: 'Texnikum qabul komissiyasi 9 va 11-sinf bitiruvchilarini 2026/2027 oʻquv yili uchun qabul shartlari bilan tanishtiradi.',
     contentHtml: `
       <p class="lead">2026-yil 20-iyundan boshlab texnikumda kunduzgi taʼlim shakli boʻyicha oʻrta maxsus professional taʼlim dasturlariga arizalar qabul qilinadi. Joriy oʻquv yilida davlat granti asosida 75 ta maqsadli oʻrin ajratildi.</p>
       <h3>Hujjat topshirish muddatlari</h3>
@@ -94,7 +112,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
   },
   {
     id: '10000000-0000-0000-0000-000000000003',
-    title: 'Fargʻona 2-son texnikumida bulutli hisoblash va sunʼiy intellekt laboratoriyasi ochildi',
+    title: 'Texnikumda bulutli hisoblash va sunʼiy intellekt laboratoriyasi ochildi',
     slug: 'texnikumda-bulutli-hisoblash-va-ai-laboratoriyasi-ochildi',
     categoryId: 3,
     leadText: 'Raqamli taʼlim texnologiyalarini rivojlantirish dasturi doirasida texnikumda 25 oʻrinli yangi innovatsion laboratoriya ishga tushirildi.',
@@ -110,7 +128,7 @@ export const FALLBACK_NEWS: NewsItem[] = [
   },
   {
     id: '10000000-0000-0000-0000-000000000004',
-    title: 'Texnikum voleybol jamoasi Fargʻona viloyati texnikumlari oʻrtasidagi spartakiada gʻolibi boʻldi',
+    title: 'Texnikum voleybol jamoasi hududiy texnikumlar oʻrtasidagi spartakiada gʻolibi boʻldi',
     slug: 'texnikum-voleybol-jamoasi-viloyat-spartakiadasida-golib',
     categoryId: 4,
     leadText: 'Final uchrashuvida texnikumimiz sportchilari murosasiz kurashda 3:1 hisobida gʻalaba qozonib, kubok sohibiga aylanishdi.',
@@ -133,8 +151,8 @@ export const FALLBACK_DEPARTMENTS: Department[] = [
     slug: 'it-programming',
     headName: 'Karimov Jasur Alisherovich',
     description: 'Dasturiy injiniring, veb-ishlanmalar va maʼlumotlar bazasi mutaxassislarini tayyorlash',
-    contactEmail: 'it-dept@texnikum2.uz',
-    contactPhone: '+998 (73) 244-00-11',
+    contactEmail: 'it-dept@texnikum.uz',
+    contactPhone: '+998 (71) 200-00-11',
     orderIndex: 1,
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
@@ -145,8 +163,8 @@ export const FALLBACK_DEPARTMENTS: Department[] = [
     slug: 'networks-security',
     headName: 'Yusupova Nilufar Rustamovna',
     description: 'Kompyuter tarmoqlari maʼmurligi, aloqa tizimlari va kiberxavfsizlik yoʻnalishlari',
-    contactEmail: 'sec-dept@texnikum2.uz',
-    contactPhone: '+998 (73) 244-00-12',
+    contactEmail: 'sec-dept@texnikum.uz',
+    contactPhone: '+998 (71) 200-00-12',
     orderIndex: 2,
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
@@ -162,12 +180,12 @@ export const FALLBACK_TEACHERS: Teacher[] = [
     departmentId: 'd0000000-0000-0000-0000-000000000001',
     subjects: ['Algoritmlash va dasturlash asoslari', 'Dasturiy injiniring', 'Maʼlumotlar tuzilmalari'],
     qualification: 'Oliy toifali oʻqituvchi, Oʻzbekiston Respublikasi kasbiy taʼlim aʼlochisi',
-    education: 'Fargʻona politexnika instituti (Amaliy informatika magistri)',
+    education: 'Toshkent axborot texnologiyalari universiteti (Amaliy informatika magistri)',
     experienceYears: 18,
     teachingExperienceYears: 15,
     bio: 'Axborot texnologiyalari kafedrasi yetakchi mutaxassisi. Oʻrta maxsus taʼlim tizimi uchun 10 dan ortiq oʻquv-uslubiy qoʻllanmalar muallifi.',
     photoUrl: '/images/teachers/karimov.webp',
-    email: 'j.karimov@texnikum2.uz',
+    email: 'j.karimov@texnikum.uz',
     isActive: true,
     orderIndex: 1,
     createdAt: '2026-09-01T00:00:00Z',
@@ -181,12 +199,12 @@ export const FALLBACK_TEACHERS: Teacher[] = [
     departmentId: 'd0000000-0000-0000-0000-000000000001',
     subjects: ['Veb-ilovalar yaratish', 'Maʼlumotlar bazasi va SQL', 'Backend platformalar'],
     qualification: 'Birinchi toifali oʻqituvchi, xalqaro sertifikatlangan veb-dasturchi',
-    education: 'TATU Fargʻona filiali (Dasturiy injiniring)',
+    education: 'Toshkent axborot texnologiyalari universiteti (Dasturiy injiniring)',
     experienceYears: 11,
     teachingExperienceYears: 8,
     bio: 'WorldSkills Uzbekistan milliy eksperti. Talabalar bilan xakatonlar va IT Park startap loyihalariga murabbiylik qiladi.',
     photoUrl: '/images/teachers/ahmedov.webp',
-    email: 's.ahmedov@texnikum2.uz',
+    email: 's.ahmedov@texnikum.uz',
     isActive: true,
     orderIndex: 2,
     createdAt: '2026-09-01T00:00:00Z',
@@ -205,7 +223,7 @@ export const FALLBACK_TEACHERS: Teacher[] = [
     teachingExperienceYears: 17,
     bio: 'Tarmoq infratuzilmasi va axborot xavfsizligi sohasida 25 dan ortiq ilmiy maqola va patentlar muallifi.',
     photoUrl: '/images/teachers/yusupova.webp',
-    email: 'n.yusupova@texnikum2.uz',
+    email: 'n.yusupova@texnikum.uz',
     isActive: true,
     orderIndex: 3,
     createdAt: '2026-09-01T00:00:00Z',
@@ -219,12 +237,12 @@ export const FALLBACK_TEACHERS: Teacher[] = [
     departmentId: 'd0000000-0000-0000-0000-000000000001',
     subjects: ['Oliy matematika asoslari', 'Diskret matematika va matematik mantiq'],
     qualification: 'Oliy toifali oʻqituvchi, Xalq taʼlimi aʼlochisi',
-    education: 'Fargʻona davlat universiteti (Matematika fakulteti)',
+    education: 'Oʻzbekiston Milliy universiteti (Matematika fakulteti)',
     experienceYears: 24,
     teachingExperienceYears: 22,
     bio: 'Boʻlajak IT-mutaxassislarga matematik modellashtirish va algoritmlarning matematik asoslarini oʻrgatish boʻyicha metodist.',
     photoUrl: '/images/teachers/rahimova.webp',
-    email: 'g.rahimova@texnikum2.uz',
+    email: 'g.rahimova@texnikum.uz',
     isActive: true,
     orderIndex: 4,
     createdAt: '2026-09-01T00:00:00Z',
@@ -240,8 +258,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Texnikum direktori, dotsent, texnika fanlari nomzodi',
     category: 'leadership',
     receptionHours: 'Dushanba va Payshanba: 14:00 – 17:00',
-    phone: '+998 (73) 244-00-01',
-    email: 'direktor@texnikum2.uz',
+    phone: '+998 (71) 200-00-01',
+    email: 'direktor@texnikum.uz',
     roomNumber: 'Bosh bino, 201-xona',
     duties: 'Texnikumning umumiy faoliyatiga rahbarlik qilish, taʼlim sifatini nazorat qilish, davlat taʼlim standartlari bajarilishini taʼminlash, xalqaro hamkorlik va moliyaviy barqarorlikni boshqarish.',
     bio: 'Oliy maʼlumotli, texnika fanlari nomzodi. Oʻrta maxsus kasbiy taʼlim tizimida 20 yildan ortiq boshqaruv va ilmiy-pedagogik tajribasiga ega. Oʻzbekiston Respublikasi kasbiy taʼlim aʼlochisi.',
@@ -258,8 +276,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Oʻquv ishlari boʻyicha direktor oʻrinbosari, PhD',
     category: 'leadership',
     receptionHours: 'Seshanba va Juma: 10:00 – 13:00',
-    phone: '+998 (73) 244-00-02',
-    email: 'uquv@texnikum2.uz',
+    phone: '+998 (71) 200-00-02',
+    email: 'uquv@texnikum.uz',
     roomNumber: 'Bosh bino, 204-xona',
     duties: 'Oʻquv rejalari va dasturlarini ishlab chiqish, ECTS kredit-modul tizimini joriy etish, dars taqsimoti, dars jadvallari va oʻquv jarayoni monitoringini tashkil qilish.',
     bio: 'Toshkent axborot texnologiyalari universiteti bitiruvchisi. Tarmoq texnologiyalari va raqamli taʼlim metodikasi boʻyicha 25 dan ortiq ilmiy ishlar muallifi.',
@@ -276,8 +294,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Yoshlar bilan ishlash va maʼnaviy-maʼrifiy ishlar boʻyicha direktor oʻrinbosari',
     category: 'leadership',
     receptionHours: 'Dushanba va Chorshanba: 15:00 – 17:00',
-    phone: '+998 (73) 244-00-03',
-    email: 'yoshlar@texnikum2.uz',
+    phone: '+998 (71) 200-00-03',
+    email: 'yoshlar@texnikum.uz',
     roomNumber: 'Bosh bino, 205-xona',
     duties: 'Talabalar maʼnaviyatini yuksaltirish, «Besh muhim tashabbus» doirasidagi tadbirlar, toʻgaraklar faoliyati, talabalar turar joyi tartibi va ijtimoiy himoya tadbirlari.',
     bio: 'WorldSkills Uzbekistan milliy eksperti. Yoshlar ittifoqi faoli, talabalar xakatonlari va startap tashabbuslari koordinatori.',
@@ -294,8 +312,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Ishlab chiqarish taʼlimi va amaliyot boʻyicha direktor oʻrinbosari',
     category: 'leadership',
     receptionHours: 'Seshanba va Shanba: 09:00 – 12:00',
-    phone: '+998 (73) 244-00-05',
-    email: 'amaliyot@texnikum2.uz',
+    phone: '+998 (71) 200-00-05',
+    email: 'amaliyot@texnikum.uz',
     roomNumber: 'Oʻquv-amaliyot binosi, 102-xona',
     duties: 'Sanoat va IT-korxonalar bilan dual taʼlim shartnomalarini rasmiylashtirish, ishlab chiqarish amaliyotini tashkil qilish, bitiruvchilar bandligi va kasbiy koʻnikmalarni baholash.',
     bio: 'Muhandislik va texnologik sohalarda 15 yillik amaliy tajribaga ega mutaxassis. Korxonalar bilan hamkorlik dasturlari kuratori.',
@@ -312,8 +330,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Oʻquv-uslubiy boʻlim boshligʻi, bosh metodist',
     category: 'department_head',
     receptionHours: 'Dushanba – Juma: 09:00 – 16:00',
-    phone: '+998 (73) 244-00-06',
-    email: 'metodika@texnikum2.uz',
+    phone: '+998 (71) 200-00-06',
+    email: 'metodika@texnikum.uz',
     roomNumber: 'Bosh bino, 108-xona',
     duties: 'Oʻquv-uslubiy majmualar yaratish, pedagog xodimlar attestatsiyasi, ochiq darslar va ilgʻor xorijiy taʼlim metodikalarini oʻquv jarayoniga tatbiq qilish.',
     bio: 'Xalq taʼlimi aʼlochisi, 24 yillik pedagogik va uslubiy faoliyat stajiga ega tajribali mutaxassis.',
@@ -330,8 +348,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Kadrlar boʻlimi boshligʻi (Inson resurslarini boshqarish)',
     category: 'department_head',
     receptionHours: 'Dushanba – Juma: 14:00 – 17:00',
-    phone: '+998 (73) 244-00-07',
-    email: 'kadrlar@texnikum2.uz',
+    phone: '+998 (71) 200-00-07',
+    email: 'kadrlar@texnikum.uz',
     roomNumber: 'Bosh bino, 110-xona',
     duties: 'Pedagog va xodimlarni ishga qabul qilish, mehnat qonunchiligi talablariga rioya etilishini taʼminlash, mehnat daftarchalarini yuritish va yillik hisobotlar tayyorlash.',
     bio: 'Yuridik va inson resurslari sohasida 12 yillik tajribaga ega mutaxassis.',
@@ -348,8 +366,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Bosh hisobchi (Buxgalteriya xizmati rahbari)',
     category: 'administrative',
     receptionHours: 'Seshanba va Payshanba: 14:00 – 16:30',
-    phone: '+998 (73) 244-00-04',
-    email: 'buxgalteriya@texnikum2.uz',
+    phone: '+998 (71) 200-00-04',
+    email: 'buxgalteriya@texnikum.uz',
     roomNumber: 'Bosh bino, 107-xona',
     duties: 'Buxgalteriya hisobini yuritish, byudjet va toʻlov-kontrakt mablagʻlarining maqsadli sarflanishi nazorati, soliq va statistika hisobotlari, oylik maoshlar hisob-kitobi.',
     bio: 'Iqtisodchi-moliyachi. Davlat moliya tizimida 14 yillik boshqaruv stajiga ega.',
@@ -366,8 +384,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Devonxona va ijro intizomi boʻlimi mudiri',
     category: 'administrative',
     receptionHours: 'Dushanba – Shanba: 08:30 – 17:00',
-    phone: '+998 (73) 244-00-08',
-    email: 'devonxona@texnikum2.uz',
+    phone: '+998 (71) 200-00-08',
+    email: 'devonxona@texnikum.uz',
     roomNumber: 'Bosh bino, 104-xona',
     duties: 'Hujjatlar aylanmasi (edo.ijro.uz), kiruvchi va chiquvchi rasmiy xatlar roʻyxati, fuqarolar murojaatlarini qabul qilish va texnikum arxivi faoliyatini yuritish.',
     bio: 'Ish yuritish va elektron hujjat aylanishi tizimlari boʻyicha yetakchi mutaxassis.',
@@ -384,11 +402,11 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Bosh yuriskonsult (Huquqiy taʼminot xizmati)',
     category: 'administrative',
     receptionHours: 'Chorshanba va Juma: 14:00 – 16:00',
-    phone: '+998 (73) 244-00-09',
-    email: 'yurist@texnikum2.uz',
+    phone: '+998 (71) 200-00-09',
+    email: 'yurist@texnikum.uz',
     roomNumber: 'Bosh bino, 112-xona',
     duties: 'Texnikum qabul qilayotgan buyruqlar va normativ hujjatlarning qonuniyligini taʼminlash, mehnat shartnomalari ekspertizasi va huquqiy maslahatlar berish.',
-    bio: 'Fargʻona davlat universiteti huquqshunoslik fakulteti bitiruvchisi.',
+    bio: 'Toshkent davlat yuridik universiteti bitiruvchisi.',
     photoUrl: '/images/teachers/karimov.webp',
     orderIndex: 9,
     isActive: true,
@@ -402,8 +420,8 @@ export const FALLBACK_ADMINISTRATORS: AdministratorMember[] = [
     position: 'Axborot-resurs markazi (ARM / Kutubxona) mudiri',
     category: 'administrative',
     receptionHours: 'Dushanba – Shanba: 09:00 – 18:00',
-    phone: '+998 (73) 244-00-14',
-    email: 'arm@texnikum2.uz',
+    phone: '+998 (71) 200-00-14',
+    email: 'arm@texnikum.uz',
     roomNumber: 'Kutubxona zali, 2-qavat',
     duties: 'Kutubxona fondini zamonaviy darsliklar va elektron kitoblar bilan boyitish, oʻquv zali xizmatlari va maʼnaviy-maʼrifiy kitobxonlik tadbirlarini tashkil qilish.',
     bio: 'Kutubxona ishi va axborot tizimlari boʻyicha oliy toifali mutaxassis.',
@@ -493,7 +511,7 @@ export const FALLBACK_EVENTS: EventItem[] = [
     contentHtml: '<p>9 va 11-sinf bitiruvchilarini taklif etamiz. Dasturda: kasbiy yoʻnalishlar taqdimoti, master-klasslar va davlat grantlari boʻyicha tushuntirishlar.</p>',
     eventDate: '2026-04-15T10:00:00Z',
     endDate: '2026-04-15T14:00:00Z',
-    location: 'Bosh bino, Faollar zali (Fargʻona sh., Al-Fargʻoniy koʻchasi, 42-uy)',
+    location: 'Bosh bino, Faollar zali',
     category: 'open_doors',
     coverImageUrl: '/images/events/open-doors.webp',
     isFeatured: true,
@@ -598,20 +616,20 @@ export const FALLBACK_PAGES: PageItem[] = [
         <p class="text-sm text-muted-foreground">Oʻzbekiston Respublikasining «Taʼlim toʻgʻrisida»gi Qonuni (OʻRQ-637, 37-modda) talablariga muvofiq joylashtirilgan.</p>
         <table class="w-full border-collapse border border-border text-left text-sm">
           <tbody>
-            <tr class="border-b"><th class="p-3 bg-muted font-semibold w-1/3">Toʻliq nomi</th><td class="p-3" itemprop="name">Fargʻona shahri 2-son texnikumi</td></tr>
-            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Qisqartirilgan nomi</th><td class="p-3">Fargʻona 2-son texnikumi</td></tr>
+            <tr class="border-b"><th class="p-3 bg-muted font-semibold w-1/3">Toʻliq nomi</th><td class="p-3" itemprop="name">Kasb-hunar taʼlimi texnikumi</td></tr>
+            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Qisqartirilgan nomi</th><td class="p-3">Kasb-hunar texnikumi</td></tr>
             <tr class="border-b"><th class="p-3 bg-muted font-semibold">Tashkil etilgan sanasi</th><td class="p-3">1968-yil 1-sentyabr</td></tr>
             <tr class="border-b"><th class="p-3 bg-muted font-semibold">Muassis</th><td class="p-3">Oʻzbekiston Respublikasi Oliy taʼlim, fan va innovatsiyalar vazirligi</td></tr>
-            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Joylashgan manzili</th><td class="p-3" itemprop="address">150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 42-uy</td></tr>
+            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Joylashgan manzili</th><td class="p-3" itemprop="address">100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 1-uy</td></tr>
             <tr class="border-b"><th class="p-3 bg-muted font-semibold">Ish vaqti tartibi</th><td class="p-3">Dushanba – Shanba: 08:30 – 18:00. Dam olish kuni: Yakshanba</td></tr>
-            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Aloqa telefonlari</th><td class="p-3" itemprop="telephone">+998 (73) 244-00-00, +998 (73) 244-00-01</td></tr>
-            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Elektron pochta</th><td class="p-3" itemprop="email">info@texnikum2.uz</td></tr>
+            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Aloqa telefonlari</th><td class="p-3" itemprop="telephone">+998 (71) 200-00-00, +998 (71) 200-00-01</td></tr>
+            <tr class="border-b"><th class="p-3 bg-muted font-semibold">Elektron pochta</th><td class="p-3" itemprop="email">info@texnikum.uz</td></tr>
             <tr><th class="p-3 bg-muted font-semibold">Identifikatsiya raqamlari</th><td class="p-3">STIR (INN): 302987654 | JSHSHIR (PINFL): 31205851234567</td></tr>
           </tbody>
         </table>
       </div>
     `,
-    metaTitle: 'Umumiy maʼlumotlar — Fargʻona 2-son texnikumi',
+    metaTitle: 'Umumiy maʼlumotlar — Kasb-hunar texnikumi',
     metaDescription: 'Texnikumning toʻliq nomi, muassisi, joylashgan manzili va aloqa maʼlumotlari',
     isPublished: true,
     orderIndex: 1,
@@ -635,7 +653,7 @@ export const FALLBACK_PAGES: PageItem[] = [
         </ul>
       </div>
     `,
-    metaTitle: 'Tuzilma va boshqaruv organlari — Fargʻona 2-son texnikumi',
+    metaTitle: 'Tuzilma va boshqaruv organlari — Kasb-hunar texnikumi',
     metaDescription: 'Texnikum boshqaruv organlari va tarkibiy boʻlinmalari',
     isPublished: true,
     orderIndex: 2,
@@ -651,14 +669,14 @@ export const FALLBACK_PAGES: PageItem[] = [
       <div itemprop="copy" class="space-y-4">
         <h2 class="text-2xl font-bold">Rasmiy hujjatlar va litsenziyalar</h2>
         <ul class="list-disc pl-6 space-y-2 text-sm">
-          <li><a href="/docs/ustav.pdf" class="text-primary hover:underline font-medium" target="_blank">Fargʻona 2-son texnikumi Ustavi (tasdiqlangan tahrir)</a></li>
+          <li><a href="/docs/ustav.pdf" class="text-primary hover:underline font-medium" target="_blank">Texnikum Ustavi (tasdiqlangan tahrir)</a></li>
           <li><a href="/docs/license.pdf" class="text-primary hover:underline font-medium" target="_blank">Taʼlim faoliyatini amalga oshirish huquqini beruvchi davlat litsenziyasi</a></li>
           <li><a href="/docs/accreditation.pdf" class="text-primary hover:underline font-medium" target="_blank">Davlat akkreditatsiyasi toʻgʻrisida sertifikat</a></li>
           <li><a href="/docs/qabul-qoidalari.pdf" class="text-primary hover:underline font-medium" target="_blank">2026/2027 oʻquv yili uchun oʻquvchilarni qabul qilish qoidalari</a></li>
         </ul>
       </div>
     `,
-    metaTitle: 'Hujjatlar — Fargʻona 2-son texnikumi',
+    metaTitle: 'Hujjatlar — Kasb-hunar texnikumi',
     metaDescription: 'Texnikum ustavi, litsenziyasi va meʼyoriy hujjatlari',
     isPublished: true,
     orderIndex: 3,
@@ -682,7 +700,7 @@ export const FALLBACK_PAGES: PageItem[] = [
         </ul>
       </div>
     `,
-    metaTitle: 'Inklyuziv muhit — Fargʻona 2-son texnikumi',
+    metaTitle: 'Inklyuziv muhit — Kasb-hunar texnikumi',
     metaDescription: 'Nogironligi boʻlgan shaxslar uchun qulay muhit va imkoniyatlar',
     isPublished: true,
     orderIndex: 4,
@@ -697,14 +715,14 @@ export const FALLBACK_PAGES: PageItem[] = [
     contentHtml: `
       <div class="space-y-4">
         <h2 class="text-2xl font-bold">Texnikum tarixi va missiyasi</h2>
-        <p class="text-base text-foreground">Fargʻona shahri 2-son texnikumi 55 yildan ortiq vaqt mobaynida mamlakatimiz iqtisodiyoti, sanoati va axborot texnologiyalari sohasi uchun malakali mutaxassislar tayyorlab kelmoqda.</p>
+        <p class="text-base text-foreground">Kasb-hunar taʼlimi texnikumi 55 yildan ortiq vaqt mobaynida mamlakatimiz iqtisodiyoti, sanoati va axborot texnologiyalari sohasi uchun malakali mutaxassislar tayyorlab kelmoqda.</p>
         <p class="text-sm text-muted-foreground">Oʻzbekiston Respublikasi Prezidentining 2024-yil 16-oktyabrdagi PF-158-son Farmoniga muvofiq, texnikum taʼlim dasturlari Yevropa kasbiy taʼlim tizimi (ECTS) talablari asosida qayta tashkil etilib, oliy taʼlim bilan uzviy integratsiya yoʻlga qoʻyildi.</p>
         <h3 class="text-lg font-semibold">Bizning missiyamiz</h3>
         <p class="text-sm text-muted-foreground">Har bir yoshga zamonaviy raqamli kasb mahoratini berish, ularni mehnat bozorida raqobatbardosh, mustaqil fikrlaydigan va texnologik yangiliklarga tayyor mutaxassislar etib tarbiyalash.</p>
       </div>
     `,
-    metaTitle: 'Tarix va missiya — Fargʻona 2-son texnikumi',
-    metaDescription: 'Fargʻona 2-son texnikumi tarixi va rivojlanish bosqichlari',
+    metaTitle: 'Tarix va missiya — Kasb-hunar texnikumi',
+    metaDescription: 'Kasb-hunar texnikumi tarixi va rivojlanish bosqichlari',
     isPublished: true,
     orderIndex: 5,
     createdAt: '2026-09-01T00:00:00Z',
@@ -715,7 +733,7 @@ export const FALLBACK_PAGES: PageItem[] = [
 export const FALLBACK_USERS: UserProfile[] = [
   {
     id: 'a0000000-0000-0000-0000-000000000001',
-    email: 'admin@texnikum2.uz',
+    email: 'admin@texnikum.uz',
     fullName: 'Karimov Jasur Alisherovich',
     role: UserRole.ADMIN,
     avatarUrl: null,
@@ -724,7 +742,7 @@ export const FALLBACK_USERS: UserProfile[] = [
   },
   {
     id: 'a0000000-0000-0000-0000-000000000002',
-    email: 'editor@texnikum2.uz',
+    email: 'editor@texnikum.uz',
     fullName: 'Yusupova Nilufar Rustamovna',
     role: UserRole.EDITOR,
     avatarUrl: null,
@@ -733,7 +751,7 @@ export const FALLBACK_USERS: UserProfile[] = [
   },
   {
     id: 'a0000000-0000-0000-0000-000000000003',
-    email: 'moderator@texnikum2.uz',
+    email: 'moderator@texnikum.uz',
     fullName: 'Ahmedov Sardor Baxtiyorovich',
     role: UserRole.MODERATOR,
     avatarUrl: null,
@@ -759,7 +777,7 @@ export const FALLBACK_MEDIA: MediaFile[] = [
     id: 'm0000000-0000-0000-0000-000000000002',
     bucket: 'official-docs',
     fileName: 'ustav-texnikum-2026.pdf',
-    originalName: 'Fargʻona 2-son texnikumi Ustavi (2026).pdf',
+    originalName: 'Texnikum Ustavi (2026).pdf',
     storagePath: 'official-docs/ustav-texnikum-2026.pdf',
     publicUrl: '/docs/ustav.pdf',
     mimeType: 'application/pdf',
@@ -811,11 +829,21 @@ export const FALLBACK_AUDIT: AuditLogItem[] = [
 async function safeFetch<T>(
   endpoint: string,
   fallbackData: T,
-  fetchOptions?: { revalidate?: number; cache?: RequestCache; token?: string },
+  fetchOptions?: {
+    revalidate?: number;
+    cache?: RequestCache;
+    token?: string;
+    next?: { tags?: string[]; revalidate?: number };
+  },
 ): Promise<T> {
   try {
-    const nextOpts: { revalidate?: number } = {};
-    if (fetchOptions?.revalidate !== undefined) {
+    const nextOpts: { revalidate?: number; tags?: string[] } = {};
+    if (fetchOptions?.next?.tags) {
+      nextOpts.tags = fetchOptions.next.tags;
+    }
+    if (fetchOptions?.next?.revalidate !== undefined) {
+      nextOpts.revalidate = fetchOptions.next.revalidate;
+    } else if (fetchOptions?.revalidate !== undefined) {
       nextOpts.revalidate = fetchOptions.revalidate;
     } else if (!fetchOptions?.cache) {
       nextOpts.revalidate = 30;
@@ -901,6 +929,9 @@ async function safeMutation<T>(
       body: bodyData,
     });
     if (!res.ok) {
+      if (fallbackData !== undefined) {
+        return fallbackData;
+      }
       const errorJson = (await res.json().catch(() => null)) as { message?: string | string[] } | null;
       const errorMessage = errorJson?.message
         ? (Array.isArray(errorJson.message) ? errorJson.message.join(', ') : errorJson.message)
@@ -913,6 +944,9 @@ async function safeMutation<T>(
     }
     return (fallbackData || json) as T;
   } catch (err: unknown) {
+    if (fallbackData !== undefined) {
+      return fallbackData;
+    }
     if (err instanceof Error) {
       throw err;
     }
@@ -948,6 +982,122 @@ function getAllCurrentNews(): NewsItem[] {
   if (!local.length) return FALLBACK_NEWS;
   const localIds = new Set(local.map((n) => n.id));
   return [...local, ...FALLBACK_NEWS.filter((n) => !localIds.has(n.id))];
+}
+
+export const FALLBACK_REUSABLE_BLOCKS: ReusableBlock[] = [
+  {
+    id: '50000000-0000-0000-0000-000000000001',
+    titleUz: 'Qabul komissiyasi tezkor axborot paneli',
+    titleRu: 'Информационная панель приемной комиссии',
+    category: 'banner',
+    isGlobal: true,
+    rowData: {
+      id: 'row-reusable-qabul-banner',
+      style: {
+        backgroundStyle: 'brand',
+        paddingVertical: 'compact',
+        containerWidth: 'standard',
+      },
+      cells: [
+        {
+          id: 'cell-reusable-qabul-banner',
+          colSpan: 12,
+          blocks: [
+            {
+              id: 'blk-reusable-qabul-banner',
+              type: 'banner_alert',
+              sortOrder: 1,
+              isVisible: true,
+              config: {
+                variant: 'info',
+                titleUz: 'Qabul 2026/2027: Yagona my.edu.uz portali orqali ariza topshiring',
+                titleRu: 'Прием 2026/2027: Подавайте заявки через единый портал my.edu.uz',
+                messageUz: 'Hujjatlar 2026-yil 15-avgustga qadar qabul qilinadi. Qabul komissiyasi: +998 (73) 244-00-00.',
+                messageRu: 'Прием документов ведется до 15 августа 2026 года. Приемная комиссия: +998 (73) 244-00-00.',
+                actionTextUz: 'my.edu.uz saytiga oʻtish',
+                actionTextRu: 'Перейти на my.edu.uz',
+                actionUrl: 'https://my.edu.uz',
+              },
+            },
+          ],
+        },
+      ],
+    },
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: '50000000-0000-0000-0000-000000000002',
+    titleUz: 'Texnikum asosiy yutuqlari (KPI)',
+    titleRu: 'Ключевые достижения техникума (KPI)',
+    category: 'stats',
+    isGlobal: false,
+    rowData: {
+      id: 'row-reusable-kpi-stats',
+      style: {
+        backgroundStyle: 'subtle',
+        paddingVertical: 'normal',
+        containerWidth: 'standard',
+      },
+      cells: [
+        {
+          id: 'cell-reusable-kpi-stats',
+          colSpan: 12,
+          blocks: [
+            {
+              id: 'blk-reusable-kpi-stats',
+              type: 'stats_counter',
+              sortOrder: 1,
+              isVisible: true,
+              config: {
+                titleUz: 'Texnikum raqamlarda',
+                titleRu: 'Техникум в цифрах',
+                columns: 4,
+                stats: [
+                  { id: 's1', value: '1,200+', labelUz: 'Talabalar', labelRu: 'Студентов', icon: 'GraduationCap' },
+                  { id: 's2', value: '85+', labelUz: 'Pedagoglar', labelRu: 'Педагогов', icon: 'Users' },
+                  { id: 's3', value: '14 ta', labelUz: 'Laboratoriyalar', labelRu: 'Лабораторий', icon: 'Building' },
+                  { id: 's4', value: '92%', labelUz: 'Ishga joylashish', labelRu: 'Трудоустройство', icon: 'Award' },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    },
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+];
+
+function getLocalReusableBlocks(): ReusableBlock[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('college_custom_reusable_blocks');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed as ReusableBlock[];
+    }
+  } catch {
+    // Ignore storage parse errors
+  }
+  return [];
+}
+
+function saveLocalReusableBlocks(items: ReusableBlock[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('college_custom_reusable_blocks', JSON.stringify(items));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+export function getAllCurrentReusableBlocks(): ReusableBlock[] {
+  const local = getLocalReusableBlocks();
+  if (!local.length) return FALLBACK_REUSABLE_BLOCKS;
+  const localIds = new Set(local.map((b) => b.id));
+  return [...local, ...FALLBACK_REUSABLE_BLOCKS.filter((b) => !localIds.has(b.id))];
 }
 
 function getLocalAdministrators(): AdministratorMember[] {
@@ -1065,51 +1215,51 @@ export const FALLBACK_CONTACTS: ContactsData = {
     {
       id: 'campus-1',
       name: 'Bosh oʻquv binosi',
-      address: '150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 42-uy',
+      address: '100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 1-uy',
       departments: 'Qabul komissiyasi (105-xona), Maʼmuriyat, Buxgalteriya, Axborot-resurs markazi (Kutubxona)',
-      phone: '+998 (73) 244-00-00',
-      email: 'info@texnikum2.uz',
+      phone: '+998 (71) 200-00-00',
+      email: 'info@texnikum.uz',
       workHours: 'Dush–Shanba: 08:30 – 17:30',
-      transport: '«Universitet» bekati (1, 8, 14, 22-sonli jamoat transporti)',
+      transport: '«Texnikum» bekati (jamoat transporti)',
       orderIndex: 1,
     },
     {
       id: 'campus-2',
       name: 'Oʻquv-amaliyot binosi va laboratoriyalar',
-      address: '150100, Fargʻona viloyati, Fargʻona shahri, B. Margʻinoniy koʻchasi, 18-uy',
+      address: '100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 2-uy',
       departments: 'IT-laboratoriyalar, kompyuter tarmoqlari sinflari, WorldSkills kasbiy mahorat ustaxonalari',
-      phone: '+998 (73) 244-00-11',
-      email: 'it-dept@texnikum2.uz',
+      phone: '+998 (71) 200-00-11',
+      email: 'it-dept@texnikum.uz',
       workHours: 'Dush–Shanba: 08:30 – 18:00',
-      transport: '«Margʻinoniy» bekati (5, 12, 19-sonli marshrutkalar)',
+      transport: '«Texnikum» bekati (marshrutkalar)',
       orderIndex: 2,
     },
     {
       id: 'campus-3',
       name: 'Talabalar turar joyi (Yotoqxona)',
-      address: '150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 44-uy',
+      address: '100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 3-uy',
       departments: 'Yotoqxona maʼmuriyati, tibbiyot punkti, sport sektori, maʼnaviyat xonasi',
-      phone: '+998 (73) 244-00-15',
-      email: 'hostel@texnikum2.uz',
+      phone: '+998 (71) 200-00-15',
+      email: 'hostel@texnikum.uz',
       workHours: 'Kechu-kunduz (24/7 navbatchilik va nazorat)',
       transport: 'Bosh oʻquv binosi yonida (1 daqiqalik piyoda yoʻl)',
       orderIndex: 3,
     },
   ],
   phones: [
-    { id: 'phone-1', title: 'Qabul komissiyasi (ishonch telefoni)', phone: '+998 (73) 244-00-00', note: 'Qabul va hujjat topshirish boʻyicha maʼlumot', orderIndex: 1 },
-    { id: 'phone-2', title: 'Direktor qabulxonasi / Devonxona', phone: '+998 (73) 244-00-01', note: 'Rasmiy yozishmalar va murojaatlar', orderIndex: 2 },
-    { id: 'phone-3', title: 'Oʻquv-metodika boʻlimi', phone: '+998 (73) 244-00-02', note: 'Oʻquv jarayoni va akademik maʼlumotnomalar', orderIndex: 3 },
-    { id: 'phone-4', title: 'Amaliyot va bitiruvchilar bandligi', phone: '+998 (73) 244-00-03', note: 'Ish beruvchilar bilan shartnomalar va dual taʼlim', orderIndex: 4 },
-    { id: 'phone-5', title: 'Buxgalteriya (kontrakt toʻlovlari)', phone: '+998 (73) 244-00-04', note: 'Toʻlov-kontrakt shartnomalari va kvitansiyalar', orderIndex: 5 },
+    { id: 'phone-1', title: 'Qabul komissiyasi (ishonch telefoni)', phone: '+998 (71) 200-00-00', note: 'Qabul va hujjat topshirish boʻyicha maʼlumot', orderIndex: 1 },
+    { id: 'phone-2', title: 'Direktor qabulxonasi / Devonxona', phone: '+998 (71) 200-00-01', note: 'Rasmiy yozishmalar va murojaatlar', orderIndex: 2 },
+    { id: 'phone-3', title: 'Oʻquv-metodika boʻlimi', phone: '+998 (71) 200-00-02', note: 'Oʻquv jarayoni va akademik maʼlumotnomalar', orderIndex: 3 },
+    { id: 'phone-4', title: 'Amaliyot va bitiruvchilar bandligi', phone: '+998 (71) 200-00-03', note: 'Ish beruvchilar bilan shartnomalar va dual taʼlim', orderIndex: 4 },
+    { id: 'phone-5', title: 'Buxgalteriya (kontrakt toʻlovlari)', phone: '+998 (71) 200-00-04', note: 'Toʻlov-kontrakt shartnomalari va kvitansiyalar', orderIndex: 5 },
   ],
   directions: {
-    bus: 'Fargʻona shahri boʻylab 1, 8, 14, 22-sonli avtobus yoki yoʻnalishli taksilar orqali «Universitet» yoki «2-son texnikum» bekatiga kelishingiz mumkin.',
-    landmark: 'Fargʻona davlat universiteti bosh binosi roʻparasida, Al-Fargʻoniy koʻchasi boʻylab 42-uy.',
+    bus: 'Shahar boʻylab avtobus yoki yoʻnalishli taksilar orqali «Texnikum» bekatiga kelishingiz mumkin.',
+    landmark: 'Markaziy maydon roʻparasida, Mustaqillik shoh koʻchasi boʻylab 1-uy.',
   },
   mapCoordinates: {
-    lat: 40.3864,
-    lng: 71.7864,
+    lat: 41.3111,
+    lng: 69.2797,
     zoom: 16,
   },
 };
@@ -1280,7 +1430,55 @@ export const api = {
 
   getPageBySlug: async (slug: string) => {
     const fallback = FALLBACK_PAGES.find((p) => p.slug === slug) || null;
-    return safeFetch<PageItem | null>(`/pages/${slug}`, fallback);
+    const page = await safeFetch<PageItem | null>(`/pages/${slug}`, fallback);
+    if (!page) return null;
+
+    // Dynamically interpolate institution settings into info-common if available
+    if (slug === 'info-common' && page.contentHtml) {
+      const inst = await api.getPublicInstitution().catch(() => null);
+      if (inst && inst.isConfigured) {
+        let content = page.contentHtml;
+        if (inst.nameUz) {
+          content = content
+            .replace(/Kasb-hunar taʼlimi texnikumi/g, inst.nameUz)
+            .replace(/Fargʻona shahri 2-son texnikumi/g, inst.nameUz);
+        }
+        if (inst.shortNameUz) {
+          content = content
+            .replace(/Kasb-hunar texnikumi/g, inst.shortNameUz)
+            .replace(/Fargʻona 2-son texnikumi/g, inst.shortNameUz);
+        }
+        if (inst.legalAddressUz) {
+          content = content
+            .replace(
+              /100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 1-uy/g,
+              inst.legalAddressUz,
+            )
+            .replace(
+              /150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 42-uy/g,
+              inst.legalAddressUz,
+            );
+        }
+        if (inst.mainPhone) {
+          content = content
+            .replace(/\+998 \(71\) 200-00-00/g, inst.mainPhone)
+            .replace(/\+998 \(73\) 244-00-00/g, inst.mainPhone);
+        }
+        if (inst.contactEmail) {
+          content = content
+            .replace(/info@texnikum\.uz/g, inst.contactEmail)
+            .replace(/info@texnikum2\.uz/g, inst.contactEmail);
+        }
+        if (inst.stirInn) content = content.replace(/302987654/g, inst.stirInn);
+        const metaTitle = inst.shortNameUz && page.metaTitle
+          ? page.metaTitle
+              .replace(/Kasb-hunar texnikumi/g, inst.shortNameUz)
+              .replace(/Fargʻona 2-son texnikumi/g, inst.shortNameUz)
+          : page.metaTitle;
+        return { ...page, contentHtml: content, metaTitle };
+      }
+    }
+    return page;
   },
 
   // ---------------------------------------------------------------------------
@@ -1472,8 +1670,8 @@ export const api = {
       position: data.position || 'Lavozim',
       category: data.category || 'leadership',
       receptionHours: data.receptionHours || 'Dushanba – Juma: 14:00 – 17:00',
-      phone: data.phone || '+998 (73) 244-00-00',
-      email: data.email || 'info@texnikum2.uz',
+      phone: data.phone || '+998 (71) 200-00-00',
+      email: data.email || 'info@texnikum.uz',
       roomNumber: data.roomNumber || '101-xona',
       duties: data.duties || '',
       bio: data.bio || '',
@@ -1603,31 +1801,173 @@ export const api = {
   },
 
   // Страницы CRUD
+  getAdminPages: async (
+    query?: { section?: string; isPublished?: boolean; search?: string },
+    token?: string,
+  ): Promise<PageItem[]> => {
+    const params = new URLSearchParams();
+    if (query?.section && query.section !== 'all') params.append('section', query.section);
+    if (query?.isPublished !== undefined) params.append('isPublished', String(query.isPublished));
+    if (query?.search) params.append('search', query.search);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return safeFetch(`/admin/pages${qs}`, FALLBACK_PAGES, { token });
+  },
+
+  getPageById: async (id: string, token?: string): Promise<PageItem> => {
+    const fallback = FALLBACK_PAGES.find((p) => p.id === id) || FALLBACK_PAGES[0]!;
+    return safeFetch(`/admin/pages/${id}`, fallback, { token });
+  },
+
   createPage: async (data: Partial<PageItem>, token?: string): Promise<PageItem> => {
     const newPage: PageItem = {
       id: crypto.randomUUID(),
-      title: data.title || 'Новая страница',
+      title: data.title || data.titleUz || 'Yangi sahifa',
+      titleUz: data.titleUz || data.title || 'Yangi sahifa',
+      titleRu: data.titleRu || 'Новая страница',
       slug: data.slug || `page-${Date.now()}`,
-      section: data.section || 'sveden',
+      section: data.section || 'info',
+      pageType: data.pageType || 'custom',
       contentHtml: data.contentHtml || '',
       metaTitle: data.metaTitle || null,
       metaDescription: data.metaDescription || null,
-      isPublished: data.isPublished !== undefined ? data.isPublished : true,
+      isPublished: data.isPublished !== undefined ? data.isPublished : false,
       orderIndex: data.orderIndex || 10,
+      schemaVersion: data.schemaVersion || 2,
+      rows: data.rows || [],
+      blocks: data.blocks || [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    return safeMutation('/pages', 'POST', data, token, newPage);
+    FALLBACK_PAGES.unshift(newPage);
+    return safeMutation('/admin/pages', 'POST', data, token, newPage);
   },
 
   updatePage: async (id: string, data: Partial<PageItem>, token?: string): Promise<PageItem> => {
     const existing = FALLBACK_PAGES.find((p) => p.id === id) || FALLBACK_PAGES[0]!;
     const updated: PageItem = { ...existing, ...data, updatedAt: new Date().toISOString() };
-    return safeMutation(`/pages/${id}`, 'PATCH', data, token, updated);
+    const fbIdx = FALLBACK_PAGES.findIndex((p) => p.id === id);
+    if (fbIdx !== -1) {
+      FALLBACK_PAGES[fbIdx] = updated;
+    } else {
+      FALLBACK_PAGES.unshift(updated);
+    }
+    return safeMutation(`/admin/pages/${id}`, 'PATCH', data, token, updated);
   },
 
   deletePage: async (id: string, token?: string): Promise<{ success: boolean }> => {
-    return safeMutation(`/pages/${id}`, 'DELETE', undefined, token, { success: true });
+    return safeMutation(`/admin/pages/${id}`, 'DELETE', undefined, token, { success: true });
+  },
+
+  duplicatePage: async (id: string, token?: string): Promise<PageItem> => {
+    const existing = FALLBACK_PAGES.find((p) => p.id === id) || FALLBACK_PAGES[0]!;
+    const duplicated: PageItem = {
+      ...existing,
+      id: crypto.randomUUID(),
+      title: `${existing.title} (Nusxa)`,
+      titleUz: `${existing.titleUz || existing.title} (Nusxa)`,
+      titleRu: `${existing.titleRu || existing.title} (Копия)`,
+      slug: `${existing.slug}-copy-${Date.now()}`,
+      isPublished: false,
+      isSystem: false,
+      isRequired: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    return safeMutation(`/admin/pages/${id}/duplicate`, 'POST', undefined, token, duplicated);
+  },
+
+  getPageRevisions: async (id: string, token?: string): Promise<PageRevision[]> => {
+    return safeFetch(`/admin/pages/${id}/revisions`, [], { token });
+  },
+
+  restorePageRevision: async (
+    id: string,
+    revisionId: string,
+    token?: string,
+  ): Promise<PageItem> => {
+    const fallback = FALLBACK_PAGES.find((p) => p.id === id) || FALLBACK_PAGES[0]!;
+    return safeMutation(
+      `/admin/pages/${id}/revisions/${revisionId}/restore`,
+      'POST',
+      undefined,
+      token,
+      fallback,
+    );
+  },
+
+  // ---------------------------------------------------------------------------
+  // ПЕРЕИСПОЛЬЗУЕМЫЕ И ГЛОБАЛЬНЫЕ БЛОКИ (REUSABLE BLOCKS)
+  // ---------------------------------------------------------------------------
+  getPublicReusableBlocks: async (): Promise<ReusableBlock[]> => {
+    return safeFetch('/pages/reusable-blocks', getAllCurrentReusableBlocks());
+  },
+
+  getPublicReusableBlockById: async (id: string): Promise<ReusableBlock | null> => {
+    const list = getAllCurrentReusableBlocks();
+    const fallback = list.find((b) => b.id === id) || null;
+    return safeFetch(`/pages/reusable-blocks/${id}`, fallback);
+  },
+
+  getReusableBlocks: async (token?: string): Promise<ReusableBlock[]> => {
+    return safeFetch('/admin/pages/reusable-blocks', getAllCurrentReusableBlocks(), { token });
+  },
+
+  getReusableBlockById: async (id: string, token?: string): Promise<ReusableBlock | null> => {
+    const list = getAllCurrentReusableBlocks();
+    const fallback = list.find((b) => b.id === id) || null;
+    return safeFetch(`/admin/pages/reusable-blocks/${id}`, fallback, { token });
+  },
+
+  createReusableBlock: async (data: CreateReusableBlockPayload, token?: string): Promise<ReusableBlock> => {
+    const newBlock: ReusableBlock = {
+      id: `reusable-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      titleUz: data.titleUz,
+      titleRu: data.titleRu,
+      category: data.category || 'custom',
+      isGlobal: Boolean(data.isGlobal),
+      rowData: data.rowData,
+      usageCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const current = getLocalReusableBlocks();
+    saveLocalReusableBlocks([newBlock, ...current]);
+    FALLBACK_REUSABLE_BLOCKS.unshift(newBlock);
+
+    return safeMutation('/admin/pages/reusable-blocks', 'POST', data, token, newBlock);
+  },
+
+  updateReusableBlock: async (id: string, data: UpdateReusableBlockPayload, token?: string): Promise<ReusableBlock> => {
+    const list = getAllCurrentReusableBlocks();
+    const existing = list.find((b) => b.id === id) || FALLBACK_REUSABLE_BLOCKS[0]!;
+    const updated: ReusableBlock = {
+      ...existing,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const current = getLocalReusableBlocks();
+    const idx = current.findIndex((b) => b.id === id);
+    if (idx !== -1) {
+      current[idx] = updated;
+      saveLocalReusableBlocks(current);
+    }
+    const fbIdx = FALLBACK_REUSABLE_BLOCKS.findIndex((b) => b.id === id);
+    if (fbIdx !== -1) {
+      FALLBACK_REUSABLE_BLOCKS[fbIdx] = updated;
+    }
+
+    return safeMutation(`/admin/pages/reusable-blocks/${id}`, 'PATCH', data, token, updated);
+  },
+
+  deleteReusableBlock: async (id: string, token?: string): Promise<{ success: boolean; usageCount: number }> => {
+    const current = getLocalReusableBlocks();
+    saveLocalReusableBlocks(current.filter((b) => b.id !== id));
+    const fbIdx = FALLBACK_REUSABLE_BLOCKS.findIndex((b) => b.id === id);
+    if (fbIdx !== -1) {
+      FALLBACK_REUSABLE_BLOCKS.splice(fbIdx, 1);
+    }
+    return safeMutation(`/admin/pages/reusable-blocks/${id}`, 'DELETE', undefined, token, { success: true, usageCount: 0 });
   },
 
   // Медиатека
@@ -1763,19 +2103,46 @@ export const api = {
 
   // Онбординг текущего пользователя (/me/onboarding)
   getOnboarding: async (token?: string): Promise<OnboardingState> => {
-    return safeFetch<OnboardingState>('/me/onboarding', {}, { cache: 'no-store', token });
+    let localFallback: OnboardingState = {};
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('college_onboarding_state');
+        if (stored) {
+          localFallback = JSON.parse(stored);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    const res = await safeFetch<OnboardingState>('/me/onboarding', localFallback, { cache: 'no-store', token });
+    return res && Object.keys(res).length > 0 ? res : localFallback;
   },
 
   patchOnboarding: async (
     data: Partial<OnboardingState>,
     token?: string,
   ): Promise<OnboardingState> => {
+    let merged: OnboardingState = data as OnboardingState;
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('college_onboarding_state');
+        const prev = stored ? JSON.parse(stored) : {};
+        merged = {
+          ...prev,
+          ...data,
+          sections: { ...(prev.sections || {}), ...(data.sections || {}) },
+        };
+        localStorage.setItem('college_onboarding_state', JSON.stringify(merged));
+      } catch {
+        // ignore
+      }
+    }
     return safeMutation<OnboardingState>(
       '/me/onboarding',
       'PATCH',
       data,
       token,
-      data as OnboardingState,
+      merged,
     );
   },
 
@@ -1784,6 +2151,13 @@ export const api = {
     userId: string,
     token?: string,
   ): Promise<{ id: string; onboarding: OnboardingState }> => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('college_onboarding_state');
+      } catch {
+        // ignore
+      }
+    }
     return safeMutation<{ id: string; onboarding: OnboardingState }>(
       `/users/${userId}/onboarding/reset`,
       'POST',
@@ -1791,6 +2165,325 @@ export const api = {
       token,
       { id: userId, onboarding: {} },
     );
+  },
+
+  // Проверка статуса первичной настройки системы
+  getSetupStatus: async (): Promise<SetupStatusResponse> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/setup/status`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      if (res.status === 404) {
+        return { configured: true };
+      }
+      if (res.ok) {
+        const json = await res.json();
+        return (json.data || json) as SetupStatusResponse;
+      }
+      return { configured: true };
+    } catch {
+      return { configured: true };
+    }
+  },
+
+  // Проверка кода установки (SETUP_TOKEN) на шаге 0
+  verifySetupToken: async (
+    setupToken: string,
+  ): Promise<{ valid: boolean }> => {
+    const res = await fetch(`${API_BASE_URL}/setup/verify-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ setupToken }),
+    });
+
+    if (!res.ok) {
+      let errMessage = 'Notoʻgʻri yoki yaroqsiz oʻrnatish kodi (SETUP_TOKEN) / Неверный или недействительный токен установки';
+      try {
+        const errJson = await res.json();
+        errMessage = errJson.message || errJson.error || errMessage;
+        if (Array.isArray(errMessage)) {
+          errMessage = errMessage.join('; ');
+        }
+      } catch {
+        // ignore
+      }
+      throw new Error(errMessage);
+    }
+
+    return { valid: true };
+  },
+
+  // Завершение первичной настройки (Setup Wizard)
+  completeSetup: async (
+    payload: Record<string, unknown>,
+  ): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch(`${API_BASE_URL}/setup/complete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      let errMessage = 'Oʻrnatishda xatolik yuz berdi / Ошибка первичной настройки';
+      try {
+        const errJson = await res.json();
+        errMessage = errJson.message || errJson.error || errMessage;
+        if (Array.isArray(errMessage)) {
+          errMessage = errMessage.join('; ');
+        }
+      } catch {
+        // ignore
+      }
+      throw new Error(errMessage);
+    }
+
+    const data = await res.json();
+    return data;
+  },
+
+  // Получение публичных настроек учреждения с теговой инвалидацией
+  getPublicInstitution: async (): Promise<InstitutionPublicSettings | null> => {
+    return safeFetch<InstitutionPublicSettings | null>(
+      '/public/institution',
+      null,
+      { next: { tags: ['institution-settings'], revalidate: 300 } },
+    );
+  },
+
+  // Получение полных настроек (для администратора)
+  getAdminInstitution: async (): Promise<InstitutionFullSettings | null> => {
+    return safeFetch<InstitutionFullSettings | null>(
+      '/admin/institution',
+      null,
+      { cache: 'no-store' },
+    );
+  },
+
+  // Обновление настроек учреждения (для администратора)
+  updateAdminInstitution: async (
+    dto: Partial<InstitutionFullSettings>,
+  ): Promise<InstitutionFullSettings> => {
+    const res = await safeMutation<InstitutionFullSettings>(
+      '/admin/institution',
+      'PATCH',
+      dto,
+    );
+
+    // Вызываем мгновенную ревалидацию кэша на веб-сервере
+    try {
+      if (typeof window !== 'undefined') {
+        fetch('/api/revalidate-institution', { method: 'POST' }).catch(() => {});
+      }
+    } catch {
+      // ignore
+    }
+
+    return res;
+  },
+
+  // Загрузка брендового ассета (логотип, фавикон, герб)
+  uploadInstitutionAsset: async (
+    file: File,
+    type: 'logo' | 'favicon' | 'coat_of_arms',
+    token?: string,
+  ): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    let fallbackUrl = '';
+    if (typeof window !== 'undefined') {
+      try {
+        fallbackUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve((reader.result as string) || URL.createObjectURL(file));
+          reader.onerror = () => resolve(URL.createObjectURL(file));
+          reader.readAsDataURL(file);
+        });
+      } catch {
+        fallbackUrl = URL.createObjectURL(file);
+      }
+    }
+
+    return safeMutation<{ url: string }>(
+      `/admin/institution/upload-asset?type=${type}`,
+      'POST',
+      formData,
+      token,
+      { url: fallbackUrl || `/uploads/branding/${file.name}` },
+    );
+  },
+
+  // ---------------------------------------------------------------------------
+  // SITE BUILDER: НАВИГАЦИЯ И СТРУКТУРА САЙТА
+  // ---------------------------------------------------------------------------
+
+  // Получение публичного дерева навигации (шапка, подвал)
+  getPublicNavigation: async (
+    location?: NavigationMenuLocation,
+  ): Promise<NavigationItem[]> => {
+    const url = location ? `/navigation?location=${location}` : '/navigation';
+    const fallback = buildNavigationTree(
+      FACTORY_NAVIGATION_ITEMS.filter(
+        (item) => !location || item.location === location,
+      ),
+    );
+    const res = await safeFetch<NavigationItem[]>(url, fallback, {
+      next: { revalidate: 60, tags: ['navigation'] },
+    });
+    return Array.isArray(res) ? res : fallback;
+  },
+
+  // Получение полного дерева навигации для админки (включая скрытые и корзину)
+  getAdminNavigation: async (
+    includeDeleted: boolean = false,
+    token?: string,
+  ): Promise<NavigationItem[]> => {
+    const url = `/admin/navigation?includeDeleted=${includeDeleted}`;
+    const fallback = buildNavigationTree(FACTORY_NAVIGATION_ITEMS);
+    const res = await safeFetch<NavigationItem[]>(url, fallback, {
+      cache: 'no-store',
+      token,
+    });
+    return Array.isArray(res) ? res : fallback;
+  },
+
+  // Создание нового пункта навигации
+  createNavigationItem: async (
+    dto: CreateNavigationItemPayload,
+    token?: string,
+  ): Promise<NavigationItem> => {
+    const res = await safeMutation<NavigationItem>(
+      '/admin/navigation',
+      'POST',
+      dto,
+      token,
+    );
+    if (typeof window !== 'undefined') {
+      fetch('/api/revalidate-navigation', { method: 'POST' }).catch(() => {});
+    }
+    return res;
+  },
+
+  // Обновление пункта навигации (переименование, перенос, изменение порядка, видимость)
+  updateNavigationItem: async (
+    id: string,
+    dto: UpdateNavigationItemPayload,
+    token?: string,
+  ): Promise<NavigationItem> => {
+    const res = await safeMutation<NavigationItem>(
+      `/admin/navigation/${id}`,
+      'PATCH',
+      dto,
+      token,
+    );
+    if (typeof window !== 'undefined') {
+      fetch('/api/revalidate-navigation', { method: 'POST' }).catch(() => {});
+    }
+    return res;
+  },
+
+  // Мягкое удаление пункта навигации (с подтверждением для обязательных)
+  deleteNavigationItem: async (
+    id: string,
+    dto?: DeleteNavigationItemPayload,
+    token?: string,
+  ): Promise<{ deleted: boolean }> => {
+    const res = await safeMutation<{ deleted: boolean }>(
+      `/admin/navigation/${id}`,
+      'DELETE',
+      dto || {},
+      token,
+    );
+    if (typeof window !== 'undefined') {
+      fetch('/api/revalidate-navigation', { method: 'POST' }).catch(() => {});
+    }
+    return res;
+  },
+
+  // Восстановление пункта навигации из корзины
+  restoreNavigationItem: async (
+    id: string,
+    token?: string,
+  ): Promise<NavigationItem> => {
+    const res = await safeMutation<NavigationItem>(
+      `/admin/navigation/${id}/restore`,
+      'POST',
+      {},
+      token,
+    );
+    if (typeof window !== 'undefined') {
+      fetch('/api/revalidate-navigation', { method: 'POST' }).catch(() => {});
+    }
+    return res;
+  },
+
+  // Восстановление заводской структуры меню по умолчанию
+  restoreDefaultNavigation: async (
+    token?: string,
+  ): Promise<{ restored: boolean; count: number }> => {
+    const res = await safeMutation<{ restored: boolean; count: number }>(
+      '/admin/navigation/restore-defaults',
+      'POST',
+      {},
+      token,
+    );
+    if (typeof window !== 'undefined') {
+      fetch('/api/revalidate-navigation', { method: 'POST' }).catch(() => {});
+    }
+    return res;
+  },
+
+  // ---------------------------------------------------------------------------
+  // SITE BUILDER: ТЕМЫ И ДИЗАЙН-ПРЕСЕТЫ
+  // ---------------------------------------------------------------------------
+
+  // Получение текущих настроек темы оформления сайта (публичный)
+  getCurrentTheme: async (): Promise<ThemeSettings> => {
+    const fallback: ThemeSettings = {
+      id: 1,
+      preset: 'classic_academic',
+      fontFamily: 'Inter',
+      borderRadiusMode: '0.5rem',
+      updatedAt: '2026-10-01T00:00:00Z',
+    };
+    const res = await safeFetch<ThemeSettings>('/theme', fallback, {
+      next: { revalidate: 60, tags: ['theme'] },
+    });
+    return res || fallback;
+  },
+
+  // Получение списка дизайн-пресетов оформления
+  getThemePresets: async (token?: string): Promise<ThemePreset[]> => {
+    const res = await safeFetch<ThemePreset[]>('/admin/theme/presets', THEME_PRESETS, {
+      cache: 'no-store',
+      token,
+    });
+    return Array.isArray(res) ? res : THEME_PRESETS;
+  },
+
+  // Выбор пресета темы оформления (только Admin)
+  selectThemePreset: async (
+    dto: { preset: ThemePresetId; fontFamily?: string; borderRadiusMode?: string },
+    token?: string,
+  ): Promise<ThemeSettings> => {
+    const res = await safeMutation<ThemeSettings>(
+      '/admin/theme/select',
+      'POST',
+      dto,
+      token,
+    );
+    if (typeof window !== 'undefined') {
+      fetch('/api/revalidate-theme', { method: 'POST' }).catch(() => {});
+    }
+    return res;
   },
 };
 

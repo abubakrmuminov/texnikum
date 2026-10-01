@@ -6,6 +6,7 @@ import { collegeApi } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TtsButton } from '@/components/accessibility/tts-button';
+import { BlockRenderer } from '@/components/pages/block-renderer';
 
 interface InfoPageProps {
   params: {
@@ -76,12 +77,14 @@ const TITLES_MAP: Record<string, string> = {
 export async function generateMetadata({ params }: InfoPageProps): Promise<Metadata> {
   const title = TITLES_MAP[params.slug] || 'Rasmiy maʼlumotlar';
   return {
-    title: `${title} — Fargʻona 2-son texnikumi`,
+    title,
     description: `Oʻzbekiston Respublikasi «Taʼlim toʻgʻrisida»gi Qonuni (OʻRQ-637, 37-modda) boʻyicha «${title}» rasmiy boʻlimi.`,
   };
 }
 
 export default async function InfoDetailPage({ params }: InfoPageProps): Promise<JSX.Element> {
+  const institution = await collegeApi.getPublicInstitution().catch(() => null);
+  const instName = institution?.shortNameUz || institution?.nameUz || 'Taʼlim muassasasi';
   const normalizedSlug = params.slug.startsWith('info-') ? params.slug : `info-${params.slug}`;
 
   // Ищем страницу в API или среди fallback
@@ -102,7 +105,7 @@ export default async function InfoDetailPage({ params }: InfoPageProps): Promise
       <div class="p-4 rounded-xl border border-border bg-muted/40 space-y-2">
         <h3 class="font-semibold text-sm">Rasmiy tasdiqlangan hujjatlar:</h3>
         <ul class="list-disc pl-5 space-y-1.5 text-xs text-muted-foreground">
-          <li>Boʻlim toʻgʻrisidagi nizom (texnikum direktori tomonidan tasdiqlangan)</li>
+          <li>Boʻlim toʻgʻrisidagi nizom (${instName} direktori tomonidan tasdiqlangan)</li>
           <li>Oʻtgan oʻquv va moliyaviy davr boʻyicha hisobot hujjatlari</li>
           <li>Vazirlik va nazorat organlari meʼyoriy aktlari</li>
         </ul>
@@ -161,15 +164,23 @@ export default async function InfoDetailPage({ params }: InfoPageProps): Promise
       <div
         itemScope
         itemType="https://schema.org/EducationalOrganization"
-        className="prose prose-slate dark:prose-invert max-w-none text-foreground text-sm sm:text-base leading-relaxed space-y-4 pt-2"
-        dangerouslySetInnerHTML={{ __html: contentHtml }}
-      />
+        className="text-foreground text-sm sm:text-base leading-relaxed space-y-4 pt-2"
+      >
+        {(page?.rows && page.rows.length > 0) || (page?.blocks && page.blocks.length > 0) ? (
+          <BlockRenderer rows={page.rows} blocks={page.blocks} lang="uz" />
+        ) : (
+          <div
+            className="prose prose-slate dark:prose-invert max-w-none text-foreground space-y-4"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+        )}
+      </div>
 
       {/* Нижняя подтверждающая плашка */}
       <div className="mt-8 p-4 rounded-xl border border-border bg-muted/30 flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-          <span>Fargʻona 2-son texnikumi direktori tomonidan tasdiqlangan rasmiy maʼlumotlar</span>
+          <span>{instName} direktori tomonidan tasdiqlangan rasmiy maʼlumotlar</span>
         </div>
         <Link href="/info">
           <Button variant="outline" size="sm" className="text-xs">

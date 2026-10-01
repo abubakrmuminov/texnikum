@@ -94,8 +94,8 @@ export default function AdminAdministrationPage(): JSX.Element {
     setPosition('');
     setCategory('leadership');
     setReceptionHours(isUz ? 'Dushanba, Payshanba: 14:00 – 17:00' : 'Понедельник, Четверг: 14:00 – 17:00');
-    setPhone('+998 (73) 244-00-01');
-    setEmail('direktor@texnikum2.uz');
+    setPhone('+998 (71) 200-00-01');
+    setEmail('direktor@texnikum.uz');
     setRoomNumber(isUz ? 'Bosh bino, 201-xona' : 'Главный корпус, каб. 201');
     setDuties('');
     setBio('');
@@ -416,7 +416,10 @@ export default function AdminAdministrationPage(): JSX.Element {
 
                     {/* Кнопки действий */}
                     <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div
+                        data-tour={idx === 0 ? 'administration.row-actions' : undefined}
+                        className="flex items-center justify-end gap-1"
+                      >
                         <Button
                           type="button"
                           variant="ghost"
@@ -521,7 +524,7 @@ export default function AdminAdministrationPage(): JSX.Element {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as AdministratorCategory)}
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="leadership">
                       {isUz ? 'Texnikum rahbariyati (Direksiya)' : 'Руководство (Дирекция)'}
@@ -589,7 +592,7 @@ export default function AdminAdministrationPage(): JSX.Element {
                   <Input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+998 (73) 244-00-01"
+                    placeholder="+998 (71) 200-00-01"
                     className="text-xs h-9 font-mono"
                   />
                 </div>
@@ -603,7 +606,7 @@ export default function AdminAdministrationPage(): JSX.Element {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="direktor@texnikum2.uz"
+                    placeholder="direktor@texnikum.uz"
                     className="text-xs h-9"
                   />
                 </div>

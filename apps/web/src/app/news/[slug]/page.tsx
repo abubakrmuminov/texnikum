@@ -7,6 +7,7 @@ import { collegeApi, FALLBACK_NEWS } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TtsButton } from '@/components/accessibility/tts-button';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -26,20 +27,26 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: NewsPageProps): Promise<Metadata> {
   const item = await collegeApi.getNewsBySlug(params.slug);
   if (!item) {
-    return { title: 'Yangilik topilmadi — Fargʻona 2-son texnikumi' };
+    return { title: 'Yangilik topilmadi' };
   }
   return {
-    title: `${item.title} — Fargʻona 2-son texnikumi`,
+    title: item.title,
     description: item.leadText,
   };
 }
 
 export default async function NewsDetailPage({ params }: NewsPageProps): Promise<JSX.Element> {
-  const item = await collegeApi.getNewsBySlug(params.slug);
+  await assertModuleEnabled('/news');
+  const [item, institution] = await Promise.all([
+    collegeApi.getNewsBySlug(params.slug),
+    collegeApi.getPublicInstitution().catch(() => null),
+  ]);
 
   if (!item) {
     notFound();
   }
+
+  const instShortName = institution?.shortNameUz || 'Texnikum';
 
   const categories = await collegeApi.getCategories();
   const category = categories.find((c) => c.id === item.categoryId);
@@ -168,7 +175,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps): Promise
             </div>
             <figcaption className="px-4 py-2.5 text-xs text-muted-foreground bg-muted/40 border-t border-border flex flex-wrap items-center justify-between gap-2">
               <span>Texnikum axborot xizmati fotomateriali</span>
-              <span className="font-medium text-foreground">Fargʻona 2-son texnikumi</span>
+              <span className="font-medium text-foreground">{instShortName}</span>
             </figcaption>
           </figure>
         ) : (
@@ -211,7 +218,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps): Promise
           <div itemProp="author" itemScope itemType="https://schema.org/Organization">
             <span>Manba: </span>
             <strong itemProp="name" className="text-foreground">
-              Fargʻona 2-son texnikumi matbuot xizmati
+              {instShortName} matbuot xizmati
             </strong>
           </div>
           <Link href="/news">

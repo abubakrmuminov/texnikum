@@ -39,7 +39,7 @@ export default function SettingsPage(): JSX.Element {
 
   const handleTestSpeech = () => {
     const sampleText =
-      'Siz Fargʻona shahri 2-son texnikumi rasmiy taʼlim portalining maxsus imkoniyatlar boʻlimidasiz. Ovozli sintez muvaffaqiyatli ishlamoqda.';
+      'Siz rasmiy taʼlim portalining maxsus imkoniyatlar boʻlimidasiz. Ovozli sintez muvaffaqiyatli ishlamoqda.';
     speakText(sampleText, 'uz');
     setTestSpeechStatus('Ovoz namunasi yangramoqda...');
     setTimeout(() => setTestSpeechStatus(''), 7000);
@@ -150,7 +150,7 @@ export default function SettingsPage(): JSX.Element {
                     key={t.id}
                     type="button"
                     onClick={() => setTheme(t.id)}
-                    className={`flex flex-col text-left p-3.5 rounded-lg border transition-all text-xs focus:outline-none focus:ring-2 focus:ring-ring ${
+                    className={`flex flex-col text-left p-3.5 rounded-lg border transition-all text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                       isSelected
                         ? 'border-primary ring-2 ring-primary/40 bg-accent/40 font-semibold'
                         : 'border-border hover:bg-accent/20'
@@ -190,7 +190,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setFontSize('normal')}
-                className={`p-4 rounded-lg border text-center transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-4 rounded-lg border text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   fontSize === 'normal'
                     ? 'border-primary bg-accent/40 ring-2 ring-primary/40 font-bold'
                     : 'border-border hover:bg-accent/20'
@@ -203,7 +203,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setFontSize('large')}
-                className={`p-4 rounded-lg border text-center transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-4 rounded-lg border text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   fontSize === 'large'
                     ? 'border-primary bg-accent/40 ring-2 ring-primary/40 font-bold'
                     : 'border-border hover:bg-accent/20'
@@ -216,7 +216,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setFontSize('xlarge')}
-                className={`p-4 rounded-lg border text-center transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-4 rounded-lg border text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   fontSize === 'xlarge'
                     ? 'border-primary bg-accent/40 ring-2 ring-primary/40 font-bold'
                     : 'border-border hover:bg-accent/20'
@@ -244,7 +244,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setLetterSpacing('normal')}
-                className={`p-3 rounded border text-left text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-3 rounded border text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   letterSpacing === 'normal'
                     ? 'border-primary bg-accent/40 font-bold'
                     : 'border-border hover:bg-accent/20'
@@ -256,7 +256,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setLetterSpacing('wide')}
-                className={`p-3 rounded border text-left text-sm transition-all tracking-wider focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-3 rounded border text-left text-sm transition-all tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   letterSpacing === 'wide'
                     ? 'border-primary bg-accent/40 font-bold'
                     : 'border-border hover:bg-accent/20'
@@ -280,7 +280,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setImagesMode('show')}
-                className={`p-3 rounded border text-left text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-3 rounded border text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   imagesMode === 'show'
                     ? 'border-primary bg-accent/40 font-bold'
                     : 'border-border hover:bg-accent/20'
@@ -292,7 +292,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setImagesMode('grayscale')}
-                className={`p-3 rounded border text-left text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-3 rounded border text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   imagesMode === 'grayscale'
                     ? 'border-primary bg-accent/40 font-bold'
                     : 'border-border hover:bg-accent/20'
@@ -304,7 +304,7 @@ export default function SettingsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setImagesMode('hide')}
-                className={`p-3 rounded border text-left text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`p-3 rounded border text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   imagesMode === 'hide'
                     ? 'border-primary bg-accent/40 font-bold'
                     : 'border-border hover:bg-accent/20'

@@ -3,14 +3,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { collegeApi } from '@/lib/api-client';
 import { TeacherFeed } from '@/components/teachers/teacher-feed';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 export const metadata: Metadata = {
-  title: 'Pedagogik tarkib — Fargʻona 2-son texnikumi',
+  title: 'Pedagogik tarkib',
   description:
-    'Fargʻona 2-son texnikumi oʻqituvchilari va ishlab chiqarish taʼlimi ustalari. Malakasi, ilmiy darajalari, oʻqitadigan fanlari va kontaktlari.',
+    'Muassasa oʻqituvchilari va ishlab chiqarish taʼlimi ustalari. Malakasi, ilmiy darajalari, oʻqitadigan fanlari va kontaktlari.',
 };
 
 export default async function TeachersPage(): Promise<JSX.Element> {
+  await assertModuleEnabled('/teachers');
   const [teachersResponse, departments] = await Promise.all([
     collegeApi.getTeachers({ limit: 50 }),
     collegeApi.getDepartments(),

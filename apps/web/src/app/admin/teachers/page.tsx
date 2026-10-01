@@ -298,7 +298,7 @@ export default function AdminTeachersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredTeachers.map((t) => (
+                {filteredTeachers.map((t, index) => (
                   <tr key={t.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-3 px-4 w-16">
                       <div className="h-10 w-10 rounded-full bg-muted overflow-hidden border shrink-0">
@@ -367,7 +367,10 @@ export default function AdminTeachersPage() {
                     </td>
 
                     <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
+                      <div
+                        data-tour={index === 0 ? 'teachers.row-actions' : undefined}
+                        className="flex items-center justify-end gap-1"
+                      >
                         <Button
                           variant="ghost"
                           size="sm"
@@ -509,7 +512,7 @@ export default function AdminTeachersPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="teacher@texnikum2.uz"
+                placeholder="teacher@texnikum.uz"
               />
             </div>
 

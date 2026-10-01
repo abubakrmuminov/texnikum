@@ -17,7 +17,7 @@ const BANNER = String.raw`
 ║  ✈  Telegram:  @abubakr_ai                                       ║
 ║  ⌥  GitHub:    github.com/abubakrmuminov                         ║
 ║  ☎  Phone:     +998 93 843 81 61                                ║
-║  🏛  Project:   Fargʻona 2-son texnikumi Taʼlim Portali           ║
+║  🏛  Project:   Kasb-hunar Taʼlimi Portali (White-label)           ║
 ║  🛡  Security:  Supabase RLS • JWT • WCAG 2.1 AA • OʻRQ-637       ║
 ╚══════════════════════════════════════════════════════════════════╝
 

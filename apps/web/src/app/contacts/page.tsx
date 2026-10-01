@@ -15,19 +15,39 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContactsFeedbackForm, CopyAddressButton } from '@/components/contacts/contacts-client';
 import { apiClient, FALLBACK_CONTACTS } from '@/lib/api-client';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 export const metadata: Metadata = {
-  title: 'Bogʻlanish va aloqa maʼlumotlari — Fargʻona 2-son texnikumi',
+  title: 'Bogʻlanish va aloqa maʼlumotlari',
   description:
     'Oʻquv binolari manzillari, talabalar turar joyi, qabul komissiyasi telefonlari, ish vaqti va shahar jamoat transporti yoʻnalishlari.',
 };
 
 export default async function ContactsPage(): Promise<JSX.Element> {
+  await assertModuleEnabled('/contacts');
+  const institution = await apiClient.getPublicInstitution().catch(() => null);
   const contacts = await apiClient.getContacts().catch(() => FALLBACK_CONTACTS);
-  const campuses = contacts?.campuses?.length ? contacts.campuses : FALLBACK_CONTACTS.campuses;
+  const rawCampuses = contacts?.campuses?.length ? contacts.campuses : FALLBACK_CONTACTS.campuses;
+  const campuses = rawCampuses.map((c, i) => {
+    if (i === 0 && institution?.legalAddressUz) {
+      return {
+        ...c,
+        name: institution.nameUz ? `${institution.shortNameUz || institution.nameUz} (Bosh bino)` : c.name,
+        address: institution.legalAddressUz,
+        phone: institution.mainPhone || c.phone,
+        email: institution.contactEmail || c.email,
+        workHours: institution.workHoursUz || c.workHours,
+      };
+    }
+    return c;
+  });
+
   const phones = contacts?.phones?.length ? contacts.phones : FALLBACK_CONTACTS.phones;
   const directions = contacts?.directions || FALLBACK_CONTACTS.directions;
-  const mapCoordinates = contacts?.mapCoordinates || FALLBACK_CONTACTS.mapCoordinates;
+  const mapCoordinates =
+    institution && institution.geoLatitude && institution.geoLongitude
+      ? { lat: institution.geoLatitude, lng: institution.geoLongitude }
+      : (contacts?.mapCoordinates || FALLBACK_CONTACTS.mapCoordinates);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-12">
@@ -183,7 +203,7 @@ export default async function ContactsPage(): Promise<JSX.Element> {
             <div className="w-full rounded-xl border border-border bg-card overflow-hidden shadow-inner flex flex-col">
               <div className="aspect-[16/9] w-full bg-muted">
                 <iframe
-                  title="Fargʻona 2-son texnikumi OpenStreetMap xaritasi"
+                  title={`${institution?.shortNameUz || 'Texnikum'} OpenStreetMap xaritasi`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -195,7 +215,7 @@ export default async function ContactsPage(): Promise<JSX.Element> {
               <div className="p-4 bg-card flex flex-wrap items-center justify-between gap-3 text-xs border-t border-border">
                 <div className="space-y-0.5">
                   <span className="font-bold text-foreground block">
-                    Fargʻona 2-son texnikumi (OpenStreetMap)
+                    {institution?.nameUz || institution?.shortNameUz || 'Texnikum'} (OpenStreetMap)
                   </span>
                   <span className="text-[11px] text-muted-foreground font-mono">
                     GPS koordinatalar: {mapCoordinates.lat}° N, {mapCoordinates.lng}° E

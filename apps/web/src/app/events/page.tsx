@@ -3,14 +3,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { collegeApi } from '@/lib/api-client';
 import { EventFeed } from '@/components/events/event-feed';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 export const metadata: Metadata = {
-  title: 'Tadbirlar va uchrashuvlar taqvimi — Fargʻona 2-son texnikumi',
+  title: 'Tadbirlar va uchrashuvlar taqvimi',
   description:
     'Abituriyentlar uchun ochiq eshiklar kuni, ilmiy-amaliy konferensiyalar, xakatonlar, master-klasslar va sport musobaqalari anonslari.',
 };
 
 export default async function EventsPage(): Promise<JSX.Element> {
+  await assertModuleEnabled('/events');
   const eventsResponse = await collegeApi.getEvents({ limit: 50 });
 
   return (

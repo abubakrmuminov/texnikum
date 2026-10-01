@@ -254,7 +254,7 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredUsers.map((u) => {
+                {filteredUsers.map((u, index) => {
                   const isCurrent = currentUser?.id === u.id;
 
                   return (
@@ -290,6 +290,7 @@ export default function AdminUsersPage() {
 
                       <td className="py-3 px-4">
                         <select
+                          data-tour={index === 0 ? 'users.role-select' : undefined}
                           value={u.role}
                           disabled={isCurrent}
                           onChange={(e) =>
@@ -313,7 +314,7 @@ export default function AdminUsersPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          data-tour="users.reset-onboarding"
+                          data-tour={index === 0 ? 'users.reset-onboarding' : undefined}
                           disabled={resettingId === u.id}
                           onClick={() => handleResetOnboarding(u.id, u.fullName)}
                           className="h-8 px-2.5 text-xs gap-1.5 hover:bg-primary/10 hover:text-primary transition-colors"

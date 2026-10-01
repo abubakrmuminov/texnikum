@@ -2,501 +2,803 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Search,
+  Plus,
   Edit2,
+  Copy,
+  Trash2,
   ExternalLink,
-  FileCheck2,
+  Shield,
   CheckCircle2,
   AlertCircle,
-  Eye,
-  EyeOff,
+  Layers,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Modal } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { WysiwygEditor } from '@/components/admin/wysiwyg-editor';
+import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { apiClient } from '@/lib/api-client';
-import { PageItem, PageSection } from '@college/shared';
+import { PageItem, PageSection, UserRole, COLLEGE_PAGE_TEMPLATES } from '@college/shared';
 import { useAppLocale } from '@/components/i18n/locale-provider';
+import { useAdminAuth } from '@/components/admin/admin-auth-context';
+import { PlusCircle } from 'lucide-react';
 
-export default function AdminPagesPage() {
+export default function AdminPagesPage(): JSX.Element {
+  const router = useRouter();
   const { locale } = useAppLocale();
   const isUz = locale === 'uz';
+  const { hasRole, token } = useAdminAuth();
+  const isAdmin = hasRole(UserRole.ADMIN);
+  const canEdit = hasRole(UserRole.ADMIN) || hasRole(UserRole.EDITOR);
 
   const [pages, setPages] = React.useState<PageItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [sectionFilter, setSectionFilter] = React.useState<string>('all');
+  const [statusFilter, setStatusFilter] = React.useState<string>('all');
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
 
-  // Edit Modal State
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [editingPage, setEditingPage] = React.useState<PageItem | null>(null);
+  // Create Modal State
+  const [isCreateOpen, setIsCreateOpen] = React.useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = React.useState<string>('blank');
+  const [newTitleUz, setNewTitleUz] = React.useState('');
+  const [newTitleRu, setNewTitleRu] = React.useState('');
+  const [newSlug, setNewSlug] = React.useState('');
+  const newSection: PageSection = 'general';
+  const [isCreating, setIsCreating] = React.useState(false);
+  const [createError, setCreateError] = React.useState<string | null>(null);
 
-  // Form Fields
-  const [title, setTitle] = React.useState('');
-  const [section, setSection] = React.useState<PageSection>('info');
-  const [contentHtml, setContentHtml] = React.useState('');
-  const [metaTitle, setMetaTitle] = React.useState('');
-  const [metaDescription, setMetaDescription] = React.useState('');
-  const [isPublished, setIsPublished] = React.useState(true);
-  const [formError, setFormError] = React.useState<string | null>(null);
+  // Delete State
+  const [pageToDelete, setPageToDelete] = React.useState<PageItem | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  // Statutory Warning Modal State
+  const [statutoryWarningOpen, setStatutoryWarningOpen] = React.useState(false);
 
   const loadPages = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await apiClient.getPages();
+      const data = await apiClient.getAdminPages(undefined, token || undefined);
       setPages(data);
     } catch (err: unknown) {
       setError(
         err instanceof Error
           ? err.message
-          : (isUz ? 'Sahifalar roʻyxatini yuklab boʻlmadi' : 'Не удалось загрузить разделы сайта')
+          : isUz
+          ? 'Sahifalar roʻyxatini yuklab boʻlmadi'
+          : 'Не удалось загрузить разделы сайта',
       );
     } finally {
       setIsLoading(false);
     }
-  }, [isUz]);
+  }, [isUz, token]);
 
   React.useEffect(() => {
     loadPages();
   }, [loadPages]);
 
-  const openEditModal = (p: PageItem) => {
-    setEditingPage(p);
-    setTitle(p.title);
-    setSection(p.section);
-    setContentHtml(p.contentHtml);
-    setMetaTitle(p.metaTitle || '');
-    setMetaDescription(p.metaDescription || '');
-    setIsPublished(p.isPublished);
-    setFormError(null);
-    setIsModalOpen(true);
+  // Auto-generate slug from UZ title
+  const handleTitleUzChange = (val: string) => {
+    setNewTitleUz(val);
+    if (!newSlug || newSlug.startsWith('sahifa-')) {
+      const slugified = val
+        .toLowerCase()
+        .replace(/ʻ|ʼ|'/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      setNewSlug(slugified || `sahifa-${Date.now().toString().slice(-4)}`);
+    }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingPage) return;
-    setFormError(null);
-
-    if (!title.trim() || !contentHtml.trim()) {
-      setFormError(
+    if (!newTitleUz.trim() || !newSlug.trim()) {
+      setCreateError(
         isUz
-          ? 'Sahifa sarlavhasi va matnini toʻldiring'
-          : 'Заполните заголовок и текст страницы'
+          ? 'Iltimos, sahifa sarlavhasi va manzilini toʻldiring'
+          : 'Пожалуйста, заполните название и адрес страницы',
       );
       return;
     }
 
-    const payload: Partial<PageItem> = {
-      title: title.trim(),
-      section,
-      contentHtml,
-      metaTitle: metaTitle.trim() || null,
-      metaDescription: metaDescription.trim() || null,
-      isPublished,
-    };
-
     try {
-      await apiClient.updatePage(editingPage.id, payload);
-      setPages((prev) =>
-        prev.map((item) =>
-          item.id === editingPage.id ? ({ ...item, ...payload } as PageItem) : item
-        )
+      setIsCreating(true);
+      setCreateError(null);
+
+      const selectedTmpl = COLLEGE_PAGE_TEMPLATES.find((t) => t.id === selectedTemplateId);
+      const initialRows = selectedTmpl ? JSON.parse(JSON.stringify(selectedTmpl.rows)) : [];
+
+      const created = await apiClient.createPage(
+        {
+          title: newTitleUz.trim(),
+          titleUz: newTitleUz.trim(),
+          titleRu: newTitleRu.trim() || newTitleUz.trim(),
+          slug: newSlug.trim().toLowerCase(),
+          section: newSection,
+          pageType: 'custom',
+          isPublished: false,
+          schemaVersion: 2,
+          rows: initialRows,
+          blocks: [],
+        },
+        token || undefined,
       );
+
+      setIsCreateOpen(false);
+      setSelectedTemplateId('blank');
+      setNewTitleUz('');
+      setNewTitleRu('');
+      setNewSlug('');
+      router.push(`/admin/pages/${created.id}`);
+    } catch (err: unknown) {
+      setCreateError(
+        err instanceof Error ? err.message : isUz ? 'Xatolik yuz berdi' : 'Произошла ошибка',
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDuplicate = async (p: PageItem) => {
+    try {
+      const duplicated = await apiClient.duplicatePage(p.id, token || undefined);
+      setPages((prev) => [duplicated, ...prev]);
       setSuccess(
         isUz
-          ? `«${title}» sahifasi muvaffaqiyatli saqlandi`
-          : `Раздел «${title}» успешно сохранен`
+          ? `«${p.titleUz || p.title}» sahifasidan nusxa olindi`
+          : `Создана копия страницы «${p.titleRu || p.title}»`,
       );
-      setIsModalOpen(false);
-      setTimeout(() => setSuccess(null), 3000);
+      setTimeout(() => setSuccess(null), 3500);
     } catch (err: unknown) {
-      setFormError(
+      setError(
         err instanceof Error
           ? err.message
-          : (isUz ? 'Sahifani saqlashda xatolik yuz berdi' : 'Ошибка при сохранении страницы')
+          : isUz
+          ? 'Nusxa koʻchirishda xatolik yuz berdi'
+          : 'Ошибка при дублировании',
       );
     }
   };
 
-  const handleTogglePublish = async (p: PageItem) => {
+  const handleDeletePrompt = (p: PageItem) => {
+    if (p.isRequired || p.isSystem) {
+      setStatutoryWarningOpen(true);
+      return;
+    }
+    setPageToDelete(p);
+  };
+
+  const confirmDelete = async () => {
+    if (!pageToDelete) return;
     try {
-      const nextStatus = !p.isPublished;
-      await apiClient.updatePage(p.id, { isPublished: nextStatus });
-      setPages((prev) =>
-        prev.map((item) =>
-          item.id === p.id ? { ...item, isPublished: nextStatus } : item
-        )
-      );
-    } catch {
-      alert(
+      setIsDeleting(true);
+      await apiClient.deletePage(pageToDelete.id, token || undefined);
+      setPages((prev) => prev.filter((p) => p.id !== pageToDelete.id));
+      setSuccess(
         isUz
-          ? 'Sahifa nashr holatini oʻzgartirib boʻlmadi'
-          : 'Не удалось изменить статус публикации раздела'
+          ? `«${pageToDelete.titleUz || pageToDelete.title}» sahifasi oʻchirildi`
+          : `Страница «${pageToDelete.titleRu || pageToDelete.title}» удалена`,
       );
+      setPageToDelete(null);
+      setTimeout(() => setSuccess(null), 3500);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : isUz
+          ? 'Sahifani oʻchirishda xatolik yuz berdi'
+          : 'Ошибка при удалении',
+      );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const filteredPages = React.useMemo(() => {
     return pages.filter((p) => {
-      const matchesSearch =
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.slug.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesSection =
-        sectionFilter === 'all' || p.section === sectionFilter;
-      return matchesSearch && matchesSection;
-    });
-  }, [pages, searchQuery, sectionFilter]);
+      const titleUz = p.titleUz || p.title || '';
+      const titleRu = p.titleRu || p.title || '';
+      const q = searchQuery.toLowerCase().trim();
 
-  const getSectionBadge = (sec: PageSection) => {
-    switch (sec) {
-      case 'info':
-        return (
-          <Badge variant="outline" className="text-primary border-primary/20">
-            {isUz ? 'Rasmiy maʼlumot (OʻRQ-637)' : 'Сведения об ОО (ст. 37)'}
-          </Badge>
-        );
-      case 'sveden':
-        return (
-          <Badge variant="outline" className="text-primary border-primary/20">
-            {isUz ? 'Rasmiy boʻlim' : 'Сведения об ОО'}
-          </Badge>
-        );
-      case 'about':
-        return (
-          <Badge variant="outline" className="text-muted-foreground">
-            {isUz ? 'Texnikum haqida' : 'Об учреждении'}
-          </Badge>
-        );
-      case 'applicants':
-        return (
-          <Badge variant="outline" className="text-emerald-600 border-emerald-500/20">
-            {isUz ? 'Abituriyentlarga' : 'Поступающим'}
-          </Badge>
-        );
-      case 'students':
-        return (
-          <Badge variant="outline" className="text-purple-600 border-purple-500/20">
-            {isUz ? 'Talabalarga' : 'Студентам'}
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{isUz ? 'Umumiy' : 'Общее'}</Badge>;
-    }
-  };
+      const matchesSearch =
+        !q ||
+        titleUz.toLowerCase().includes(q) ||
+        titleRu.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q);
+
+      const matchesSection =
+        sectionFilter === 'all' ||
+        (sectionFilter === 'statutory' && (p.section === 'info' || p.isSystem)) ||
+        (sectionFilter === 'custom' && p.pageType === 'custom');
+
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'published' && p.isPublished) ||
+        (statusFilter === 'draft' && !p.isPublished);
+
+      return matchesSearch && matchesSection && matchesStatus;
+    });
+  }, [pages, searchQuery, sectionFilter, statusFilter]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl space-y-6">
+      {/* Заголовок страницы */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <FileCheck2 className="h-6 w-6 text-primary" />
-            {isUz
-              ? 'Rasmiy maʼlumotlar va meʼyoriy sahifalar'
-              : 'Официальные сведения и нормативные разделы'}
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2.5">
+            <Layers className="size-7 text-primary" />
+            <span>
+              {isUz
+                ? 'Sayt sahifalari va ustav boʻlimlari'
+                : 'Страницы сайта и разделы ст. 37'}
+            </span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="mt-1 text-sm text-muted-foreground">
             {isUz
-              ? 'Oʻzbekiston Respublikasi «Taʼlim toʻgʻrisida»gi Qonuni (OʻRQ-637, 37-modda) boʻyicha 12 ta majburiy boʻlim va axborot sahifalarini boshqarish'
-              : 'Управление 12 обязательными подразделами открытости по ст. 37 Закона РУз «Об образовании»'}
+              ? '«Taʼlim toʻgʻrisida»gi Qonunning 37-moddasi boʻyicha ustav maʼlumotlari va mustaqil sahifalar konstruktori'
+              : 'Управление 12 разделами открытости ст. 37 ЗРУ-637 и создание произвольных страниц портала'}
           </p>
         </div>
+
+        {canEdit && (
+          <Button
+            type="button"
+            data-tour="pages.create-btn"
+            onClick={() => {
+              setNewTitleUz('');
+              setNewTitleRu('');
+              setNewSlug(`sahifa-${Date.now().toString().slice(-4)}`);
+              setCreateError(null);
+              setIsCreateOpen(true);
+            }}
+            className="text-xs"
+          >
+            <Plus className="size-4 mr-1.5" />
+            <span>{isUz ? 'Yangi sahifa yaratish' : 'Создать страницу'}</span>
+          </Button>
+        )}
       </div>
 
-      {/* Notifications */}
-      {error && (
-        <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
+      {/* Оповещения */}
       {success && (
-        <div className="flex items-center gap-2 p-3 text-sm text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
+        <div className="p-3.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold flex items-center gap-2">
+          <CheckCircle2 className="size-4 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
-      {/* Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      {error && (
+        <div className="p-3.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-xs font-semibold flex items-center gap-2">
+          <AlertCircle className="size-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Панель фильтров и поиска */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-md" data-tour="pages.search-input">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            data-tour="pages.search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
               isUz
-                ? 'Sahifa nomi yoki slug boʻyicha qidiruv...'
-                : 'Поиск по названию или slug...'
+                ? 'Sarlavha yoki slug boʻyicha qidiruv...'
+                : 'Поиск по названию или слагу...'
             }
-            className="pl-9 h-10"
+            className="pl-9 text-xs"
           />
         </div>
 
-        <select
-          value={sectionFilter}
-          onChange={(e) => setSectionFilter(e.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 py-1 text-sm"
-        >
-          <option value="all">
-            {isUz ? `Barcha boʻlimlar (${pages.length})` : `Все подразделы (${pages.length})`}
-          </option>
-          <option value="info">
-            {isUz
-              ? 'Rasmiy maʼlumotlar (OʻRQ-637, 37-modda)'
-              : 'Сведения об ОО (ст. 37 Закона РУз)'}
-          </option>
-          <option value="about">{isUz ? 'Texnikum haqida' : 'Об учреждении'}</option>
-          <option value="applicants">{isUz ? 'Abituriyentlarga' : 'Поступающим'}</option>
-          <option value="students">{isUz ? 'Talabalarga' : 'Студентам'}</option>
-          <option value="general">{isUz ? 'Umumiy' : 'Общее'}</option>
-        </select>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Фильтр по типам разделов */}
+          <div className="flex items-center rounded-lg border border-border bg-card p-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setSectionFilter('all')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                sectionFilter === 'all'
+                  ? 'bg-primary text-primary-foreground font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? 'Barchasi' : 'Все'} ({pages.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSectionFilter('statutory')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                sectionFilter === 'statutory'
+                  ? 'bg-primary text-primary-foreground font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? '37-modda (Ustav)' : 'Ст. 37 (Устав)'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSectionFilter('custom')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                sectionFilter === 'custom'
+                  ? 'bg-primary text-primary-foreground font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? 'Maxsus sahifalar' : 'Пользовательские'}
+            </button>
+          </div>
+
+          {/* Фильтр по статусу публикации */}
+          <div className="flex items-center rounded-lg border border-border bg-card p-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setStatusFilter('all')}
+              className={`px-2.5 py-1.5 rounded-md font-medium transition-colors ${
+                statusFilter === 'all'
+                  ? 'bg-muted text-foreground font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? 'Holat: Hammasi' : 'Все статусы'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('published')}
+              className={`px-2.5 py-1.5 rounded-md font-medium transition-colors ${
+                statusFilter === 'published'
+                  ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? 'Chop etilgan' : 'Опубликовано'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('draft')}
+              className={`px-2.5 py-1.5 rounded-md font-medium transition-colors ${
+                statusFilter === 'draft'
+                  ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isUz ? 'Qoralama' : 'Черновики'}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Pages Table */}
-      <div data-tour="pages.table" className="rounded-xl border bg-card shadow-2xs overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 text-center text-sm text-muted-foreground">
-            Sahifalar yuklanmoqda...
-          </div>
-        ) : filteredPages.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">
-              {isUz ? 'Sahifalar topilmadi' : 'Разделы не найдены'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b">
+      {/* Таблица реестра страниц */}
+      <Card className="border-border shadow-xs overflow-hidden" data-tour="pages.table">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead className="bg-muted/50 border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th scope="col" className="p-4 font-semibold">
+                  {isUz ? 'Sahifa nomi va manzili' : 'Название и адрес страницы'}
+                </th>
+                <th scope="col" className="p-4 font-semibold hidden md:table-cell">
+                  {isUz ? 'Boʻlim / Toifa' : 'Раздел / Категория'}
+                </th>
+                <th scope="col" className="p-4 font-semibold">
+                  {isUz ? 'Holati' : 'Статус'}
+                </th>
+                <th scope="col" className="p-4 font-semibold hidden lg:table-cell">
+                  {isUz ? 'Tillar' : 'Языки'}
+                </th>
+                <th scope="col" className="p-4 font-semibold hidden sm:table-cell">
+                  {isUz ? 'Yangilangan' : 'Изменено'}
+                </th>
+                <th scope="col" className="p-4 font-semibold text-right">
+                  {isUz ? 'Amallar' : 'Действия'}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {isLoading ? (
                 <tr>
-                  <th className="py-3 px-4">{isUz ? 'Boʻlim / Nomi' : 'Раздел / Наименование'}</th>
-                  <th className="py-3 px-4">URL (slug)</th>
-                  <th className="py-3 px-4">{isUz ? 'Toifa' : 'Категория'}</th>
-                  <th className="py-3 px-4">{isUz ? 'Holati' : 'Статус'}</th>
-                  <th className="py-3 px-4 text-right">{isUz ? 'Amallar' : 'Действия'}</th>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    <Loader2 className="size-6 animate-spin mx-auto text-primary mb-2" />
+                    <span>{isUz ? 'Sahifalar yuklanmoqda...' : 'Загрузка разделов...'}</span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredPages.map((p) => (
-                  <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-4 font-semibold text-foreground">
-                      <div className="flex items-center gap-2">
-                        {p.title}
-                      </div>
-                      {p.metaDescription && (
-                        <p className="text-xs text-muted-foreground line-clamp-1 font-normal mt-0.5">
-                          {p.metaDescription}
-                        </p>
-                      )}
-                    </td>
+              ) : filteredPages.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    {isUz ? 'Mos keladigan sahifalar topilmadi' : 'Разделы не найдены'}
+                  </td>
+                </tr>
+              ) : (
+                filteredPages.map((page, idx) => {
+                  const titleUz = page.titleUz || page.title;
+                  const titleRu = page.titleRu || page.title;
+                  const isStatutory = page.section === 'info' || page.isSystem || page.isRequired;
+                  const blockCount = page.blocks?.length || 0;
 
-                    <td className="py-3 px-4 font-mono text-xs text-muted-foreground">
-                      /{p.section === 'info' ? 'info/' : p.section === 'sveden' ? 'info/' : ''}{p.slug}
-                    </td>
+                  return (
+                    <tr
+                      key={page.id}
+                      className="hover:bg-muted/20 transition-colors group"
+                    >
+                      {/* Название и ссылка */}
+                      <td className="p-4">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-foreground text-sm">
+                              {isUz ? titleUz : titleRu}
+                            </span>
+                            {page.isRequired && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 border-primary/30 text-primary bg-primary/5"
+                              >
+                                {isUz ? 'Majburiy (37-modda)' : 'Ст. 37 ЗРУ-637'}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 font-mono">
+                            <span>/{isStatutory ? `info/${page.slug}` : page.slug}</span>
+                            {blockCount > 0 && (
+                              <span className="font-sans text-[11px] text-muted-foreground">
+                                • {blockCount} {isUz ? 'ta blok' : 'блоков'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
 
-                    <td className="py-3 px-4">
-                      {getSectionBadge(p.section)}
-                    </td>
+                      {/* Раздел / Тип */}
+                      <td className="p-4 hidden md:table-cell">
+                        {isStatutory ? (
+                          <Badge variant="outline" className="text-xs bg-muted/40 font-medium">
+                            <Shield className="size-3 mr-1 text-primary" />
+                            {isUz ? 'Rasmiy ustav' : 'Уставной раздел'}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs font-normal">
+                            <Sparkles className="size-3 mr-1 text-amber-500" />
+                            {isUz ? 'Maxsus sahifa' : 'Кастомная'}
+                          </Badge>
+                        )}
+                      </td>
 
-                    <td className="py-3 px-4">
-                      {p.isPublished ? (
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
-                          {isUz ? 'Chop etilgan' : 'Опубликовано'}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs">
-                          {isUz ? 'Yashirilgan' : 'Скрыто'}
-                        </Badge>
-                      )}
-                    </td>
+                      {/* Статус публикации */}
+                      <td className="p-4">
+                        {page.isPublished ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
+                            <CheckCircle2 className="size-3 mr-1" />
+                            {isUz ? 'Chop etilgan' : 'Опубликовано'}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10 text-xs font-semibold">
+                            {isUz ? 'Qoralama' : 'Черновик'}
+                          </Badge>
+                        )}
+                      </td>
 
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          href={p.section === 'info' || p.section === 'sveden' ? `/info/${p.slug}` : `/${p.slug}`}
-                          target="_blank"
-                          title={isUz ? 'Sahifani saytda koʻrish' : 'Открыть страницу на сайте'}
+                      {/* Индикаторы языков */}
+                      <td className="p-4 hidden lg:table-cell">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              page.titleUz ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/40'
+                            }`}
+                            title="Oʻzbekcha talqin"
+                          >
+                            UZ
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              page.titleRu ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/40'
+                            }`}
+                            title="Русская версия"
+                          >
+                            RU
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Дата обновления */}
+                      <td className="p-4 hidden sm:table-cell text-xs text-muted-foreground">
+                        {page.updatedAt
+                          ? new Date(page.updatedAt).toLocaleDateString(isUz ? 'uz-UZ' : 'ru-RU')
+                          : '—'}
+                      </td>
+
+                      {/* Кнопки действий */}
+                      <td className="p-4 text-right">
+                        <div
+                          className="flex items-center justify-end gap-1"
+                          data-tour={idx === 0 ? 'pages.row-actions' : undefined}
                         >
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </Button>
-                        </Link>
+                          {/* Просмотр на сайте */}
+                          <Link
+                            href={isStatutory ? `/info/${page.slug}` : `/${page.slug}`}
+                            target="_blank"
+                            className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                            title={isUz ? 'Saytda koʻrish' : 'Открыть на сайте'}
+                          >
+                            <ExternalLink className="size-4" />
+                          </Link>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleTogglePublish(p)}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title={
-                            isUz
-                              ? p.isPublished
-                                ? 'Sahifani yashirish'
-                                : 'Chop etish'
-                              : p.isPublished
-                              ? 'Скрыть раздел'
-                              : 'Опубликовать'
-                          }
-                        >
-                          {p.isPublished ? (
-                            <EyeOff className="h-3.5 w-3.5 text-amber-600" />
-                          ) : (
-                            <Eye className="h-3.5 w-3.5 text-emerald-600" />
+                          {/* Редактирование в супер-редакторе */}
+                          {canEdit && (
+                            <Link
+                              href={`/admin/pages/${page.id}`}
+                              className="p-1.5 rounded-md hover:bg-primary/10 text-primary transition-colors"
+                              title={isUz ? 'Konstruktorda tahrirlash' : 'Открыть в конструкторе'}
+                            >
+                              <Edit2 className="size-4" />
+                            </Link>
                           )}
-                        </Button>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditModal(p)}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          title={isUz ? 'Tahrirlash' : 'Редактировать'}
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                          {/* Дублирование страницы */}
+                          {canEdit && (
+                            <button
+                              type="button"
+                              onClick={() => handleDuplicate(page)}
+                              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                              title={isUz ? 'Nusxa koʻchirish' : 'Дублировать страницу'}
+                            >
+                              <Copy className="size-4" />
+                            </button>
+                          )}
 
-      {/* Edit Page Modal */}
-      {editingPage && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title={
-            isUz
-              ? `Boʻlimni tahrirlash: ${editingPage.title}`
-              : `Редактирование подраздела: ${editingPage.title}`
-          }
-          description={`URL: /info/${editingPage.slug}`}
-          maxWidth="2xl"
-        >
-          <form onSubmit={handleSave} className="space-y-4">
-            {formError && (
-              <div className="p-3 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
-                {formError}
+                          {/* Удаление */}
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePrompt(page)}
+                              className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                              title={isUz ? 'Oʻchirish' : 'Удалить'}
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Модальное окно создания новой страницы */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="size-5 text-primary" />
+                <span>{isUz ? 'Yangi sahifa yaratish' : 'Создать новую страницу'}</span>
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                {isUz
+                  ? 'Tayyor akademik andozani tanlang yoki yangi sahifani boʻsh xolstdan boshlang.'
+                  : 'Выберите готовый шаблон для колледжа или начните с чистого листа.'}
+              </DialogDescription>
+            </DialogHeader>
+
+            {createError && (
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="size-4 shrink-0" />
+                <span>{createError}</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-semibold text-foreground">
-                  {isUz ? 'Sahifa sarlavhasi' : 'Заголовок раздела'}{' '}
-                  <span className="text-destructive">*</span>
+            {/* Выбор готового шаблона */}
+            <div>
+              <label className="text-xs font-semibold text-foreground block mb-2">
+                {isUz ? 'Sahifa shabloni (andoza)' : 'Шаблон страницы'}
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  id="template-card-blank"
+                  onClick={() => {
+                    setSelectedTemplateId('blank');
+                  }}
+                  className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-1.5 ${
+                    selectedTemplateId === 'blank'
+                      ? 'border-primary bg-primary/10 ring-2 ring-primary/40 shadow-xs'
+                      : 'border-border bg-card hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold text-xs text-foreground">
+                    <PlusCircle className="size-4 text-primary shrink-0" />
+                    <span>{isUz ? 'Boʻsh sahifa' : 'Пустая страница'}</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-tight">
+                    {isUz ? 'Noldan boshlash: boʻsh xolst' : 'Чистый холст без блоков'}
+                  </p>
+                </button>
+
+                {COLLEGE_PAGE_TEMPLATES.map((tmpl) => {
+                  const isSelected = selectedTemplateId === tmpl.id;
+                  return (
+                    <button
+                      key={tmpl.id}
+                      type="button"
+                      id={`template-card-${tmpl.id}`}
+                      onClick={() => {
+                        setSelectedTemplateId(tmpl.id);
+                        setNewTitleUz(tmpl.titleUz.replace(/\s*\([^)]*\)/, ''));
+                        setNewTitleRu(tmpl.titleRu.replace(/\s*\([^)]*\)/, ''));
+                        setNewSlug(`${tmpl.id.replace(/_/g, '-')}-${Date.now().toString().slice(-4)}`);
+                      }}
+                      className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-1.5 ${
+                        isSelected
+                          ? 'border-primary bg-primary/10 ring-2 ring-primary/40 shadow-xs'
+                          : 'border-border bg-card hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-1.5">
+                        <span className="font-bold text-xs text-foreground line-clamp-1">
+                          {isUz ? tmpl.titleUz : tmpl.titleRu}
+                        </span>
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 font-mono">
+                          {tmpl.rows.length} {isUz ? 'qator' : 'секц.'}
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground line-clamp-2 leading-tight">
+                        {isUz ? tmpl.descriptionUz : tmpl.descriptionRu}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-1 border-t border-border/60">
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1">
+                  {isUz ? 'Sarlavha (Oʻzbekcha)' : 'Название (Узбекский)'} *
                 </label>
                 <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  value={newTitleUz}
+                  onChange={(e) => handleTitleUzChange(e.target.value)}
+                  placeholder="Masalan: Bitiruvchilar uyushmasi"
+                  className="text-xs"
                   required
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {isUz ? 'Boʻlim toifasi' : 'Категория раздела'}
-                </label>
-                <select
-                  value={section}
-                  onChange={(e) => setSection(e.target.value as PageSection)}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="info">
-                    {isUz
-                      ? 'Rasmiy maʼlumotlar (OʻRQ-637, 37-modda)'
-                      : 'Сведения об ОО (ст. 37 Закона РУз)'}
-                  </option>
-                  <option value="about">{isUz ? 'Texnikum haqida' : 'Об учреждении'}</option>
-                  <option value="applicants">{isUz ? 'Abituriyentlarga' : 'Поступающим'}</option>
-                  <option value="students">{isUz ? 'Talabalarga' : 'Студентам'}</option>
-                  <option value="general">{isUz ? 'Umumiy' : 'Общее'}</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {isUz ? 'Meta Title (qidiruv tizimlari uchun)' : 'Meta Title (для поиска)'}
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1">
+                  {isUz ? 'Sarlavha (Ruscha)' : 'Название (Русский)'}
                 </label>
                 <Input
-                  value={metaTitle}
-                  onChange={(e) => setMetaTitle(e.target.value)}
-                  placeholder={isUz ? 'SEO sarlavhasi' : 'SEO заголовок'}
+                  value={newTitleRu}
+                  onChange={(e) => setNewTitleRu(e.target.value)}
+                  placeholder="Например: Ассоциация выпускников"
+                  className="text-xs"
                 />
               </div>
 
-              <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {isUz ? 'Meta Description (sahifa tavsifi)' : 'Meta Description (описание страницы)'}
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1">
+                  {isUz ? 'URL manzili (Slug)' : 'URL-слаг (Адрес)'} *
                 </label>
-                <Input
-                  value={metaDescription}
-                  onChange={(e) => setMetaDescription(e.target.value)}
-                  placeholder={
-                    isUz
-                      ? 'Qidiruv tizimlari uchun qisqacha tavsif...'
-                      : 'Краткое описание страницы для поисковиков...'
-                  }
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <WysiwygEditor
-                  value={contentHtml}
-                  onChange={setContentHtml}
-                  label={
-                    isUz
-                      ? 'Sahifaning HTML-matni va jadvallari'
-                      : 'Текст подраздела, таблицы и документы'
-                  }
-                  minHeight="320px"
-                />
-              </div>
-
-              <div className="sm:col-span-2 pt-2">
-                <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={isPublished}
-                    onChange={(e) => setIsPublished(e.target.checked)}
-                    className="rounded border-input text-primary focus:ring-primary h-4 w-4"
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground font-mono">/</span>
+                  <Input
+                    value={newSlug}
+                    onChange={(e) => setNewSlug(e.target.value)}
+                    placeholder="alumni"
+                    className="text-xs font-mono"
+                    required
                   />
-                  <span>
-                    {isUz
-                      ? 'Sahifa saytda ochiq koʻrinishda chop etilsin'
-                      : 'Опубликовать подраздел в открытом доступе на сайте'}
-                  </span>
-                </label>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
+            <DialogFooter className="pt-2">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => setIsCreateOpen(false)}
+                className="text-xs"
               >
                 {isUz ? 'Bekor qilish' : 'Отмена'}
               </Button>
-              <Button type="submit" size="sm" className="bg-primary text-primary-foreground">
-                {isUz ? 'Oʻzgarishlarni saqlash' : 'Сохранить изменения'}
+              <Button type="submit" disabled={isCreating} className="text-xs">
+                {isCreating && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+                <span>{isUz ? 'Yaratish va konstruktorni ochish' : 'Создать и открыть редактор'}</span>
               </Button>
-            </div>
+            </DialogFooter>
           </form>
-        </Modal>
-      )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Модальное окно подтверждения удаления */}
+      <Dialog open={Boolean(pageToDelete)} onOpenChange={() => setPageToDelete(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <AlertCircle className="size-5" />
+              <span>{isUz ? 'Sahifani oʻchirishni tasdiqlang' : 'Подтверждение удаления'}</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed pt-2">
+              {isUz
+                ? `Haqiqatan ham «${pageToDelete?.titleUz || pageToDelete?.title}» sahifasini oʻchirmoqchimisiz? Sahifa arxivga koʻchiriladi va ommaviy saytda koʻrinmaydi.`
+                : `Вы действительно хотите удалить страницу «${pageToDelete?.titleRu || pageToDelete?.title}»? Она будет перемещена в корзину.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPageToDelete(null)}
+              className="text-xs"
+            >
+              {isUz ? 'Bekor qilish' : 'Отмена'}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={confirmDelete}
+              className="text-xs"
+            >
+              {isDeleting && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+              <span>{isUz ? 'Oʻchirish' : 'Удалить'}</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Модальное предупреждение о защите обязательных разделов ст. 37 ЗРУ-637 */}
+      <Dialog open={statutoryWarningOpen} onOpenChange={setStatutoryWarningOpen}>
+        <DialogContent className="max-w-lg border-destructive/40">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <Shield className="size-5" />
+              <span>
+                {isUz
+                  ? 'Qonuniy himoyalangan ustav boʻlimi'
+                  : 'Законодательно защищенный раздел'}
+              </span>
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed pt-2 text-foreground space-y-2">
+              <p>
+                {isUz
+                  ? 'Ushbu boʻlim Oʻzbekiston Respublikasining «Taʼlim toʻgʻrisida»gi Qonuni 37-moddasiga muvofiq davlat taʼlim muassasasi rasmiy veb-saytida joylashtirilishi majburiy hisoblanadi va butunlay oʻchirib yuborilishi mumkin emas.'
+                  : 'Данный раздел является законодательно обязательным согласно статье 37 Закона Республики Узбекистан «Об образовании» (№ ЗРУ-637) и не подлежит удалению.'}
+              </p>
+              <p className="text-muted-foreground">
+                {isUz
+                  ? 'Siz ushbu boʻlimning matnini, hujjatlarini va bloklarini konstruktorda erkin tahrirlashingiz mumkin.'
+                  : 'Вы можете свободно редактировать содержимое, прикреплять актуальные документы и обновлять блоки в конструкторе.'}
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="pt-2">
+            <Button
+              type="button"
+              onClick={() => setStatutoryWarningOpen(false)}
+              className="text-xs"
+            >
+              {isUz ? 'Tushundim' : 'Понятно'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

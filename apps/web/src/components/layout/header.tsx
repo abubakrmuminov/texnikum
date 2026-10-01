@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -17,6 +17,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from './language-switcher';
 import { useAppLocale } from '@/components/i18n/locale-provider';
+import { useInstitution } from '@/components/institution/institution-provider';
+import { NavigationItem } from '@college/shared';
 
 interface SubMenuItem {
   href: string;
@@ -36,7 +38,7 @@ interface NavMenuItem {
   children?: SubMenuItem[];
 }
 
-export function Header(): JSX.Element {
+export function Header({ initialItems }: { initialItems?: NavigationItem[] } = {}): JSX.Element {
   const pathname = usePathname();
   const { locale } = useAppLocale();
   const isUz = locale === 'uz';
@@ -46,9 +48,30 @@ export function Header(): JSX.Element {
   const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Закрытие мобильного меню по нажатию клавиши Escape (WCAG Focus & Keyboard)
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
+  const {
+    name,
+    shortName,
+    address,
+    phone,
+    admissionPhone,
+    workHours,
+    logoUrl,
+  } = useInstitution();
+  const displayPhone = admissionPhone || phone || '+998';
+
   const tCommon = useTranslations('common');
 
-  const navMenuItems: NavMenuItem[] = [
+  const defaultNavMenuItems: NavMenuItem[] = [
     {
       id: 'home',
       href: '/',
@@ -284,8 +307,8 @@ export function Header(): JSX.Element {
           href: '/contacts',
           labelUz: 'Manzil va rekvizitlar',
           labelRu: 'Адрес и контакты',
-          descUz: 'Fargʻona sh., B. Margʻiloniy 42 • OpenStreetMap',
-          descRu: 'г. Фергана, ул. Б. Маргилоний, 42 • Карта',
+          descUz: address ? `${address.substring(0, 30)}... • Xarita` : 'Xarita va yoʻnalish',
+          descRu: address ? `${address.substring(0, 30)}... • Карта` : 'Карта и маршрут',
         },
         {
           href: '/settings',
@@ -297,6 +320,43 @@ export function Header(): JSX.Element {
       ],
     },
   ];
+
+  const ICON_MAP: Record<string, React.ElementType> = {
+    BookOpen,
+    Info,
+    GraduationCap,
+    Phone,
+    ShieldCheck,
+  };
+
+  const dynamicNavMenuItems: NavMenuItem[] = (initialItems || [])
+    .filter((i) => i.isVisible && !i.deletedAt && i.parentId === null)
+    .map((item) => {
+      const IconComp = (item.iconName && ICON_MAP[item.iconName]) || BookOpen;
+      const childList = (item.children || [])
+        .filter((c) => c.isVisible && !c.deletedAt)
+        .map((c) => ({
+          href: c.path,
+          labelUz: c.labelUz,
+          labelRu: c.labelRu,
+          descUz: c.badgeTextUz || '',
+          descRu: c.badgeTextRu || '',
+          badge: isUz ? (c.badgeTextUz || undefined) : (c.badgeTextRu || undefined),
+        }));
+
+      return {
+        id: item.id,
+        href: item.path,
+        labelUz: item.labelUz,
+        labelRu: item.labelRu,
+        icon: IconComp,
+        children: childList.length > 0 ? childList : undefined,
+      };
+    });
+
+  const navMenuItems = initialItems && initialItems.length > 0
+    ? dynamicNavMenuItems
+    : defaultNavMenuItems;
 
   const handleMouseEnter = (menuId: string) => {
     if (hoverTimeoutRef.current) {
@@ -316,27 +376,34 @@ export function Header(): JSX.Element {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
       {/* Главный блок шапки: Бренд + Горячая линия + Переключатель языка */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Логотип и наименование техникума */}
         <Link
           href="/"
-          className="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-ring rounded-lg p-1"
-          aria-label="Fargʻona 2-son texnikumi — Bosh sahifa"
+          className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg p-1"
+          aria-label={`${shortName || name} — Bosh sahifa`}
         >
-          <div className="size-11 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow font-bold text-sm tracking-wider">
-            TEX
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Davlat kasbiy taʼlim muassasasi
+          {logoUrl ? (
+            <div className="size-11 rounded-lg bg-card border border-border flex items-center justify-center overflow-hidden p-1 shadow shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoUrl} alt={shortName || name} className="size-full object-contain" />
+            </div>
+          ) : (
+            <div className="size-11 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow font-bold text-xs tracking-wider shrink-0 uppercase">
+              {(shortName || name || 'EDU').substring(0, 3)}
+            </div>
+          )}
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
+              {isUz ? 'Davlat kasbiy taʼlim muassasasi' : 'Государственное образовательное учреждение'}
             </span>
-            <span className="text-base sm:text-lg font-extrabold tracking-tight group-hover:text-primary transition-colors leading-tight">
-              {tCommon('brandName')}
+            <span className="text-sm sm:text-base md:text-lg font-extrabold tracking-tight group-hover:text-primary transition-colors leading-tight truncate">
+              {shortName || name || tCommon('brandName')}
             </span>
-            <span className="text-[11px] text-muted-foreground hidden md:inline truncate max-w-sm">
-              {tCommon('brandSubtitle')}
+            <span className="text-[11px] text-muted-foreground hidden xl:inline truncate max-w-sm">
+              {name && name !== shortName ? name : tCommon('brandSubtitle')}
             </span>
           </div>
         </Link>
@@ -344,16 +411,18 @@ export function Header(): JSX.Element {
         {/* Телефон приемной комиссии, переключатель языка и быстрые кнопки */}
         <div className="hidden lg:flex items-center gap-5 text-sm">
           <div className="flex flex-col text-right">
-            <span className="text-xs text-muted-foreground">Qabul komissiyasi ishonch telefoni:</span>
+            <span className="text-xs text-muted-foreground">
+              {isUz ? 'Qabul komissiyasi ishonch telefoni:' : 'Телефон доверия приемной комиссии:'}
+            </span>
             <a
-              href="tel:+998732440000"
+              href={`tel:${displayPhone.replace(/[^0-9+]/g, '')}`}
               className="font-bold text-foreground hover:text-primary transition-colors flex items-center justify-end gap-1.5"
             >
               <Phone className="size-3.5 text-primary" aria-hidden="true" />
-              <span>+998 (73) 244-00-00</span>
+              <span>{displayPhone}</span>
             </a>
             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-              Dush–Shanba: 08:30 – 17:30 (Qabul davom etmoqda)
+              {workHours}
             </span>
           </div>
 
@@ -386,7 +455,7 @@ export function Header(): JSX.Element {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+            className="p-2 rounded-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-expanded={mobileMenuOpen}
             aria-label="Navigatsiya menyusini ochish"
           >
@@ -400,7 +469,7 @@ export function Header(): JSX.Element {
         aria-label="Asosiy navigatsiya menyusi"
         className="hidden lg:block border-t border-border bg-muted/30 relative"
       >
-        <div className="container mx-auto px-4 flex items-center gap-1 py-1">
+        <div className="container mx-auto px-2 xl:px-4 flex items-center flex-wrap gap-0.5 xl:gap-1 py-1">
           {navMenuItems.map((item, index) => {
             const hasChildren = Boolean(item.children && item.children.length > 0);
             const isMenuOpen = hoveredMenu === item.id;
@@ -415,13 +484,19 @@ export function Header(): JSX.Element {
             return (
               <div
                 key={item.id}
-                className="relative"
+                className="relative shrink-0"
                 onMouseEnter={() => handleMouseEnter(item.id)}
                 onMouseLeave={handleMouseLeave}
+                onFocus={() => handleMouseEnter(item.id)}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    handleMouseLeave();
+                  }
+                }}
               >
                 <Link
                   href={item.href}
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-ring ${
+                  className={`inline-flex items-center gap-1 xl:gap-1.5 px-2 xl:px-3 py-1.5 rounded-md text-xs xl:text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     isSelfOrChildActive
                       ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                       : 'text-foreground/80 hover:text-foreground hover:bg-accent'
@@ -458,7 +533,7 @@ export function Header(): JSX.Element {
                               key={sub.href}
                               href={sub.href}
                               onClick={() => setHoveredMenu(null)}
-                              className={`group/sub flex flex-col gap-0.5 p-2 rounded-lg transition-colors focus:outline-none focus:bg-accent ${
+                              className={`group/sub flex flex-col gap-0.5 p-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:bg-accent ${
                                 isSubActive
                                   ? 'bg-accent/90 text-accent-foreground font-semibold'
                                   : 'hover:bg-accent/70 text-foreground'
@@ -563,9 +638,9 @@ export function Header(): JSX.Element {
 
           <div className="border-t border-border pt-4 flex flex-col gap-2 text-xs">
             <div className="flex items-center justify-between text-muted-foreground py-1">
-              <span>Qabul komissiyasi:</span>
-              <a href="tel:+998732440000" className="font-bold text-foreground">
-                +998 (73) 244-00-00
+              <span>{isUz ? 'Qabul komissiyasi:' : 'Приемная комиссия:'}</span>
+              <a href={`tel:${displayPhone.replace(/[^0-9+]/g, '')}`} className="font-bold text-foreground">
+                {displayPhone}
               </a>
             </div>
             <Link

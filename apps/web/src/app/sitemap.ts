@@ -1,8 +1,21 @@
 import { MetadataRoute } from 'next';
-import { FALLBACK_NEWS, FALLBACK_SPECIALTIES, FALLBACK_TEACHERS, FALLBACK_EVENTS, FALLBACK_PAGES } from '@/lib/api-client';
+import {
+  apiClient,
+  FALLBACK_NEWS,
+  FALLBACK_SPECIALTIES,
+  FALLBACK_TEACHERS,
+  FALLBACK_EVENTS,
+  FALLBACK_PAGES,
+} from '@/lib/api-client';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://texnikum2.uz';
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const institution = await apiClient.getPublicInstitution().catch(() => null);
+  const domain = institution?.websiteDomain;
+  const siteUrl = domain
+    ? domain.startsWith('http')
+      ? domain
+      : `https://${domain}`
+    : process.env.NEXT_PUBLIC_SITE_URL || 'https://edu.uz';
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteUrl}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
@@ -45,12 +58,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  const infoRoutes: MetadataRoute.Sitemap = FALLBACK_PAGES.filter((p) => p.section === 'info').map((p) => ({
-    url: `${siteUrl}/info/${p.slug}`,
-    lastModified: new Date(p.updatedAt || p.createdAt),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
+  const allPages = await apiClient.getPages().catch(() => FALLBACK_PAGES);
+  const infoRoutes: MetadataRoute.Sitemap = allPages
+    .filter((p) => p.section === 'info' && p.isPublished)
+    .map((p) => ({
+      url: `${siteUrl}/info/${p.slug}`,
+      lastModified: new Date(p.updatedAt || p.createdAt),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    }));
+
+  const customPageRoutes: MetadataRoute.Sitemap = allPages
+    .filter((p) => p.pageType === 'custom' && p.isPublished && p.section !== 'info')
+    .map((p) => ({
+      url: `${siteUrl}/${p.slug}`,
+      lastModified: new Date(p.updatedAt || p.createdAt),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    }));
 
   return [
     ...staticRoutes,
@@ -59,5 +84,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...teacherRoutes,
     ...eventRoutes,
     ...infoRoutes,
+    ...customPageRoutes,
   ];
 }

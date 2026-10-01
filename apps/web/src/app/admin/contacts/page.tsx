@@ -60,10 +60,10 @@ export default function AdminContactsPage() {
     const newCampus: CampusItem = {
       id: `campus-${Date.now()}`,
       name: 'Yangi bino / Новый корпус',
-      address: 'Fargʻona shahri',
+      address: 'Toshkent shahri',
       departments: 'Oʻquv xonalari',
-      phone: '+998 (73) 244-00-00',
-      email: 'info@texnikum2.uz',
+      phone: '+998 (71) 200-00-00',
+      email: 'info@texnikum.uz',
       workHours: 'Dush–Shanba: 08:30 – 17:30',
       transport: 'Jamoat transporti',
       orderIndex: data.campuses.length + 1,
@@ -96,7 +96,7 @@ export default function AdminContactsPage() {
     const newPhone: PhoneDirectoryItem = {
       id: `phone-${Date.now()}`,
       title: isUz ? 'Boʻlim nomi' : 'Название отдела',
-      phone: '+998 (73) 244-00-00',
+      phone: '+998 (71) 200-00-00',
       note: isUz ? 'Boʻlim vazifasi' : 'Назначение',
       orderIndex: data.phones.length + 1,
     };
@@ -423,7 +423,7 @@ export default function AdminContactsPage() {
                   })
                 }
                 rows={2}
-                placeholder="Fargʻona shahri boʻylab 1, 8, 14, 22-sonli avtobus..."
+                placeholder="Shahar boʻylab jamoat transporti orqali..."
               />
             </div>
 
@@ -439,7 +439,7 @@ export default function AdminContactsPage() {
                     directions: { ...data.directions, landmark: e.target.value },
                   })
                 }
-                placeholder="Fargʻona davlat universiteti bosh binosi roʻparasida..."
+                placeholder="Markaziy maydon roʻparasida..."
               />
             </div>
 

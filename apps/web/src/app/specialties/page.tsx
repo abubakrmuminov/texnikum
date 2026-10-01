@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { collegeApi } from '@/lib/api-client';
 import { SpecialtiesFeed } from '@/components/specialties/specialties-feed';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 export const metadata: Metadata = {
   title: 'Специальности и поступление 2026 — ГБПОУ ПКИТУ',
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SpecialtiesPage(): Promise<JSX.Element> {
+  await assertModuleEnabled('/specialties');
   const specialtiesResponse = await collegeApi.getSpecialties({ limit: 50 });
 
   return (

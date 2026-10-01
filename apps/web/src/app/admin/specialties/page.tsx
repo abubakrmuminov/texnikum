@@ -300,7 +300,7 @@ export default function AdminSpecialtiesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredSpecialties.map((s) => (
+                {filteredSpecialties.map((s, index) => (
                   <tr key={s.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
@@ -349,7 +349,10 @@ export default function AdminSpecialtiesPage() {
                     </td>
 
                     <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
+                      <div
+                        data-tour={index === 0 ? 'specialties.row-actions' : undefined}
+                        className="flex items-center justify-end gap-1"
+                      >
                         <Button
                           variant="ghost"
                           size="sm"

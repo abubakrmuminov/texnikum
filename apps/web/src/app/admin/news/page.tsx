@@ -257,7 +257,7 @@ export default function AdminNewsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredNews.map((item) => (
+                {filteredNews.map((item, index) => (
                   <tr key={item.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-3 px-4 w-20">
                       <div className="h-12 w-16 rounded-md bg-muted/60 overflow-hidden relative border shrink-0">
@@ -326,7 +326,10 @@ export default function AdminNewsPage() {
                     </td>
 
                     <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
+                      <div
+                        data-tour={index === 0 ? 'news.row-actions' : undefined}
+                        className="flex items-center justify-end gap-1"
+                      >
                         {/* Quick View Public */}
                         {item.status === NewsStatus.PUBLISHED && (
                           <Link

@@ -6,10 +6,12 @@
   "scripts": {
     "build": "pnpm --filter \"@college/*\" run build",
     "lint": "pnpm --filter \"@college/*\" run lint",
+    "test": "pnpm --filter \"@college/api\" run test",
     "dev": "pnpm --filter \"@college/web\" --filter \"@college/api\" --parallel run dev",
     "dev:web": "pnpm --filter @college/web dev",
     "dev:api": "pnpm --filter @college/api dev",
     "clean": "pnpm -r exec rimraf dist .next node_modules",
+    "db:seed:demo": "node scripts/seed-demo.js",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",

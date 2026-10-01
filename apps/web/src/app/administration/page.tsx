@@ -14,21 +14,29 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TtsButton } from '@/components/accessibility/tts-button';
 import { AdministrationClientView } from './administration-client-view';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: 'Texnikum maʼmuriyati va rahbariyati — Fargʻona 2-son texnikumi',
+  title: 'Muassasa maʼmuriyati va rahbariyati',
   description:
-    'Fargʻona shahri 2-son texnikumi maʼmuriyati, rahbariyati, boʻlim boshliqlari, qabul kunlari va aloqa rekvizitlari.',
+    'Taʼlim muassasasi maʼmuriyati, rahbariyati, boʻlim boshliqlari, qabul kunlari va aloqa rekvizitlari.',
 };
 
 export default async function AdministrationPage(): Promise<JSX.Element> {
+  await assertModuleEnabled('/administration');
+  const institution = await collegeApi.getPublicInstitution().catch(() => null);
   const result = await collegeApi.getAdministrators({ limit: 100 });
   const administrators: AdministratorMember[] = result.items || [];
 
-  const ttsText = `Fargʻona 2-son texnikumi maʼmuriyati va rahbariyati. Rahbariyat tarkibida ${administrators.length} nafar masʼul rahbar va boʻlim mudirlari faoliyat yuritadi. Direktor Karimov Jasur Alisherovich qabul kunlari: dushanba va payshanba soat 14 dan 17 gacha. Qoʻshimcha maʼlumot uchun direktor qabulxonasi telefoni: plyus 998 73 244 00 01.`;
+  const instName = institution?.nameUz || institution?.shortNameUz || 'Texnikum';
+  const address = institution?.legalAddressUz || 'Bosh oʻquv binosi';
+  const email = institution?.contactEmail || 'info@edu.uz';
+  const phone = institution?.trustPhone ? `${institution.trustPhone} / ${institution.mainPhone || ''}` : (institution?.mainPhone || '+998');
+
+  const ttsText = `${instName} maʼmuriyati va rahbariyati. Rahbariyat tarkibida ${administrators.length} nafar masʼul rahbar va boʻlim mudirlari faoliyat yuritadi.`;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
@@ -61,7 +69,7 @@ export default async function AdministrationPage(): Promise<JSX.Element> {
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Fargʻona 2-son texnikumining boshqaruv organlari, tarkibiy boʻlinma rahbarlari, fuqarolar va talabalarni qabul qilish vaqtlari hamda bevosita aloqa vositalari.
+            {instName} boshqaruv organlari, tarkibiy boʻlinma rahbarlari, fuqarolar va talabalarni qabul qilish vaqtlari hamda bevosita aloqa vositalari.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -71,7 +79,7 @@ export default async function AdministrationPage(): Promise<JSX.Element> {
                 Rahbariyatga onlayn murojaat
               </Button>
             </Link>
-            <a href="tel:+998732440001">
+            <a href={institution?.mainPhone ? `tel:${institution.mainPhone.replace(/[^\d+]/g, '')}` : 'tel:+998712000001'}>
               <Button size="sm" variant="outline" className="text-xs">
                 <Phone className="h-3.5 w-3.5 mr-1.5 text-primary" />
                 Direktor qabulxonasi
@@ -107,15 +115,15 @@ export default async function AdministrationPage(): Promise<JSX.Element> {
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-2 border-t border-primary/10">
           <div className="flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-primary" />
-            <span>Manzil: Al-Fargʻoniy koʻchasi, 42-uy (Bosh oʻquv binosi)</span>
+            <span>Manzil: {address}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Mail className="h-3.5 w-3.5 text-primary" />
-            <span>Rasmiy xatlar: info@texnikum2.uz</span>
+            <span>Rasmiy xatlar: {email}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Phone className="h-3.5 w-3.5 text-primary" />
-            <span>Ishonch telefoni: 1006 / +998 (73) 244-00-00</span>
+            <span>Ishonch telefoni: {phone}</span>
           </div>
         </div>
       </section>

@@ -13,6 +13,7 @@ import { collegeApi, FALLBACK_SPECIALTIES } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { assertModuleEnabled } from '@/lib/module-guard';
 
 interface SpecialtyPageProps {
   params: {
@@ -29,15 +30,16 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: SpecialtyPageProps): Promise<Metadata> {
   const spec = await collegeApi.getSpecialtyBySlug(params.slug);
   if (!spec) {
-    return { title: 'Mutaxassislik topilmadi — Fargʻona 2-son texnikumi' };
+    return { title: 'Mutaxassislik topilmadi' };
   }
   return {
-    title: `${spec.code} «${spec.name}» — Fargʻona 2-son texnikumi`,
+    title: `${spec.code} «${spec.name}»`,
     description: spec.description,
   };
 }
 
 export default async function SpecialtyDetailPage({ params }: SpecialtyPageProps): Promise<JSX.Element> {
+  await assertModuleEnabled('/specialties');
   const spec = await collegeApi.getSpecialtyBySlug(params.slug);
 
   if (!spec) {
@@ -46,6 +48,7 @@ export default async function SpecialtyDetailPage({ params }: SpecialtyPageProps
 
   const departments = await collegeApi.getDepartments();
   const department = departments.find((d) => d.id === spec.departmentId);
+  const institution = await collegeApi.getPublicInstitution().catch(() => null);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -196,7 +199,7 @@ export default async function SpecialtyDetailPage({ params }: SpecialtyPageProps
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <a href="tel:+998732440000">
+            <a href={institution?.mainPhone ? `tel:${institution.mainPhone.replace(/[^\d+]/g, '')}` : 'tel:+998712000000'}>
               <Button variant="outline" size="sm" className="text-xs">
                 Savol berish
               </Button>

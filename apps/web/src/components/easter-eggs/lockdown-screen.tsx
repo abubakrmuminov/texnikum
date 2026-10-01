@@ -82,7 +82,7 @@ export function LockdownScreen({ reason = 'NAME_TAMPERED' }: LockdownScreenProps
                   : 'Контроль авторской целостности и лицензии'}
               </h1>
               <p className="text-xs text-muted-foreground">
-                Fargʻona 2-son texnikumi portali • OʻRQ-42 / OʻRQ-637
+                Kasb-hunar taʼlimi portali • OʻRQ-42 / OʻRQ-637
               </p>
             </div>
           </div>
@@ -173,7 +173,7 @@ export function LockdownScreen({ reason = 'NAME_TAMPERED' }: LockdownScreenProps
 
             <p className="text-xs text-muted-foreground leading-relaxed">
               {lang === 'uz'
-                ? 'Fargʻona 2-son texnikumi rasmiy taʼlim portali dasturiy kodida arxitektura yaxlitligi va mualliflik huquqi himoyasi oʻrnatilgan. Mualliflik maʼlumotlari oʻchirilganda yoki yashirilganda, tizim platforma xavfsizligini taʼminlash uchun sahifalar faoliyatini avtomatik toʻxtatadi.'
+                ? 'Rasmiy taʼlim portali dasturiy kodida arxitektura yaxlitligi va mualliflik huquqi himoyasi oʻrnatilgan. Mualliflik maʼlumotlari oʻchirilganda yoki yashirilganda, tizim platforma xavfsizligini taʼminlash uchun sahifalar faoliyatini avtomatik toʻxtatadi.'
                 : 'В исходном коде образовательного портала предусмотрен защитный контур авторской целостности. При попытке вырезать авторские реквизиты платформа временно приостанавливает обслуживание страниц, защищая интеллектуальный вклад архитектора.'}
             </p>
           </div>
@@ -286,7 +286,7 @@ export function LockdownScreen({ reason = 'NAME_TAMPERED' }: LockdownScreenProps
             </div>
             <div>
               <span className="text-muted-foreground">{lang === 'uz' ? 'Muassasa: ' : 'Организация: '}</span>
-              <span className="text-foreground">Fargʻona 2-son texnikumi</span>
+              <span className="text-foreground">Kasb-hunar taʼlimi portali</span>
             </div>
           </div>
         </div>

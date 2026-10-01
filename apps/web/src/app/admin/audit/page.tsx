@@ -229,7 +229,7 @@ export default function AdminAuditPage() {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(filteredLogs, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `texnikum2-audit-log-${new Date().toISOString().slice(0, 10)}.json`);
+    downloadAnchor.setAttribute('download', `college-audit-log-${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -441,7 +441,7 @@ export default function AdminAuditPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredLogs.map((log) => {
+                {filteredLogs.map((log, index) => {
                   const summary = getEntitySummary(log);
                   const userDisplay = getUserDisplayName(log.userId);
 
@@ -489,6 +489,7 @@ export default function AdminAuditPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          data-tour={index === 0 ? 'audit.diff-btn' : undefined}
                           onClick={() => setSelectedLog(log)}
                           className="h-8 px-2.5 text-xs text-primary hover:text-primary/80"
                         >

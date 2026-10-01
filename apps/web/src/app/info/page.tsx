@@ -17,9 +17,10 @@ import {
   Users,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { apiClient } from '@/lib/api-client';
 
 export const metadata: Metadata = {
-  title: 'Taʼlim tashkiloti toʻgʻrisida maʼlumotlar — Fargʻona 2-son texnikumi',
+  title: 'Taʼlim tashkiloti toʻgʻrisida maʼlumotlar',
   description:
     'Oʻzbekiston Respublikasining «Taʼlim toʻgʻrisida»gi Qonuni (OʻRQ-637, 37-modda) va PF-158-son Farmoniga muvofiq rasmiy axborotlar.',
 };
@@ -101,7 +102,11 @@ const INFO_SECTIONS = [
   },
 ];
 
-export default function InfoIndexPage(): JSX.Element {
+export default async function InfoIndexPage(): Promise<JSX.Element> {
+  const institution = await apiClient.getPublicInstitution().catch(() => null);
+  const instName = institution?.nameUz || 'Taʼlim muassasasi';
+  const instShortName = institution?.shortNameUz || 'Texnikum';
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-12">
       {/* Хлебные крошки и заголовок */}
@@ -112,7 +117,7 @@ export default function InfoIndexPage(): JSX.Element {
           </Link>
           <span>/</span>
           <span className="text-foreground font-medium" aria-current="page">
-            Texnikum haqida
+            {instShortName} haqida
           </span>
         </nav>
         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -127,7 +132,7 @@ export default function InfoIndexPage(): JSX.Element {
           Taʼlim tashkiloti toʻgʻrisida maʼlumotlar
         </h1>
         <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl leading-relaxed">
-          Fargʻona shahri 2-son texnikumi faoliyati, normativ hujjatlari, taʼlim dasturlari, pedagogik tarkib va moddiy-texnik taʼminotiga oid rasmiy axborotlar.
+          {instName} faoliyati, normativ hujjatlari, taʼlim dasturlari, pedagogik tarkib va moddiy-texnik taʼminotiga oid rasmiy axborotlar.
         </p>
       </div>
 
@@ -190,7 +195,7 @@ export default function InfoIndexPage(): JSX.Element {
               <Link
                 key={sec.slug}
                 href={targetUrl}
-                className="group flex flex-col justify-between p-5 rounded-xl border border-border bg-card shadow-sm hover:shadow-md hover:border-primary/40 transition-all focus:outline-none focus:ring-2 focus:ring-ring"
+                className="group flex flex-col justify-between p-5 rounded-xl border border-border bg-card shadow-sm hover:shadow-md hover:border-primary/40 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div>
                   <div className="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -213,20 +218,20 @@ export default function InfoIndexPage(): JSX.Element {
         </div>
       </section>
 
-      {/* История и академические традиции */}
+      {/* Tarix va anʼanalar */}
       <section className="p-6 sm:p-8 rounded-2xl border border-border bg-muted/30 space-y-4">
         <div className="flex items-center gap-2">
           <History className="size-5 text-primary" aria-hidden="true" />
           <h2 className="text-xl font-bold text-foreground">
-            Fargʻona 2-son texnikumi tarixi va rivojlanish bosqichlari
+            {instShortName} tarixi va rivojlanish bosqichlari
           </h2>
         </div>
         <div className="prose prose-slate dark:prose-invert max-w-none text-xs sm:text-sm text-muted-foreground leading-relaxed space-y-3">
           <p>
-            1968-yilda tashkil etilgan Fargʻona texnikumi oʻzining 55 yildan ziyod faoliyati davomida viloyat va mamlakatimiz iqtisodiyoti, axborot-kommunikatsiya sohalari uchun 30 000 dan ortiq yetuk mutaxassislarni tarbiyalab chiqardi.
+            {instName} tashkil topgan sanasidan buyon oʻzining samarali faoliyati davomida mamlakatimiz iqtisodiyoti, axborot texnologiyalari va ishlab chiqarish sohalari uchun koʻplab yetuk mutaxassislarni tayyorlab kelmoqda.
           </p>
           <p>
-            Bugungi kunda texnikum — innovatsion laboratoriyalari, xalqaro ECTS kredit-modul dasturlari, «WorldSkills» kasbiy mahorat standartlari hamda IT Park bilan mustahkam hamkorlikka ega zamonaviy raqamli taʼlim maskanidir.
+            Bugungi kunda taʼlim maskani — zamonaviy laboratoriyalar, xalqaro taʼlim dasturlari, ilgʻor kasbiy mahorat standartlari hamda yetakchi korxonalar bilan mustahkam hamkorlikka ega raqamli taʼlim muassasasidir.
           </p>
         </div>
       </section>

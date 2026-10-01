@@ -68,7 +68,7 @@ export function TeacherFeed({
             role="tab"
             aria-selected={selectedDeptId === null}
             onClick={() => setSelectedDeptId(null)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               selectedDeptId === null
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
@@ -83,7 +83,7 @@ export function TeacherFeed({
               role="tab"
               aria-selected={selectedDeptId === dept.id}
               onClick={() => setSelectedDeptId(dept.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 selectedDeptId === dept.id
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'

@@ -1,7 +1,9 @@
 import { UserRole } from '../enums/role.enum';
 
 export type AdminSectionKey =
+  | 'dashboard'
   | 'news'
+  | 'news-editor'
   | 'events'
   | 'teachers'
   | 'administration'
@@ -10,7 +12,11 @@ export type AdminSectionKey =
   | 'contacts'
   | 'media'
   | 'users'
-  | 'audit';
+  | 'audit'
+  | 'institution'
+  | 'navigation'
+  | 'theme'
+  | 'page-builder';
 
 export type OnboardingMainStatus = 'done' | 'skipped';
 

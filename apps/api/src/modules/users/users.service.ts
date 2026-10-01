@@ -10,7 +10,7 @@ export class UsersService {
   private users: UserProfile[] = [
     {
       id: 'a0000000-0000-0000-0000-000000000001',
-      email: 'admin@texnikum2.uz',
+      email: 'admin@texnikum.uz',
       fullName: 'Karimov Jasur Alisherovich (Admin)',
       role: UserRole.ADMIN,
       avatarUrl: null,
@@ -19,7 +19,7 @@ export class UsersService {
     },
     {
       id: 'a0000000-0000-0000-0000-000000000002',
-      email: 'editor@texnikum2.uz',
+      email: 'editor@texnikum.uz',
       fullName: 'Yusupova Nilufar Rustamovna (Editor)',
       role: UserRole.EDITOR,
       avatarUrl: null,
@@ -28,7 +28,7 @@ export class UsersService {
     },
     {
       id: 'a0000000-0000-0000-0000-000000000003',
-      email: 'moderator@texnikum2.uz',
+      email: 'moderator@texnikum.uz',
       fullName: 'Ahmedov Sardor Baxtiyorovich (Moderator)',
       role: UserRole.MODERATOR,
       avatarUrl: null,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -9,6 +9,7 @@ import {
   ExternalLink,
   FileText,
   GraduationCap,
+  HelpCircle,
   History,
   Image as ImageIcon,
   LayoutDashboard,
@@ -16,6 +17,8 @@ import {
   MapPin,
   Menu,
   Newspaper,
+  Palette,
+  Settings,
   Shield,
   ShieldCheck,
   UserCheck,
@@ -36,10 +39,10 @@ import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { apiClient } from '@/lib/api-client';
 import {
   getSectionByPath,
-  getSectionsForRole,
 } from '@/components/admin/onboarding/onboarding-data';
 import { AnchoredTour } from '@/components/admin/onboarding/anchored-tour';
 import { SectionPromptCard } from '@/components/admin/onboarding/section-prompt-card';
+import { useInstitution } from '@/components/institution/institution-provider';
 
 const NAV_ITEMS_MAP: Record<
   'uz' | 'ru',
@@ -57,6 +60,9 @@ const NAV_ITEMS_MAP: Record<
     { href: '/admin/media', label: 'Mediateka / Fayllar', icon: ImageIcon },
     { href: '/admin/users', label: 'Foydalanuvchilar va rollar', icon: Shield, adminOnly: true },
     { href: '/admin/audit', label: 'Audit jurnali', icon: History, adminOnly: true },
+    { href: '/admin/navigation', label: 'Sayt tuzilmasi va menyu', icon: Compass, adminOnly: true },
+    { href: '/admin/settings/theme', label: 'Dizayn mavzusi (Tema)', icon: Palette, adminOnly: true },
+    { href: '/admin/settings/institution', label: 'Muassasa sozlamalari', icon: Settings, adminOnly: true },
   ],
   ru: [
     { href: '/admin', label: 'Дашборд', icon: LayoutDashboard, exact: true },
@@ -70,6 +76,9 @@ const NAV_ITEMS_MAP: Record<
     { href: '/admin/media', label: 'Медиатека / Файлы', icon: ImageIcon },
     { href: '/admin/users', label: 'Пользователи и роли', icon: Shield, adminOnly: true },
     { href: '/admin/audit', label: 'Журнал аудита', icon: History, adminOnly: true },
+    { href: '/admin/navigation', label: 'Структура сайта и меню', icon: Compass, adminOnly: true },
+    { href: '/admin/settings/theme', label: 'Тема оформления', icon: Palette, adminOnly: true },
+    { href: '/admin/settings/institution', label: 'Настройки заведения', icon: Settings, adminOnly: true },
   ],
 };
 
@@ -90,6 +99,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
   const pathname = usePathname();
   const { user, token, logout, hasRole, isLoading } = useAdminAuth();
   const { locale } = useAppLocale();
+  const institution = useInstitution();
   const isUz = locale === 'uz';
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -102,6 +112,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
   const [tourModalOpen, setTourModalOpen] = useState(false);
   const [tourMode, setTourMode] = useState<'welcome' | 'section'>('welcome');
   const [tourSectionKey, setTourSectionKey] = useState<AdminSectionKey | undefined>(undefined);
+  const initialTourCheckedRef = useRef(false);
 
   const navItems = NAV_ITEMS_MAP[locale] || NAV_ITEMS_MAP.uz;
   const roleLabels = ROLE_LABELS_MAP[locale] || ROLE_LABELS_MAP.uz;
@@ -116,11 +127,18 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
       .then((data) => {
         if (!isMounted) return;
         setOnboardingState(data || {});
-        // Открываем тур, если он еще не завершен и не пропущен навсегда
-        if (tourPending(data) && !sessionDismissedTour) {
-          setTourMode('welcome');
-          setTourSectionKey(undefined);
-          setTourModalOpen(true);
+        // Открываем ознакомительный тур только один раз при первом входе
+        if (!initialTourCheckedRef.current) {
+          initialTourCheckedRef.current = true;
+          if (tourPending(data) && !sessionDismissedTour) {
+            setTourModalOpen((prev) => {
+              if (prev) return prev;
+              const section = getSectionByPath(pathname);
+              setTourMode('section');
+              setTourSectionKey(section?.key || 'dashboard');
+              return true;
+            });
+          }
         }
       })
       .catch(() => {
@@ -131,7 +149,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
     return () => {
       isMounted = false;
     };
-  }, [user, token, sessionDismissedTour]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, token]);
 
   // Для страницы входа не рендерим административный сайдбар и онбординг
   if (pathname === '/admin/login') {
@@ -157,101 +176,66 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
   // Обработчики действий онбординга
   const handleCompleteTour = async () => {
     setTourModalOpen(false);
-    if (tourMode === 'welcome') {
-      const roleSections = getSectionsForRole(user.role);
-      const sectionsSeen: Partial<Record<AdminSectionKey, boolean>> = {};
-      roleSections.forEach((s) => {
-        sectionsSeen[s.key] = true;
-      });
+    const section = getSectionByPath(pathname);
+    const key = tourSectionKey || section?.key || 'dashboard';
+    const nextState: OnboardingState = {
+      ...(onboardingState || {}),
+      main: 'done',
+      sections: {
+        ...(onboardingState?.sections || {}),
+        [key]: true,
+      },
+    };
+    setOnboardingState(nextState);
 
-      const nextState: OnboardingState = {
-        ...(onboardingState || {}),
-        main: 'done',
-        sections: {
-          ...(onboardingState?.sections || {}),
-          ...sectionsSeen,
-        },
-      };
-      setOnboardingState(nextState);
-
-      try {
-        await apiClient.patchOnboarding(
-          { main: 'done', sections: sectionsSeen },
-          token || undefined,
-        );
-      } catch {
-        // Оптимистичное обновление уже выполнено
-      }
-    } else if (tourSectionKey) {
-      const nextState: OnboardingState = {
-        ...(onboardingState || {}),
-        sections: {
-          ...(onboardingState?.sections || {}),
-          [tourSectionKey]: true,
-        },
-      };
-      setOnboardingState(nextState);
-
-      try {
-        await apiClient.patchOnboarding(
-          { sections: { [tourSectionKey]: true } },
-          token || undefined,
-        );
-      } catch {
-        // Оптимистичное обновление уже выполнено
-      }
+    try {
+      await apiClient.patchOnboarding(
+        { main: 'done', sections: { [key]: true } },
+        token || undefined,
+      );
+    } catch {
+      // Оптимистичное обновление уже выполнено
     }
   };
 
   const handleSkipTour = async () => {
     setTourModalOpen(false);
-    if (tourMode === 'welcome') {
-      const nextState: OnboardingState = {
-        ...(onboardingState || {}),
-        main: 'skipped',
-      };
-      setOnboardingState(nextState);
+    setSessionDismissedTour(true);
+    const section = getSectionByPath(pathname);
+    const key = tourSectionKey || section?.key || 'dashboard';
+    const nextState: OnboardingState = {
+      ...(onboardingState || {}),
+      main: 'skipped',
+      sections: {
+        ...(onboardingState?.sections || {}),
+        [key]: true,
+      },
+    };
+    setOnboardingState(nextState);
 
-      try {
-        await apiClient.patchOnboarding({ main: 'skipped' }, token || undefined);
-      } catch {
-        // Оптимистичное обновление уже выполнено
-      }
-    } else if (tourSectionKey) {
-      const nextState: OnboardingState = {
-        ...(onboardingState || {}),
-        sections: {
-          ...(onboardingState?.sections || {}),
-          [tourSectionKey]: true,
-        },
-      };
-      setOnboardingState(nextState);
-
-      try {
-        await apiClient.patchOnboarding(
-          { sections: { [tourSectionKey]: true } },
-          token || undefined,
-        );
-      } catch {
-        // Оптимистичное обновление уже выполнено
-      }
+    try {
+      await apiClient.patchOnboarding(
+        { main: 'skipped', sections: { [key]: true } },
+        token || undefined,
+      );
+    } catch {
+      // Оптимистичное обновление уже выполнено
     }
   };
 
   const handleLaterTour = () => {
     setSessionDismissedTour(true);
     setTourModalOpen(false);
+    if (tourSectionKey) {
+      setSessionDismissedSections((prev) => new Set(prev).add(tourSectionKey));
+    }
   };
 
   const handleRestartTour = (startSectionKey?: AdminSectionKey) => {
-    if (startSectionKey) {
-      setTourMode('section');
-      setTourSectionKey(startSectionKey);
-    } else {
-      setTourMode('welcome');
-      setTourSectionKey(undefined);
-    }
-    setSessionDismissedTour(false);
+    const section = getSectionByPath(pathname);
+    const key = startSectionKey || section?.key || 'dashboard';
+    setTourMode('section');
+    setTourSectionKey(key);
     setTourModalOpen(true);
   };
 
@@ -268,7 +252,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
     if (currentSection) {
       setTourMode('section');
       setTourSectionKey(currentSection.key);
-      setSessionDismissedTour(false);
       setTourModalOpen(true);
     }
   };
@@ -311,8 +294,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
               CMS
             </div>
             <div>
-              <span className="font-extrabold text-sm tracking-tight block text-foreground">
-                Texnikum № 2 • CMS
+              <span className="font-extrabold text-sm tracking-tight block text-foreground truncate max-w-[170px]">
+                {institution.shortName || 'Texnikum'} • CMS
               </span>
               <span className="text-[11px] text-muted-foreground block">
                 {isUz ? 'Portalni boshqarish' : 'Управление порталом'}
@@ -334,7 +317,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
               const Icon = item.icon;
               const tourId = item.href === '/admin'
                 ? 'sidebar.dashboard'
-                : `sidebar.${item.href.replace('/admin/', '')}`;
+                : `sidebar.${item.href.replace('/admin/', '').replace(/\//g, '-')}`;
 
               return (
                 <Link
@@ -378,7 +361,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
             variant="outline"
             size="sm"
             data-tour="sidebar.tour-restart"
-            onClick={() => handleRestartTour(currentSection?.key)}
+            onClick={() => handleRestartTour()}
             className="w-full text-xs gap-1.5 h-8 font-semibold bg-primary/5 hover:bg-primary/10 text-primary border-primary/20"
             title={isUz ? 'Boshqaruv paneli boʻyicha ekskursiyani qayta boshlash' : 'Пройти ознакомительный тур заново'}
           >
@@ -426,125 +409,151 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }): JSX.Elem
         </div>
       </aside>
 
-      {/* Верхняя панель для мобильных устройств */}
-      <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between p-3 border-b border-border bg-card">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            data-tour="header.mobile-menu-btn"
-            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className="p-1.5 rounded-lg border border-border text-foreground hover:bg-muted"
-            aria-label={isUz ? 'Boshqaruv menyusini ochish' : 'Открыть меню управления'}
-          >
-            {mobileSidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
-          <span className="font-bold text-sm">
-            {isUz ? 'CMS Boshqaruv paneli' : 'Панель управления CMS'}
-          </span>
-        </div>
+      {/* Рабочая область с верхней панелью */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Верхняя панель (Header) для всех экранов */}
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card/95 backdrop-blur-xs px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Кнопка мобильного меню */}
+            <button
+              type="button"
+              data-tour="header.mobile-menu-btn"
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              className="lg:hidden p-1.5 rounded-lg border border-border text-foreground hover:bg-muted"
+              aria-label={isUz ? 'Boshqaruv menyusini ochish' : 'Открыть меню управления'}
+            >
+              {mobileSidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleRestartTour(currentSection?.key)}
-            className="text-xs h-7 px-2 gap-1 text-primary"
-            title={isUz ? 'Ekskursiya' : 'Тур'}
-          >
-            <Compass className="size-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">{isUz ? 'Tur' : 'Тур'}</span>
-          </Button>
-          <LanguageSwitcher />
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="text-xs h-7">
-              {isUz ? 'Saytga →' : 'На сайт →'}
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      {/* Мобильное выпадающее меню */}
-      {mobileSidebarOpen && (
-        <div className="lg:hidden border-b border-border bg-card p-4 space-y-3 shadow-lg">
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              if (item.adminOnly && !hasRole(UserRole.ADMIN)) {
-                return null;
-              }
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold ${
-                    isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
-                  }`}
-                >
-                  <Icon className="size-4 shrink-0" aria-hidden="true" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="pt-3 border-t border-border space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-foreground truncate">
-                {user.fullName}
+            {/* Заголовок текущего раздела / хлебные крошки */}
+            <div className="flex items-center gap-2 truncate">
+              <span className="text-xs text-muted-foreground hidden sm:inline">CMS</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
+              <span className="text-sm font-bold text-foreground truncate">
+                {currentSection
+                  ? currentSection.title[locale === 'ru' ? 'ru' : 'uz']
+                  : (isUz ? 'Boshqaruv paneli' : 'Панель управления')}
               </span>
-              <Badge variant="outline" className={`text-[10px] font-bold ${currentRole.color}`}>
-                {currentRole.label}
-              </Badge>
             </div>
-            <span className="text-[11px] text-muted-foreground block truncate">
-              {user.email}
-            </span>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setMobileSidebarOpen(false);
-                handleRestartTour(currentSection?.key);
-              }}
-              className="w-full text-xs gap-1.5 h-8 font-semibold text-primary border-primary/20"
-            >
-              <Compass className="size-3.5" aria-hidden="true" />
-              <span>{isUz ? 'Ekskursiyani qayta boshlash' : 'Пройти тур заново'}</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={logout}
-              className="w-full text-xs text-destructive hover:text-destructive gap-2 h-8"
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-              <span>{isUz ? 'Tizimdan chiqish' : 'Выйти из системы'}</span>
-            </Button>
           </div>
-        </div>
-      )}
 
-      {/* Основная рабочая область */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-7xl mx-auto w-full relative">
-        {children}
+          <div className="flex items-center gap-2">
+            {/* Постоянная доступная кнопка «?» справки по текущей странице */}
+            <Button
+              variant="outline"
+              size="sm"
+              data-tour="header.page-help-btn"
+              onClick={() => handleRestartTour(currentSection?.key || 'dashboard')}
+              className="h-8 px-2.5 gap-1.5 rounded-full font-bold text-primary border-primary/30 hover:bg-primary/10 shadow-xs"
+              aria-label={
+                isUz
+                  ? `${currentSection ? currentSection.title.uz : 'Sahifa'} boʻyicha yordam va yoʻriqnoma (?)`
+                  : `Справка и тур по разделу «${currentSection ? currentSection.title.ru : 'Страница'}» (?)`
+              }
+              title={
+                isUz
+                  ? `${currentSection ? currentSection.title.uz : 'Sahifa'} boʻyicha yordam va yoʻriqnoma (?)`
+                  : `Справка и тур по разделу «${currentSection ? currentSection.title.ru : 'Страница'}» (?)`
+              }
+            >
+              <HelpCircle className="size-3.5 text-primary" aria-hidden="true" />
+              <span className="text-xs font-semibold">{isUz ? 'Yordam (?)' : 'Справка (?)'}</span>
+            </Button>
 
-        {/* Неблокирующая карточка-подсказка для первого посещения раздела */}
-        {showSectionPrompt && currentSection && (
-          <SectionPromptCard
-            section={currentSection}
-            onShow={handlePromptShow}
-            onSkip={handlePromptSkip}
-            onLater={handlePromptLater}
-          />
+            <LanguageSwitcher />
+
+            <Link href="/" target="_blank">
+              <Button variant="ghost" size="sm" className="text-xs h-8 gap-1">
+                <span>{isUz ? 'Saytga' : 'На сайт'}</span>
+                <ExternalLink className="size-3" aria-hidden="true" />
+              </Button>
+            </Link>
+          </div>
+        </header>
+
+        {/* Мобильное выпадающее меню */}
+        {mobileSidebarOpen && (
+          <div className="lg:hidden border-b border-border bg-card p-4 space-y-3 shadow-lg">
+            <nav className="space-y-1">
+              {navItems.map((item) => {
+                if (item.adminOnly && !hasRole(UserRole.ADMIN)) {
+                  return null;
+                }
+                const isActive = item.exact
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold ${
+                      isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="pt-3 border-t border-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-foreground truncate">
+                  {user.fullName}
+                </span>
+                <Badge variant="outline" className={`text-[10px] font-bold ${currentRole.color}`}>
+                  {currentRole.label}
+                </Badge>
+              </div>
+              <span className="text-[11px] text-muted-foreground block truncate">
+                {user.email}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setMobileSidebarOpen(false);
+                  handleRestartTour();
+                }}
+                className="w-full text-xs gap-1.5 h-8 font-semibold text-primary border-primary/20"
+              >
+                <Compass className="size-3.5" aria-hidden="true" />
+                <span>{isUz ? 'Ekskursiyani qayta boshlash' : 'Пройти тур заново'}</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={logout}
+                className="w-full text-xs text-destructive hover:text-destructive gap-2 h-8"
+              >
+                <LogOut className="size-4" aria-hidden="true" />
+                <span>{isUz ? 'Tizimdan chiqish' : 'Выйти из системы'}</span>
+              </Button>
+            </div>
+          </div>
         )}
-      </main>
+
+        {/* Основная рабочая область */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-7xl mx-auto w-full relative">
+          {children}
+
+          {/* Неблокирующая карточка-подсказка для первого посещения раздела */}
+          {showSectionPrompt && currentSection && (
+            <SectionPromptCard
+              section={currentSection}
+              onShow={handlePromptShow}
+              onSkip={handlePromptSkip}
+              onLater={handlePromptLater}
+            />
+          )}
+        </main>
+      </div>
 
       {/* Интерактивный закрепленный ознакомительный тур (Anchored Guided Tour) */}
       <AnchoredTour

@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { Request, Response, NextFunction } from 'express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { AuthorWatermarkInterceptor } from './common/interceptors/author-watermark.interceptor';
@@ -9,6 +10,21 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api/v1');
+
+  // Поддержка прямых обращений без префикса /api/v1
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    if (
+      req.url.startsWith('/setup/') ||
+      req.url === '/setup' ||
+      req.url.startsWith('/public/institution') ||
+      req.url.startsWith('/admin/institution')
+    ) {
+      if (!req.url.startsWith('/api/v1')) {
+        req.url = `/api/v1${req.url}`;
+      }
+    }
+    next();
+  });
 
   const corsOrigin = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
@@ -37,8 +53,8 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(new AuthorWatermarkInterceptor());
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Fargʻona 2-son texnikumi - API')
-    .setDescription('REST API rasmiy kasb-hunar taʼlimi portali (Oʻzbekiston)')
+    .setTitle('College Management System - API')
+    .setDescription('REST API taʼlim muassasasi (SPO) portali (Oʻzbekiston)')
     .setVersion('1.0')
     .addBearerAuth(
       {

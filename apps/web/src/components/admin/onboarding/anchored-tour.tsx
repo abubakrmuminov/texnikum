@@ -76,12 +76,17 @@ export function AnchoredTour({
 
   // Получаем список шагов для текущего режима и роли
   const steps = useMemo<TourStep[]>(() => {
-    if (mode === 'section' && sectionKey) {
+    if (sectionKey) {
       const sectionSteps = getSectionTourSteps(sectionKey, role);
-      if (sectionSteps.length > 0) {
-        return sectionSteps;
-      }
+      if (sectionSteps.length > 0) return sectionSteps;
     }
+    if (mode === 'section') {
+      const dashSteps = getSectionTourSteps('dashboard', role);
+      if (dashSteps.length > 0) return dashSteps;
+    }
+    // По умолчанию предпочтение отдается туру по дашборду
+    const dashSteps = getSectionTourSteps('dashboard', role);
+    if (dashSteps.length > 0) return dashSteps;
     return getWelcomeTourSteps(role);
   }, [mode, sectionKey, role]);
 
@@ -97,7 +102,7 @@ export function AnchoredTour({
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const activeStep = steps[currentIndex];
 
-  // Сохраняем элемент с фокусом перед открытием тура
+  // Сохраняем элемент с фокусом перед открытием тура и сбрасываем шаг
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement | null;
@@ -107,7 +112,7 @@ export function AnchoredTour({
         previousFocusRef.current.focus();
       }
     }
-  }, [isOpen]);
+  }, [isOpen, mode, sectionKey]);
 
   // Определение мобильного экрана
   useEffect(() => {
@@ -152,8 +157,8 @@ export function AnchoredTour({
       radius,
     });
 
-    // Расчет положения поповера
-    const popoverWidth = Math.min(360, window.innerWidth - 24);
+    // Расчет положения поповера (420px для гарантированного комфортного размещения кнопок)
+    const popoverWidth = Math.min(420, window.innerWidth - 24);
     const popoverHeight = popoverRef.current?.offsetHeight || 220;
     const gap = 14;
     const vw = window.innerWidth;
@@ -216,7 +221,6 @@ export function AnchoredTour({
 
     let isMounted = true;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
-    let timeoutTimer: ReturnType<typeof setTimeout> | null = null;
 
     const findAndHighlight = () => {
       if (!isMounted) return false;
@@ -247,6 +251,8 @@ export function AnchoredTour({
         }
 
         updateTargetPosition();
+        setTimeout(() => { if (isMounted) updateTargetPosition(); }, 150);
+        setTimeout(() => { if (isMounted) updateTargetPosition(); }, 400);
         setIsNavigating(false);
 
         // Переводим фокус на кнопку «Далее» внутри поповера для a11y
@@ -265,62 +271,26 @@ export function AnchoredTour({
     if (activeStep.route && activeStep.route !== currentPathname) {
       setIsNavigating(true);
       router.push(activeStep.route);
+    }
 
-      // Опрашиваем DOM с интервалом в 100мс до 3000мс
+    // Ищем целевой элемент
+    if (!findAndHighlight()) {
+      // Опрашиваем DOM с интервалом в 100мс до 4 секунд, пока элемент не смонтируется.
+      // НИ В КОЕМ СЛУЧАЕ НЕ ПЕРЕКЛЮЧАТЬ ШАГ АВТОМАТИЧЕСКИ.
       const startTime = Date.now();
       pollTimer = setInterval(() => {
-        if (findAndHighlight() || Date.now() - startTime > 3000) {
+        if (findAndHighlight() || Date.now() - startTime > 4000) {
           if (pollTimer) clearInterval(pollTimer);
+          if (isMounted) {
+            setIsNavigating(false);
+          }
         }
       }, 100);
-
-      timeoutTimer = setTimeout(() => {
-        if (isMounted) {
-          setIsNavigating(false);
-          const found = findAndHighlight();
-          if (!found) {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn(
-                `[Tour] Целевой элемент [data-tour="${activeStep.target}"] не найден на маршруте "${activeStep.route}" после 3 секунд. Пропуск шага.`,
-              );
-            }
-            // Мягкий переход к следующему шагу при отсутствии элемента
-            if (currentIndex < totalSteps - 1) {
-              setCurrentIndex((prev) => prev + 1);
-            }
-          }
-        }
-      }, 3000);
-    } else {
-      // Маршрут уже совпадает
-      const immediatelyFound = findAndHighlight();
-      if (!immediatelyFound) {
-        // Небольшая задержка на отрисовку
-        const delayTimer = setTimeout(() => {
-          if (!isMounted) return;
-          const retryFound = findAndHighlight();
-          if (!retryFound) {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn(
-                `[Tour] Целевой элемент [data-tour="${activeStep.target}"] отсутствует на странице. Пропуск шага.`,
-              );
-            }
-            if (currentIndex < totalSteps - 1) {
-              setCurrentIndex((prev) => prev + 1);
-            }
-          }
-        }, 350);
-
-        return () => {
-          clearTimeout(delayTimer);
-        };
-      }
     }
 
     return () => {
       isMounted = false;
       if (pollTimer) clearInterval(pollTimer);
-      if (timeoutTimer) clearTimeout(timeoutTimer);
     };
   }, [
     isOpen,
@@ -333,7 +303,7 @@ export function AnchoredTour({
     onOpenMobileSidebar,
   ]);
 
-  // Слушатели скролла и ресайза для плавного следования подсветки
+  // Слушатели скролла, ресайза и мутаций DOM для плавного следования подсветки
   useEffect(() => {
     if (!isOpen) return;
 
@@ -344,20 +314,24 @@ export function AnchoredTour({
     window.addEventListener('resize', handleUpdate);
     window.addEventListener('scroll', handleUpdate, true);
 
-    const observer = new ResizeObserver(handleUpdate);
+    const resizeObserver = new ResizeObserver(handleUpdate);
     const targetEl = activeStep
       ? document.querySelector<HTMLElement>(`[data-tour="${activeStep.target}"]`)
       : null;
 
     if (targetEl) {
-      observer.observe(targetEl);
+      resizeObserver.observe(targetEl);
     }
-    observer.observe(document.body);
+    resizeObserver.observe(document.body);
+
+    const mutationObserver = new MutationObserver(handleUpdate);
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       window.removeEventListener('resize', handleUpdate);
       window.removeEventListener('scroll', handleUpdate, true);
-      observer.disconnect();
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
     };
   }, [isOpen, activeStep, updateTargetPosition]);
 
@@ -503,7 +477,8 @@ export function AnchoredTour({
             ? {
                 top: `${popoverLayout.top}px`,
                 left: `${popoverLayout.left}px`,
-                width: '360px',
+                width: '420px',
+                maxWidth: 'calc(100vw - 1.5rem)',
               }
             : undefined
         }
@@ -513,7 +488,7 @@ export function AnchoredTour({
             : 'fixed z-[70] pointer-events-auto animate-in fade-in zoom-in-95 duration-200'
         }
       >
-        <Card className="relative p-5 shadow-2xl border-2 border-primary/30 bg-card/95 backdrop-blur-md text-card-foreground rounded-xl">
+        <Card className="relative p-4 sm:p-5 shadow-2xl border-2 border-primary/30 bg-card/95 backdrop-blur-md text-card-foreground rounded-xl">
           {/* Декоративная стрелка-указатель (Pointer Arrow) */}
           {!isNarrowScreen && popoverLayout && (
             <div
@@ -532,16 +507,16 @@ export function AnchoredTour({
 
           {/* Заголовок поповера, счетчик шагов и переключатель языка */}
           <div className="flex items-center justify-between pb-3 border-b border-border/80 gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <Badge
                 variant="outline"
-                className="bg-primary/10 text-primary border-primary/30 font-mono text-xs px-2 py-0.5"
+                className="bg-primary/10 text-primary border-primary/30 font-mono text-xs px-2 py-0.5 shrink-0"
               >
                 {currentIndex + 1} / {totalSteps}
               </Badge>
-              <div className="flex items-center gap-1 text-[11px] font-bold text-primary uppercase tracking-wider">
-                <Sparkles className="size-3" aria-hidden="true" />
-                <span>
+              <div className="flex items-center gap-1 text-[11px] font-bold text-primary uppercase tracking-wider truncate">
+                <Sparkles className="size-3 shrink-0" aria-hidden="true" />
+                <span className="truncate">
                   {mode === 'section'
                     ? (isUz ? 'Boʻlim tahriri' : 'Гид по разделу')
                     : (isUz ? 'Texnikum CMS' : 'Тур по CMS')}
@@ -549,13 +524,13 @@ export function AnchoredTour({
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0">
               <LanguageSwitcher />
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onLater}
-                className="size-7 p-0 text-muted-foreground hover:text-foreground rounded-md"
+                className="size-7 p-0 text-muted-foreground hover:text-foreground rounded-md shrink-0"
                 title={isUz ? 'Keyinroq davom ettirish' : 'Отложить тур'}
                 aria-label={isUz ? 'Yopish' : 'Закрыть тур'}
               >
@@ -584,24 +559,24 @@ export function AnchoredTour({
           </div>
 
           {/* Панель управления и кнопки навигации */}
-          <div className="pt-3 border-t border-border flex items-center justify-between gap-2">
+          <div className="pt-3 border-t border-border flex items-center justify-between gap-2 flex-wrap">
             {/* Кнопка Skip (персистентная) и Later (сессионная) */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onSkip}
-                className="text-[11px] h-8 px-2 text-muted-foreground hover:text-foreground"
+                className="text-[11px] h-8 px-2 text-muted-foreground hover:text-foreground shrink-0"
                 title={isUz ? 'Ekskursiyani toʻliq oʻtkazib yuborish' : 'Пропустить весь тур'}
               >
-                <span>{isUz ? 'Oʻtkazib yuborish' : 'Пропустить'}</span>
+                <span>{isUz ? 'Oʻtkazish' : 'Пропустить'}</span>
               </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onLater}
-                className="text-[11px] h-8 px-2 text-muted-foreground hover:text-foreground gap-1 hidden sm:flex"
+                className="text-[11px] h-8 px-2 text-muted-foreground hover:text-foreground gap-1 hidden sm:inline-flex shrink-0"
                 title={isUz ? 'Keyingi kirishda davom ettirish' : 'Напомнить при следующем визите'}
               >
                 <Clock className="size-3" aria-hidden="true" />
@@ -610,16 +585,16 @@ export function AnchoredTour({
             </div>
 
             {/* Кнопки Назад / Далее */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
               {currentIndex > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleBack}
-                  className="h-8 px-2.5 text-xs gap-1"
+                  className="h-8 px-2.5 text-xs gap-1 shrink-0"
                 >
                   <ArrowLeft className="size-3.5" aria-hidden="true" />
-                  <span className="hidden sm:inline">{isUz ? 'Orqaga' : 'Назад'}</span>
+                  <span>{isUz ? 'Orqaga' : 'Назад'}</span>
                 </Button>
               )}
 
@@ -628,7 +603,7 @@ export function AnchoredTour({
                 variant="default"
                 size="sm"
                 onClick={handleNext}
-                className="h-8 px-3.5 text-xs font-semibold gap-1.5 shadow-sm"
+                className="h-8 px-3.5 text-xs font-semibold gap-1.5 shadow-sm shrink-0"
               >
                 <span>
                   {isLast

@@ -4,15 +4,20 @@ import {
 } from '@college/shared';
 import {
   Calendar,
+  Compass,
   FileText,
   GraduationCap,
   History,
   Image as ImageIcon,
+  LayoutDashboard,
   LucideIcon,
   MapPin,
   Newspaper,
+  Palette,
+  Settings,
   Shield,
   ShieldCheck,
+  Sparkles,
   UserCheck,
 } from 'lucide-react';
 
@@ -37,6 +42,62 @@ export interface OnboardingSectionItem {
 }
 
 export const ADMIN_SECTIONS_DATA: Record<AdminSectionKey, OnboardingSectionItem> = {
+  dashboard: {
+    key: 'dashboard',
+    path: '/admin',
+    roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+    accentColor: 'border-indigo-500/40 text-indigo-600 dark:text-indigo-400 bg-indigo-500/10',
+    icon: LayoutDashboard,
+    title: {
+      uz: 'Boshqaruv paneli',
+      ru: 'Панель управления',
+    },
+    blurb: {
+      uz: 'Texnikum asosiy koʻrsatkichlari, tezkor amallar va soʻnggi nashrlar monitoringi.',
+      ru: 'Главные показатели деятельности техникума, быстрые действия и мониторинг публикаций.',
+    },
+    steps: {
+      uz: [
+        '«Yangi maqola yaratish» orqali darhol nashr formasini oching',
+        'Tezkor amallar blokidan tadbirlar, fayllar va kontaktlar boʻlimlariga oʻting',
+        'Soʻnggi nashrlar jadvalida maqola holatini bir marta bosish bilan oʻzgartiring',
+      ],
+      ru: [
+        'Нажмите «Создать новость» для быстрого перехода к форме публикации',
+        'Используйте блок быстрых действий для перехода к событиям, медиа и контактам',
+        'Управляйте статусом последних публикаций в один клик прямо в таблице',
+      ],
+    },
+  },
+
+  'news-editor': {
+    key: 'news-editor',
+    path: '/admin/news/new',
+    roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+    accentColor: 'border-cyan-500/40 text-cyan-600 dark:text-cyan-400 bg-cyan-500/10',
+    icon: FileText,
+    title: {
+      uz: 'Maqola muharriri',
+      ru: 'Редактор публикаций',
+    },
+    blurb: {
+      uz: 'Maqola sarlavhasi, matni, fotosuratlari, rukni va nashr holatini boshqarish.',
+      ru: 'Формирование заголовка, форматирование текста статьи, прикрепление обложки и публикация.',
+    },
+    steps: {
+      uz: [
+        'Sarlavha va qisqa annotatsiyani (lid) toʻldiring',
+        'Vizual muharrirda matnni shakllantiring va qopqoq suratini yuklang',
+        'Rukn va maqola holatini belgilab, «Eʼlon qilish» tugmasini bosing',
+      ],
+      ru: [
+        'Заполните заголовок и краткий анонс (лид) статьи',
+        'Оформите текст в визуальном редакторе и загрузите фото обложки',
+        'Укажите тематическую рубрику, статус и нажмите «Опубликовать»',
+      ],
+    },
+  },
+
   news: {
     key: 'news',
     path: '/admin/news',
@@ -316,33 +377,178 @@ export const ADMIN_SECTIONS_DATA: Record<AdminSectionKey, OnboardingSectionItem>
       ],
     },
   },
+
+  institution: {
+    key: 'institution',
+    path: '/admin/settings/institution',
+    roles: [UserRole.ADMIN],
+    accentColor: 'border-blue-500/40 text-blue-600 dark:text-blue-400 bg-blue-500/10',
+    icon: Settings,
+    title: {
+      uz: 'Muassasa sozlamalari',
+      ru: 'Настройки заведения',
+    },
+    blurb: {
+      uz: 'Texnikum rekvizitlari, brend ranglari, logotip, aloqa maʼlumotlari va yuridik parametrlarni boshqarish.',
+      ru: 'Управление реквизитами техникума, фирменным стилем, логотипом, контактами и юридическими данными.',
+    },
+    steps: {
+      uz: [
+        'Muassasa nomi, qisqa nomi va tashkiliy turini tahrirlang',
+        'Brend rangi va logotipni yangilang (WCAG AA kontrast nazorati bilan)',
+        'Yuridik va rasmiy rekvizitlarni (STIR, litsenziya, bank maʼlumotlari) toʻldiring',
+      ],
+      ru: [
+        'Отредактируйте наименование заведения на узбекском и русском языках',
+        'Обновите фирменный цвет и логотип (с проверкой контраста WCAG AA)',
+        'Заполните юридические и банковские реквизиты (ИНН/СТИР, лицензии)',
+      ],
+    },
+  },
+
+  navigation: {
+    key: 'navigation',
+    path: '/admin/navigation',
+    roles: [UserRole.ADMIN],
+    accentColor: 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10',
+    icon: Compass,
+    title: {
+      uz: 'Sayt tuzilmasi va menyu',
+      ru: 'Структура сайта и меню',
+    },
+    blurb: {
+      uz: 'Sayt navigatsiyasi, boʻlimlar iyerarxiyasi, sahifalar va modullarni boshqarish.',
+      ru: 'Управление структурой меню, иерархией разделов (макс. 1 уровень), встроенными модулями и страницами.',
+    },
+    steps: {
+      uz: [
+        'Menyu bandlarini sichqoncha yoki klaviatura («Yuqoriga/Pastga») bilan tartiblang',
+        'Majburiy boʻlimlar (37-modda) holatini va koʻrinishini tekshiring',
+        'Yangi sahifa/havola qoʻshing yoki oʻchirilgan bandlarni qayta tiklang',
+      ],
+      ru: [
+        'Перемещайте пункты меню мышью (Drag & Drop) или стрелками клавиатуры с озвучкой',
+        'Управляйте видимостью обязательных разделов (ст. 37 ЗРУ-637) с подтверждением',
+        'Добавляйте новые разделы или восстанавливайте системное меню по умолчанию',
+      ],
+    },
+  },
+
+  theme: {
+    key: 'theme',
+    path: '/admin/settings/theme',
+    roles: [UserRole.ADMIN],
+    accentColor: 'border-purple-500/40 text-purple-600 dark:text-purple-400 bg-purple-500/10',
+    icon: Palette,
+    title: {
+      uz: 'Dizayn mavzusi (Tema)',
+      ru: 'Тема оформления',
+    },
+    blurb: {
+      uz: '5 xil dizayn-presetidan birini tanlash, shrift va burchak radiusini sozlash.',
+      ru: 'Выбор одного из 5 дизайн-пресетов, настройка шрифта и скруглений интерфейса.',
+    },
+    steps: {
+      uz: [
+        '5 ta akademik va zamonaviy dizayn-presetidan birini tanlang',
+        'Jonli koʻrinish (live preview) va WCAG AA kontrast tekshiruvini baholang',
+        'Tanlangan mavzuni saqlang — u barcha tashrif buyuruvchilarga darhol qoʻllanadi',
+      ],
+      ru: [
+        'Выберите один из 5 дизайн-пресетов оформления портала',
+        'Оцените предпросмотр и автоматическую проверку контрастности WCAG AA',
+        'Сохраните тему — изменения применятся мгновенно для всех посетителей',
+      ],
+    },
+  },
+
+  'page-builder': {
+    key: 'page-builder',
+    path: '/admin/pages/editor',
+    roles: [UserRole.ADMIN, UserRole.EDITOR],
+    accentColor: 'border-cyan-500/40 text-cyan-600 dark:text-cyan-400 bg-cyan-500/10',
+    icon: Sparkles,
+    title: {
+      uz: 'Sahifa konstruktori (Super-editor)',
+      ru: 'Конструктор страниц (Супер-редактор)',
+    },
+    blurb: {
+      uz: '27 xil bloklar, 5 ta tayyor akademik andoza va qayta ishlatiluvchi modullar yordamida erkin 12-ustunli sahifalar yaratish.',
+      ru: 'Создание 12-колоночных страниц из 27 типов блоков, 5 академических шаблонов и переиспользуемых модулей.',
+    },
+    steps: {
+      uz: [
+        '5 toifadagi 27 xil bloklar kutubxonasidan tanlang yoki tayyor akademik shablonlardan foydalaning',
+        'Boʻlimlarni shablon sifatida saqlang, xotiraga nusxalang va boshqa sahifalarga global tarzda ulang',
+        '«Koʻrish» orqali qoralamani tekshiring va kengaytirilgan WCAG 2.1/2.2 AA talablari bajarilgach eʼlon qiling',
+      ],
+      ru: [
+        'Используйте палитру из 27 блоков по 5 категориям или создавайте разделы из 5 академических шаблонов',
+        'Сохраняйте секции как переиспользуемые и глобальные модули, копируйте между страницами',
+        'Проверяйте предпросмотр черновика и публикуйте после расширенного контроля доступности WCAG 2.1/2.2 AA',
+      ],
+    },
+  },
 };
 
 export const ORDERED_SECTION_KEYS: AdminSectionKey[] = [
+  'dashboard',
   'news',
+  'news-editor',
   'events',
   'teachers',
   'administration',
   'specialties',
   'pages',
+  'page-builder',
   'contacts',
   'media',
   'users',
   'audit',
+  'institution',
+  'navigation',
+  'theme',
 ];
 
 export function getSectionsForRole(role: UserRole): OnboardingSectionItem[] {
   return ORDERED_SECTION_KEYS.map((k) => ADMIN_SECTIONS_DATA[k]).filter((item) =>
-    item.roles.includes(role),
+    item && item.roles.includes(role),
   );
 }
 
 export function getSectionByPath(pathname: string): OnboardingSectionItem | undefined {
-  if (pathname === '/admin/schedule') {
+  const [basePath = ''] = pathname.split('?');
+  const [purePath = ''] = basePath.split('#');
+  const cleanPath = purePath.replace(/\/$/, '') || '/';
+
+  if (cleanPath === '/admin/schedule') {
     return ADMIN_SECTIONS_DATA.administration;
   }
-  return Object.values(ADMIN_SECTIONS_DATA).find((item) =>
-    pathname === item.path || pathname.startsWith(`${item.path}/`),
+  if (cleanPath === '/admin') {
+    return ADMIN_SECTIONS_DATA.dashboard;
+  }
+  if (cleanPath === '/admin/news/new' || (cleanPath.startsWith('/admin/news/') && cleanPath !== '/admin/news')) {
+    return ADMIN_SECTIONS_DATA['news-editor'];
+  }
+  if (cleanPath === '/admin/news') {
+    return ADMIN_SECTIONS_DATA.news;
+  }
+  if (cleanPath === '/admin/pages/new' || (cleanPath.startsWith('/admin/pages/') && cleanPath !== '/admin/pages')) {
+    return ADMIN_SECTIONS_DATA['page-builder'];
+  }
+  if (cleanPath === '/admin/pages') {
+    return ADMIN_SECTIONS_DATA.pages;
+  }
+
+  // Exact match first
+  const exact = Object.values(ADMIN_SECTIONS_DATA).find((item) => cleanPath === item.path);
+  if (exact) {
+    return exact;
+  }
+
+  // Subpath match (strictly exclude '/admin' which is the prefix of all admin routes)
+  return Object.values(ADMIN_SECTIONS_DATA).find(
+    (item) => item.path !== '/admin' && cleanPath.startsWith(`${item.path}/`),
   );
 }
 
@@ -532,6 +738,21 @@ export const WELCOME_TOUR_STEPS: TourStep[] = [
     },
   },
   {
+    id: 'welcome-institution',
+    route: '/admin',
+    target: 'sidebar.settings-institution',
+    placement: 'right',
+    roles: [UserRole.ADMIN],
+    title: {
+      uz: 'Muassasa sozlamalari',
+      ru: 'Настройки заведения',
+    },
+    body: {
+      uz: 'Texnikum nomi, brend rangi, logotip, aloqa va yuridik maʼlumotlarini boshqarish boʻlimi.',
+      ru: 'Управление общими реквизитами, брендингом, контактами и юридическими сведениями техникума.',
+    },
+  },
+  {
     id: 'welcome-profile',
     route: '/admin',
     target: 'sidebar.user-profile',
@@ -561,9 +782,139 @@ export const WELCOME_TOUR_STEPS: TourStep[] = [
       ru: 'Вы в любой момент можете перезапустить данный ознакомительный тур по панели управления.',
     },
   },
+  {
+    id: 'welcome-page-help',
+    route: '/admin',
+    target: 'header.page-help-btn',
+    placement: 'bottom',
+    roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+    title: {
+      uz: 'Sahifa boʻyicha yordam (?) tugmasi',
+      ru: 'Кнопка справки (?) на каждой странице',
+    },
+    body: {
+      uz: 'Har bir sahifaning yuqori qismida «Yordam (?)» tugmasi mavjud. Undan tashqari har bir yangi sahifaga birinchi kirganingizda ushbu sahifa boʻyicha koʻrgazmali yoʻriqnoma taklif etiladi.',
+      ru: 'В шапке каждой страницы находится кнопка «Справка (?)». Также при первом открытии любой страницы появится подсказка с предложением показать её элементы.',
+    },
+  },
 ];
 
 export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
+  dashboard: [
+    {
+      id: 'dashboard-create-btn',
+      sectionKey: 'dashboard',
+      route: '/admin',
+      target: 'dashboard.create-btn',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Yangi maqola yaratish',
+        ru: 'Создать публикацию',
+      },
+      body: {
+        uz: '«Yangi maqola yaratish» tugmasi orqali yangiliklar muharririga bir zumda oʻting.',
+        ru: 'Кнопка «Создать новость» открывает форму публикации статьи для размещения на портале.',
+      },
+    },
+    {
+      id: 'dashboard-quick-actions',
+      sectionKey: 'dashboard',
+      route: '/admin',
+      target: 'dashboard.quick-actions',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Tezkor amallar bloki',
+        ru: 'Блок быстрых действий',
+      },
+      body: {
+        uz: 'Tadbir eʼlon qilish, mediafayl yuklash yoki aloqa maʼlumotlarini yangilash tugmalari.',
+        ru: 'Кнопки быстрого перехода: добавление событий, загрузка файлов и контакты техникума.',
+      },
+    },
+    {
+      id: 'dashboard-kpi-news',
+      sectionKey: 'dashboard',
+      route: '/admin',
+      target: 'dashboard.kpi-news',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Nashrlar koʻrsatkichi',
+        ru: 'Метрика публикаций',
+      },
+      body: {
+        uz: 'Jami maqolalar, saytda eʼlon qilinganlar va ish jarayonidagi qoralamalar hisobi.',
+        ru: 'Общее число статей техникума, опубликованные на сайте материалы и черновики.',
+      },
+    },
+    {
+      id: 'dashboard-kpi-teachers',
+      sectionKey: 'dashboard',
+      route: '/admin',
+      target: 'dashboard.kpi-teachers',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Pedagoglar monitoringi',
+        ru: 'Мониторинг преподавателей',
+      },
+      body: {
+        uz: 'Texnikum shtatidagi oʻqituvchilar, ekspertlar va kafedralar umumiy soni.',
+        ru: 'Количество штатных преподавателей, ученых степеней и экспертов кафедр.',
+      },
+    },
+    {
+      id: 'dashboard-kpi-specialties',
+      sectionKey: 'dashboard',
+      route: '/admin',
+      target: 'dashboard.kpi-specialties',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Taʼlim yoʻnalishlari va kvotalar',
+        ru: 'Направления и квоты',
+      },
+      body: {
+        uz: 'Mutaxassisliklar soni va 2026-yilgi qabul uchun ajratilgan davlat granti oʻrinlari.',
+        ru: 'Количество аккредитованных специальностей и объем бюджетных мест приема 2026 года.',
+      },
+    },
+    {
+      id: 'dashboard-recent-table',
+      sectionKey: 'dashboard',
+      route: '/admin',
+      target: 'dashboard.recent-table',
+      placement: 'top',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Soʻnggi nashrlar jadvali',
+        ru: 'Таблица последних публикаций',
+      },
+      body: {
+        uz: 'Maqolalarni bir marta bosish orqali qoralamadan eʼlon qilish yoki tahrirlash imkoniyati.',
+        ru: 'Быстрая смена статуса (опубликовать/в черновик) и переход к правке в один клик.',
+      },
+    },
+    {
+      id: 'dashboard-audit-widget',
+      sectionKey: 'dashboard',
+      route: '/admin',
+      target: 'dashboard.audit-widget',
+      placement: 'top',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Xavfsizlik auditi xulosasi',
+        ru: 'Сводка журнала безопасности',
+      },
+      body: {
+        uz: 'Xodimlar tomonidan amalga oshirilgan soʻnggi muhim operatsiyalar xronologiyasi.',
+        ru: 'Последние действия пользователей системы с фиксацией времени и типа операции.',
+      },
+    },
+  ],
+
   news: [
     {
       id: 'news-create-btn',
@@ -630,15 +981,50 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       },
     },
     {
-      id: 'news-form-title',
+      id: 'news-table',
       sectionKey: 'news',
+      route: '/admin/news',
+      target: 'news.table',
+      placement: 'top',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Yangiliklar roʻyxati',
+        ru: 'Таблица новостей',
+      },
+      body: {
+        uz: 'Barcha yangiliklar, oʻqish vaqti, nashr sanasi va muallif holati shu yerda aks etadi.',
+        ru: 'Реестр новостных материалов с бейджами статусов, датами и временем чтения.',
+      },
+    },
+    {
+      id: 'news-row-actions',
+      sectionKey: 'news',
+      route: '/admin/news',
+      target: 'news.row-actions',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Qator amallari',
+        ru: 'Действия над публикацией',
+      },
+      body: {
+        uz: 'Saytda koʻrish, holatni tezkor almashtirish (koʻz belgisi), tahrirlash va oʻchirish tugmalari.',
+        ru: 'Кнопки просмотра на сайте, быстрого снятия/публикации, правки и удаления статьи.',
+      },
+    },
+  ],
+
+  'news-editor': [
+    {
+      id: 'news-editor-title',
+      sectionKey: 'news-editor',
       route: '/admin/news/new',
       target: 'news-form.title',
       placement: 'bottom',
       roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
       title: {
         uz: 'Nashr sarlavhasi',
-        ru: 'Заголовок статьи',
+        ru: 'Заголовок публикации',
       },
       body: {
         uz: 'Maqolaning toʻliq sarlavhasini kiriting; tizim URL manzilini (slug) avtomatik shakllantiradi.',
@@ -646,8 +1032,8 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       },
     },
     {
-      id: 'news-form-lead',
-      sectionKey: 'news',
+      id: 'news-editor-lead',
+      sectionKey: 'news-editor',
       route: '/admin/news/new',
       target: 'news-form.lead',
       placement: 'bottom',
@@ -662,8 +1048,8 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       },
     },
     {
-      id: 'news-form-editor',
-      sectionKey: 'news',
+      id: 'news-editor-editor',
+      sectionKey: 'news-editor',
       route: '/admin/news/new',
       target: 'news-form.editor',
       placement: 'top',
@@ -678,24 +1064,8 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       },
     },
     {
-      id: 'news-form-status',
-      sectionKey: 'news',
-      route: '/admin/news/new',
-      target: 'news-form.status',
-      placement: 'left',
-      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
-      title: {
-        uz: 'Nashr holati',
-        ru: 'Статус публикации',
-      },
-      body: {
-        uz: '«Eʼlon qilingan» deb belgilang yoki material ustida ishlash uchun «Qoralama» qilib qoldiring.',
-        ru: 'Выберите статус «Опубликовано» или сохраните как «Черновик» для доработки.',
-      },
-    },
-    {
-      id: 'news-form-cover',
-      sectionKey: 'news',
+      id: 'news-editor-cover',
+      sectionKey: 'news-editor',
       route: '/admin/news/new',
       target: 'news-form.cover',
       placement: 'left',
@@ -710,11 +1080,43 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       },
     },
     {
-      id: 'news-form-submit',
-      sectionKey: 'news',
+      id: 'news-editor-category',
+      sectionKey: 'news-editor',
+      route: '/admin/news/new',
+      target: 'news-form.category',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Tematik rukn',
+        ru: 'Тематическая рубрика',
+      },
+      body: {
+        uz: 'Materialni mos toifaga biriktiring: Taʼlim, Tadbirlar, Sport yoki Qabul.',
+        ru: 'Привяжите публикацию к подходящей рубрике для точной сортировки в каталоге.',
+      },
+    },
+    {
+      id: 'news-editor-status',
+      sectionKey: 'news-editor',
+      route: '/admin/news/new',
+      target: 'news-form.status',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Nashr holati',
+        ru: 'Статус публикации',
+      },
+      body: {
+        uz: '«Eʼlon qilingan» deb belgilang yoki material ustida ishlash uchun «Qoralama» qilib qoldiring.',
+        ru: 'Выберите статус «Опубликовано» или сохраните как «Черновик» для доработки.',
+      },
+    },
+    {
+      id: 'news-editor-submit',
+      sectionKey: 'news-editor',
       route: '/admin/news/new',
       target: 'news-form.submit',
-      placement: 'bottom',
+      placement: 'top',
       roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
       title: {
         uz: 'Saqlash va nashr qilish',
@@ -792,6 +1194,22 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
         ru: 'Таблица мероприятий с датами, статусом и кнопками быстрого редактирования.',
       },
     },
+    {
+      id: 'events-row-actions',
+      sectionKey: 'events',
+      route: '/admin/events',
+      target: 'events.row-actions',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.MODERATOR],
+      title: {
+        uz: 'Tadbir amallari',
+        ru: 'Действия над событием',
+      },
+      body: {
+        uz: 'Tadbir tafsilotlarini tahrirlash yoki roʻyxatdan oʻchirish tugmalari.',
+        ru: 'Кнопки редактирования параметров мероприятия или его удаления.',
+      },
+    },
   ],
 
   teachers: [
@@ -841,6 +1259,22 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       body: {
         uz: 'Pedagogik staj, fotosurat va faoliyat holati koʻrsatilgan toʻliq roʻyxat.',
         ru: 'Таблица педагогического состава с фото, стажем и кнопками редактирования.',
+      },
+    },
+    {
+      id: 'teachers-row-actions',
+      sectionKey: 'teachers',
+      route: '/admin/teachers',
+      target: 'teachers.row-actions',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Pedagog amallari',
+        ru: 'Действия над профилем',
+      },
+      body: {
+        uz: 'Oʻqituvchi anketasini tahrirlash yoki tarkibdan oʻchirish tugmalari.',
+        ru: 'Кнопки редактирования анкеты преподавателя или удаления из реестра.',
       },
     },
   ],
@@ -910,6 +1344,22 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
         ru: 'Список руководителей с часами личного приема граждан и прямыми контактами.',
       },
     },
+    {
+      id: 'administration-row-actions',
+      sectionKey: 'administration',
+      route: '/admin/administration',
+      target: 'administration.row-actions',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Rahbar amallari',
+        ru: 'Действия над карточкой',
+      },
+      body: {
+        uz: 'Qabul soatlari va telefonlarini tahrirlash yoki oʻchirish tugmalari.',
+        ru: 'Кнопки редактирования часов приема и контактов или удаления руководителя.',
+      },
+    },
   ],
 
   specialties: [
@@ -961,6 +1411,22 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
         ru: 'Сводная таблица специальностей техникума, мест на грант/контракт и баллов.',
       },
     },
+    {
+      id: 'specialties-row-actions',
+      sectionKey: 'specialties',
+      route: '/admin/specialties',
+      target: 'specialties.row-actions',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Mutaxassislik amallari',
+        ru: 'Действия над специальностью',
+      },
+      body: {
+        uz: 'Kvotalar va taʼlim shakllarini tahrirlash yoki oʻchirish tugmalari.',
+        ru: 'Кнопки редактирования параметров приема и квот или удаления специальности.',
+      },
+    },
   ],
 
   pages: [
@@ -994,6 +1460,22 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       body: {
         uz: '«Taʼlim toʻgʻrisida»gi Qonunning 37-moddasi boʻyicha rasmiy maʼlumotlarni tahrirlash.',
         ru: 'Обязательные страницы (МТО, финансы, лицензии) с кнопками редактирования.',
+      },
+    },
+    {
+      id: 'pages-row-actions',
+      sectionKey: 'pages',
+      route: '/admin/pages',
+      target: 'pages.row-actions',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Sahifa amallari',
+        ru: 'Действия над разделом',
+      },
+      body: {
+        uz: 'Saytda koʻrish, yashirish/eʼlon qilish va 37-modda matnini tahrirlash oynasi.',
+        ru: 'Просмотр на сайте, скрытие/публикация и открытие редактора статьи 37.',
       },
     },
   ],
@@ -1150,6 +1632,22 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
       },
     },
     {
+      id: 'users-role-select',
+      sectionKey: 'users',
+      route: '/admin/users',
+      target: 'users.role-select',
+      placement: 'left',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Kirish huquqini belgilash',
+        ru: 'Назначение роли',
+      },
+      body: {
+        uz: 'Xodimga biriktirilgan rolni (Admin, Muharrir, Moderator) tezda oʻzgartirish tanlovi.',
+        ru: 'Выпадающий список для быстрого назначения уровня доступа: Администратор, Редактор или Модератор.',
+      },
+    },
+    {
       id: 'users-reset-onboarding',
       sectionKey: 'users',
       route: '/admin/users',
@@ -1248,10 +1746,327 @@ export const SECTION_TOUR_STEPS: Record<AdminSectionKey, TourStep[]> = {
         ru: 'Хронологическая таблица с просмотром старого и нового состояния данных (Diff).',
       },
     },
+    {
+      id: 'audit-diff-btn',
+      sectionKey: 'audit',
+      route: '/admin/audit',
+      target: 'audit.diff-btn',
+      placement: 'left',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Diff / Oʻzgarishlar surati',
+        ru: 'Просмотр снимка Diff',
+      },
+      body: {
+        uz: 'Oʻzgarishdan oldingi va keyingi holatni qiyosiy taqqoslash modal oynasi.',
+        ru: 'Модальное окно сравнения старых и новых значений полей объекта в формате JSON-diff.',
+      },
+    },
+  ],
+  institution: [
+    {
+      id: 'institution-general-section',
+      sectionKey: 'institution',
+      route: '/admin/settings/institution',
+      target: 'institution.general-section',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Asosiy maʼlumotlar',
+        ru: 'Общие сведения',
+      },
+      body: {
+        uz: 'Muassasa toʻliq va qisqartirilgan nomlari (oʻzbek va rus tillarida) hamda tashkiliy-huquqiy turi.',
+        ru: 'Полные и сокращенные наименования техникума (узб./рус.) и тип образовательного учреждения.',
+      },
+    },
+    {
+      id: 'institution-branding-section',
+      sectionKey: 'institution',
+      route: '/admin/settings/institution',
+      target: 'institution.branding-section',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Brending va ramzlar',
+        ru: 'Фирменный стиль и символика',
+      },
+      body: {
+        uz: 'Asosiy brend rangi (WCAG AA kontrast nazorati bilan), logotip, gerb va veb-sayt faviconi.',
+        ru: 'Фирменный цвет бренда с контролем доступности WCAG AA, логотип, герб и иконка сайта (favicon).',
+      },
+    },
+    {
+      id: 'institution-contacts-section',
+      sectionKey: 'institution',
+      route: '/admin/settings/institution',
+      target: 'institution.contacts-section',
+      placement: 'top',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Aloqa va koordinatalar',
+        ru: 'Контакты и геолокация',
+      },
+      body: {
+        uz: 'Bosh bino manzili, qabul va maʼlumot telefonlari, elektron pochta va xarita koordinatalari.',
+        ru: 'Адрес главного корпуса, телефоны приемной комиссии, email и координаты OpenStreetMap.',
+      },
+    },
+    {
+      id: 'institution-legal-section',
+      sectionKey: 'institution',
+      route: '/admin/settings/institution',
+      target: 'institution.legal-section',
+      placement: 'top',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Yuridik va bank rekvizitlari',
+        ru: 'Юридические и банковские реквизиты',
+      },
+      body: {
+        uz: 'STIR (ИНН), litsenziya, bank hisob raqami va rekvizitlar (faqat administratorlar koʻra oladi).',
+        ru: 'ИНН/СТИР, номер лицензии, банковские реквизиты (доступно только администраторам).',
+      },
+    },
+    {
+      id: 'institution-save-btn',
+      sectionKey: 'institution',
+      route: '/admin/settings/institution',
+      target: 'institution.save-btn',
+      placement: 'left',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Sozlamalarni saqlash',
+        ru: 'Сохранение настроек',
+      },
+      body: {
+        uz: 'Barcha kiritilgan oʻzgarishlarni saqlash va tizim keshini bir zumda yangilash.',
+        ru: 'Сохранить изменения и мгновенно обновить публичные настройки на всем сайте.',
+      },
+    },
+  ],
+  navigation: [
+    {
+      id: 'navigation-tree',
+      sectionKey: 'navigation',
+      route: '/admin/navigation',
+      target: 'navigation.tree',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Menyu daraxti va tartiblash',
+        ru: 'Дерево меню и сортировка',
+      },
+      body: {
+        uz: 'Menyu elementlarini sichqoncha bilan siljitish yoki klaviatura tugmalari yordamida qayta tartiblash imkoniyati.',
+        ru: 'Иерархическое дерево пунктов меню. Перемещайте элементы мышью или кнопками «Выше/Ниже».',
+      },
+    },
+    {
+      id: 'navigation-add-btn',
+      sectionKey: 'navigation',
+      route: '/admin/navigation',
+      target: 'navigation.add-btn',
+      placement: 'left',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Yangi band qoʻshish',
+        ru: 'Добавление пункта меню',
+      },
+      body: {
+        uz: 'Yangi ichki sahifa, tizimli modul yoki tashqi havola yaratish (maksimal 1 daraja ichki joylashuv bilan).',
+        ru: 'Создание нового пункта меню (страница, модуль или внешняя ссылка) с ограничением до 1 уровня.',
+      },
+    },
+    {
+      id: 'navigation-modules-card',
+      sectionKey: 'navigation',
+      route: '/admin/navigation',
+      target: 'navigation.modules-card',
+      placement: 'top',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Tizimli modullar kaliti',
+        ru: 'Переключатели модулей',
+      },
+      body: {
+        uz: 'Yangiliklar, tadbirlar, oʻqituvchilar va boshqa modullarni bir tugma bilan yoqish yoki oʻchirish.',
+        ru: 'Быстрое включение и отключение встроенных модулей (новости, педагоги, специальности, контакты).',
+      },
+    },
+    {
+      id: 'navigation-restore-defaults',
+      sectionKey: 'navigation',
+      route: '/admin/navigation',
+      target: 'navigation.restore-defaults',
+      placement: 'left',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Standart menyuni tiklash',
+        ru: 'Восстановление по умолчанию',
+      },
+      body: {
+        uz: 'Standart qonuniy meʼyoriy boʻlimlarni zavod holatiga qaytarish tugmasi.',
+        ru: 'Сброс системной структуры меню к заводским настройкам с сохранением пользовательских страниц.',
+      },
+    },
+  ],
+  theme: [
+    {
+      id: 'theme-presets-grid',
+      sectionKey: 'theme',
+      route: '/admin/settings/theme',
+      target: 'theme.presets-grid',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Dizayn-presetlar katalogi',
+        ru: 'Каталог дизайн-пресетов',
+      },
+      body: {
+        uz: '5 ta tayyor akademik va zamonaviy uslub: ranglar gammasi, shriftlar va komponentlar radiusi.',
+        ru: 'Пять готовых дизайн-пресетов: классический академический, цифровой, изумрудный, темно-синий и светлый.',
+      },
+    },
+    {
+      id: 'theme-preview-card',
+      sectionKey: 'theme',
+      route: '/admin/settings/theme',
+      target: 'theme.preview-card',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Jonli koʻrinish va WCAG AA',
+        ru: 'Предпросмотр и проверка WCAG AA',
+      },
+      body: {
+        uz: 'Tanlangan mavzuning jonli koʻrinishi hamda kontrast talablariga moslik avtomatik nazorati.',
+        ru: 'Интерактивный предварительный просмотр темы и автоматическая проверка контрастности WCAG AA.',
+      },
+    },
+    {
+      id: 'theme-save-btn',
+      sectionKey: 'theme',
+      route: '/admin/settings/theme',
+      target: 'theme.save-btn',
+      placement: 'left',
+      roles: [UserRole.ADMIN],
+      title: {
+        uz: 'Mavzuni saqlash',
+        ru: 'Применение темы',
+      },
+      body: {
+        uz: 'Mavzuni saqlash va sayt dizaynini darhol yangilash (agar WCAG AA talabi bajarilgan boʻlsa).',
+        ru: 'Сохранение темы и моментальное применение для всех пользователей при соблюдении контраста.',
+      },
+    },
+  ],
+
+  'page-builder': [
+    {
+      id: 'page-builder-palette',
+      sectionKey: 'page-builder',
+      route: '/admin/pages/editor',
+      target: 'page-builder.palette',
+      placement: 'right',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Bloklar kutubxonasi (27 turdagi bloklar)',
+        ru: 'Палитра компонентов (27 типов блоков)',
+      },
+      body: {
+        uz: '5 toifaga ajratilgan 27 xil bloklar: Hero, kartochkalar, matn, karusel, akkordeon, akademik jadvallar, xodimlar va xaritalar.',
+        ru: '27 компонентов в 5 категориях: Hero-экраны, карточки, текст, фотокарусель, табы, аккордеон, расписание, сотрудники и карты.',
+      },
+    },
+    {
+      id: 'page-builder-reusable-tab',
+      sectionKey: 'page-builder',
+      route: '/admin/pages/editor',
+      target: 'page-builder.reusable-tab',
+      placement: 'right',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Qayta ishlatiluvchi va global modullar',
+        ru: 'Модули и глобальные шаблоны',
+      },
+      body: {
+        uz: 'Xolstdagi boʻlimlarni shablon sifatida saqlab, barcha sahifalarga mustaqil nusxa yoki sinxron global blok sifatida qoʻshing.',
+        ru: 'Сохраняйте секции как шаблоны и используйте на других страницах как копии или глобальные синхронизируемые блоки.',
+      },
+    },
+    {
+      id: 'page-builder-canvas',
+      sectionKey: 'page-builder',
+      route: '/admin/pages/editor',
+      target: 'page-builder.canvas',
+      placement: 'top',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: '12-ustunli erkin xolst',
+        ru: '12-колоночный адаптивный холст',
+      },
+      body: {
+        uz: 'Bloklarni yonma-yon joylang (3–12 col), oʻlchamini tortib yoki klaviaturada oʻzgartiring, boʻlimlarni xotiraga nusxalang.',
+        ru: 'Располагайте блоки рядом (3–12 колонок), меняйте ширину разделителем или кнопками и копируйте секции через буфер обмена.',
+      },
+    },
+    {
+      id: 'page-builder-viewport',
+      sectionKey: 'page-builder',
+      route: '/admin/pages/editor',
+      target: 'page-builder.viewport-switcher',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Moslashuvchanlik va ekran oʻlchamlari (320px–1536px)',
+        ru: 'Адаптивность и контроллер экрана (320px–1536px)',
+      },
+      body: {
+        uz: 'Sahifani kompyuter, planshet va mobil ekranlarda (320px gacha) tekshiring. Har bir qurilma uchun alohida koʻrinish va fokus nuqtalarini sozlang.',
+        ru: 'Проверяйте поведение страницы на десктопе, планшете и мобильном (включая 320px). Настраивайте точки фокуса изображений и видимость блоков.',
+      },
+    },
+    {
+      id: 'page-builder-preview-btn',
+      sectionKey: 'page-builder',
+      route: '/admin/pages/editor',
+      target: 'page-builder.preview-btn',
+      placement: 'bottom',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Oldindan koʻrish',
+        ru: 'Предпросмотр черновика',
+      },
+      body: {
+        uz: 'Hali eʼlon qilinmagan qoralamani yangi oynada toʻliq ommaviy koʻrinishida tekshirish.',
+        ru: 'Просмотр неопубликованного черновика в новой вкладке в точном публичном дизайне.',
+      },
+    },
+    {
+      id: 'page-builder-publish-btn',
+      sectionKey: 'page-builder',
+      route: '/admin/pages/editor',
+      target: 'page-builder.publish-btn',
+      placement: 'left',
+      roles: [UserRole.ADMIN, UserRole.EDITOR],
+      title: {
+        uz: 'Kengaytirilgan WCAG 2.1/2.2 AA tekshiruvi',
+        ru: 'Контроль доступности WCAG 2.1/2.2 AA',
+      },
+      body: {
+        uz: 'Avtomatik tekshiruv: Alt-tekstsiz tasvirlar va past kontrastli qatorlar (<4.5:1) nashrni bloklaydi, ogohlantirishlar beriladi.',
+        ru: 'Публикация страницы с контролем: отсутствие Alt-текста и недостаточный контраст (<4.5:1) блокируют публикацию.',
+      },
+    },
   ],
 };
 
 export function getWelcomeTourSteps(role: UserRole): TourStep[] {
+  const dashSteps = SECTION_TOUR_STEPS.dashboard?.filter((step) => step.roles.includes(role)) || [];
+  if (dashSteps.length > 0) {
+    return dashSteps;
+  }
   return WELCOME_TOUR_STEPS.filter((step) => step.roles.includes(role));
 }
 

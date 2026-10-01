@@ -348,7 +348,7 @@ export default function AdminEventsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredEvents.map((e) => (
+                {filteredEvents.map((e, index) => (
                   <tr key={e.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-3 px-4">
                       <div className="font-semibold text-foreground">{e.title}</div>
@@ -402,7 +402,10 @@ export default function AdminEventsPage() {
                     </td>
 
                     <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
+                      <div
+                        data-tour={index === 0 ? 'events.row-actions' : undefined}
+                        className="flex items-center justify-end gap-1"
+                      >
                         <Button
                           variant="ghost"
                           size="sm"

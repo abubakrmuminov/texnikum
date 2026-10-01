@@ -16,32 +16,32 @@ export class ContactsService {
       {
         id: 'campus-1',
         name: 'Bosh oʻquv binosi',
-        address: '150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 42-uy',
+        address: '100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 1-uy',
         departments: 'Qabul komissiyasi (105-xona), Maʼmuriyat, Buxgalteriya, Axborot-resurs markazi (Kutubxona)',
-        phone: '+998 (73) 244-00-00',
-        email: 'info@texnikum2.uz',
+        phone: '+998 (71) 200-00-00',
+        email: 'info@texnikum.uz',
         workHours: 'Dush–Shanba: 08:30 – 17:30',
-        transport: '«Universitet» bekati (1, 8, 14, 22-sonli jamoat transporti)',
+        transport: '«Texnikum» bekati (jamoat transporti)',
         orderIndex: 1,
       },
       {
         id: 'campus-2',
         name: 'Oʻquv-amaliyot binosi va laboratoriyalar',
-        address: '150100, Fargʻona viloyati, Fargʻona shahri, B. Margʻinoniy koʻchasi, 18-uy',
+        address: '100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 2-uy',
         departments: 'IT-laboratoriyalar, kompyuter tarmoqlari sinflari, WorldSkills kasbiy mahorat ustaxonalari',
-        phone: '+998 (73) 244-00-11',
-        email: 'it-dept@texnikum2.uz',
+        phone: '+998 (71) 200-00-11',
+        email: 'it-dept@texnikum.uz',
         workHours: 'Dush–Shanba: 08:30 – 18:00',
-        transport: '«Margʻinoniy» bekati (5, 12, 19-sonli marshrutkalar)',
+        transport: '«Texnikum» bekati (marshrutkalar)',
         orderIndex: 2,
       },
       {
         id: 'campus-3',
         name: 'Talabalar turar joyi (Yotoqxona)',
-        address: '150100, Fargʻona viloyati, Fargʻona shahri, Al-Fargʻoniy koʻchasi, 44-uy',
+        address: '100000, Toshkent shahri, Chilonzor tumani, Bunyodkor shoh koʻchasi, 3-uy',
         departments: 'Yotoqxona maʼmuriyati, tibbiyot punkti, sport sektori, maʼnaviyat xonasi',
-        phone: '+998 (73) 244-00-15',
-        email: 'hostel@texnikum2.uz',
+        phone: '+998 (71) 200-00-15',
+        email: 'hostel@texnikum.uz',
         workHours: 'Kechu-kunduz (24/7 navbatchilik va nazorat)',
         transport: 'Bosh oʻquv binosi yonida (1 daqiqalik piyoda yoʻl)',
         orderIndex: 3,
@@ -51,46 +51,46 @@ export class ContactsService {
       {
         id: 'phone-1',
         title: 'Qabul komissiyasi (ishonch telefoni)',
-        phone: '+998 (73) 244-00-00',
+        phone: '+998 (71) 200-00-00',
         note: 'Qabul va hujjat topshirish boʻyicha maʼlumot',
         orderIndex: 1,
       },
       {
         id: 'phone-2',
         title: 'Direktor qabulxonasi / Devonxona',
-        phone: '+998 (73) 244-00-01',
+        phone: '+998 (71) 200-00-01',
         note: 'Rasmiy yozishmalar va murojaatlar',
         orderIndex: 2,
       },
       {
         id: 'phone-3',
         title: 'Oʻquv-metodika boʻlimi',
-        phone: '+998 (73) 244-00-02',
+        phone: '+998 (71) 200-00-02',
         note: 'Oʻquv jarayoni va akademik maʼlumotnomalar',
         orderIndex: 3,
       },
       {
         id: 'phone-4',
         title: 'Amaliyot va bitiruvchilar bandligi',
-        phone: '+998 (73) 244-00-03',
+        phone: '+998 (71) 200-00-03',
         note: 'Ish beruvchilar bilan shartnomalar va dual taʼlim',
         orderIndex: 4,
       },
       {
         id: 'phone-5',
         title: 'Buxgalteriya (kontrakt toʻlovlari)',
-        phone: '+998 (73) 244-00-04',
+        phone: '+998 (71) 200-00-04',
         note: 'Toʻlov-kontrakt shartnomalari va kvitansiyalar',
         orderIndex: 5,
       },
     ],
     directions: {
-      bus: 'Fargʻona shahri boʻylab 1, 8, 14, 22-sonli avtobus yoki yoʻnalishli taksilar orqali «Universitet» yoki «2-son texnikum» bekatiga kelishingiz mumkin.',
-      landmark: 'Fargʻona davlat universiteti bosh binosi roʻparasida, Al-Fargʻoniy koʻchasi boʻylab 42-uy.',
+      bus: 'Shahar boʻylab avtobus yoki yoʻnalishli taksilar orqali «Texnikum» bekatiga kelishingiz mumkin.',
+      landmark: 'Markaziy maydon roʻparasida, Mustaqillik shoh koʻchasi boʻylab 1-uy.',
     },
     mapCoordinates: {
-      lat: 40.3864,
-      lng: 71.7864,
+      lat: 41.3111,
+      lng: 69.2797,
       zoom: 16,
     },
   };
@@ -103,9 +103,48 @@ export class ContactsService {
 
   async getContacts(): Promise<ApiResponse<ContactsData>> {
     return this.cacheService.getOrSet('contacts:data', 300, async () => {
+      let data = { ...this.contactsData };
+
+      if (this.supabaseService.isReady()) {
+        const supabase = this.supabaseService.getClient();
+        if (supabase) {
+          const { data: inst } = await supabase
+            .from('institution_settings')
+            .select('*')
+            .eq('id', 1)
+            .maybeSingle();
+
+          if (inst && inst.is_configured) {
+            const campuses = data.campuses.map((c, i) => {
+              if (i === 0) {
+                return {
+                  ...c,
+                  name: inst.short_name_uz ? `${inst.short_name_uz} (Bosh bino)` : c.name,
+                  address: inst.legal_address_uz || c.address,
+                  phone: inst.main_phone || c.phone,
+                  email: inst.contact_email || c.email,
+                  workHours: inst.work_hours_uz || c.workHours,
+                };
+              }
+              return c;
+            });
+
+            data = {
+              ...data,
+              campuses,
+              mapCoordinates: {
+                lat: Number(inst.geo_latitude || 40.3864),
+                lng: Number(inst.geo_longitude || 71.7864),
+                zoom: 16,
+              },
+            };
+          }
+        }
+      }
+
       return {
         success: true,
-        data: this.contactsData,
+        data,
         timestamp: new Date().toISOString(),
       };
     });

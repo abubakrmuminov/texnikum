@@ -7,9 +7,18 @@ export const API_ROUTES = {
   SPECIALTIES: '/specialties',
   SCHEDULE: '/schedule',
   PAGES: '/pages',
+  ADMIN_PAGES: '/admin/pages',
+  NAVIGATION: '/navigation',
+  ADMIN_NAVIGATION: '/admin/navigation',
+  THEME: '/theme',
+  ADMIN_THEME: '/admin/theme',
   USERS: '/users',
   AUDIT_LOG: '/audit-log',
   ME_ONBOARDING: '/me/onboarding',
+  PUBLIC_INSTITUTION: '/public/institution',
+  SETUP_STATUS: '/setup/status',
+  SETUP_COMPLETE: '/setup/complete',
+  ADMIN_INSTITUTION: '/admin/institution',
 } as const;
 
 export const WEB_ROUTES = {
@@ -33,4 +42,8 @@ export const WEB_ROUTES = {
   ADMIN_SCHEDULE: '/admin/schedule',
   ADMIN_USERS: '/admin/users',
   ADMIN_AUDIT: '/admin/audit',
+  ADMIN_SETTINGS_INSTITUTION: '/admin/settings/institution',
+  ADMIN_NAVIGATION: '/admin/navigation',
+  ADMIN_PAGES: '/admin/pages',
+  ADMIN_THEME: '/admin/settings/theme',
 } as const;

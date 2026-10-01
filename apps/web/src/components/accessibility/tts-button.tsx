@@ -37,7 +37,7 @@ export function TtsButton({ textToSpeak, className }: TtsButtonProps): JSX.Eleme
       variant="outline"
       size="sm"
       onClick={handleToggle}
-      className={`text-xs gap-1.5 focus:outline-none focus:ring-2 focus:ring-ring ${className || ''}`}
+      className={`text-xs gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${className || ''}`}
       aria-label={ariaLabel}
     >
       {isSpeaking ? (

@@ -100,7 +100,7 @@ export function AdministrationClientView({
             <button
               key={c.id}
               onClick={() => setActiveCategory(c.id)}
-              className={`px-3.5 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary ${
+              className={`px-3.5 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 activeCategory === c.id
                   ? 'bg-primary text-primary-foreground shadow-xs'
                   : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'

@@ -86,7 +86,7 @@ export function ScheduleViewer({
                 setSelectedGroup(e.target.value);
                 setSelectedTeacherId('');
               }}
-              className="w-full h-10 px-3 py-2 text-xs font-medium rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              className="w-full h-10 px-3 py-2 text-xs font-medium rounded-lg border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
               {groups.map((group) => (
                 <option key={group} value={group}>
@@ -107,7 +107,7 @@ export function ScheduleViewer({
               onChange={(e) => {
                 setSelectedTeacherId(e.target.value);
               }}
-              className="w-full h-10 px-3 py-2 text-xs font-medium rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full h-10 px-3 py-2 text-xs font-medium rounded-lg border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <option value="">Barcha oʻqituvchilar (guruh boʻyicha)</option>
               {teachers.map((t) => (
@@ -133,7 +133,7 @@ export function ScheduleViewer({
                 role="radio"
                 aria-checked={selectedParity === 'all'}
                 onClick={() => setSelectedParity('all')}
-                className={`py-1.5 rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`py-1.5 rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   selectedParity === 'all'
                     ? 'bg-background text-foreground shadow-sm font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
@@ -146,7 +146,7 @@ export function ScheduleViewer({
                 role="radio"
                 aria-checked={selectedParity === 'odd'}
                 onClick={() => setSelectedParity('odd')}
-                className={`py-1.5 rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`py-1.5 rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   selectedParity === 'odd'
                     ? 'bg-background text-foreground shadow-sm font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
@@ -159,7 +159,7 @@ export function ScheduleViewer({
                 role="radio"
                 aria-checked={selectedParity === 'even'}
                 onClick={() => setSelectedParity('even')}
-                className={`py-1.5 rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                className={`py-1.5 rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   selectedParity === 'even'
                     ? 'bg-background text-foreground shadow-sm font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
@@ -184,7 +184,7 @@ export function ScheduleViewer({
               role="tab"
               aria-selected={selectedDay === d.day}
               onClick={() => setSelectedDay(d.day)}
-              className={`flex-1 min-w-[70px] py-2 px-3 rounded-lg text-xs font-semibold transition-all text-center focus:outline-none focus:ring-2 focus:ring-ring ${
+              className={`flex-1 min-w-[70px] py-2 px-3 rounded-lg text-xs font-semibold transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 selectedDay === d.day
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'

@@ -110,7 +110,7 @@ export default function AdminDashboardPage(): JSX.Element {
 
         <div className="flex items-center gap-2">
           <Link href="/admin/news/new">
-            <Button size="sm" className="text-xs font-semibold gap-1.5 shadow">
+            <Button data-tour="dashboard.create-btn" size="sm" className="text-xs font-semibold gap-1.5 shadow">
               <Plus className="size-4" aria-hidden="true" />
               <span>{isUz ? 'Yangi maqola yaratish' : 'Создать новость'}</span>
             </Button>
@@ -127,7 +127,7 @@ export default function AdminDashboardPage(): JSX.Element {
       {/* Карточки метрик (KPI) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Метрика 1: Новости */}
-        <Card>
+        <Card data-tour="dashboard.kpi-news">
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
             <span className="text-xs font-semibold text-muted-foreground">
               {isUz ? 'Yangiliklar va maqolalar' : 'Новости и статьи'}
@@ -151,7 +151,7 @@ export default function AdminDashboardPage(): JSX.Element {
         </Card>
 
         {/* Метрика 2: Педагоги */}
-        <Card>
+        <Card data-tour="dashboard.kpi-teachers">
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
             <span className="text-xs font-semibold text-muted-foreground">
               {isUz ? 'Oʻqituvchilar tarkibi' : 'Педагогический состав'}
@@ -169,7 +169,7 @@ export default function AdminDashboardPage(): JSX.Element {
         </Card>
 
         {/* Метрика 3: Специальности */}
-        <Card>
+        <Card data-tour="dashboard.kpi-specialties">
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
             <span className="text-xs font-semibold text-muted-foreground">
               {isUz ? 'Taʼlim dasturlari' : 'Программы обучения'}
@@ -208,7 +208,7 @@ export default function AdminDashboardPage(): JSX.Element {
       </div>
 
       {/* Быстрые действия */}
-      <div className="p-4 rounded-xl border border-border bg-card shadow-sm space-y-3">
+      <div data-tour="dashboard.quick-actions" className="p-4 rounded-xl border border-border bg-card shadow-sm space-y-3">
         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           {isUz ? 'Tezkor oʻtish va yozuv qoʻshish' : 'Быстрый переход и добавление записей'}
         </span>
@@ -259,7 +259,7 @@ export default function AdminDashboardPage(): JSX.Element {
           </Link>
         </div>
 
-        <div className="rounded-xl border border-border bg-card overflow-x-auto shadow-sm">
+        <div data-tour="dashboard.recent-table" className="rounded-xl border border-border bg-card overflow-x-auto shadow-sm">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[11px] font-semibold">
@@ -332,7 +332,7 @@ export default function AdminDashboardPage(): JSX.Element {
 
       {/* Журнал аудита: краткая сводка (только для Admin) */}
       {user?.role === UserRole.ADMIN && auditLogs.length > 0 && (
-        <div className="space-y-3">
+        <div data-tour="dashboard.audit-widget" className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <History className="size-4 text-primary" aria-hidden="true" />

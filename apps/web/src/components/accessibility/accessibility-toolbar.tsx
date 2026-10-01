@@ -50,7 +50,7 @@ export function AccessibilityToolbar(): JSX.Element {
         }
       }
 
-      const pageTitle = document.title || 'Fargʻona 2-son texnikumi portali';
+      const pageTitle = document.title || 'Rasmiy taʼlim portali';
       speakText(pageTitle);
     }
   };
@@ -65,7 +65,7 @@ export function AccessibilityToolbar(): JSX.Element {
         <div className="flex items-center gap-2">
           <Link
             href="/settings"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 focus:ring-2 focus:ring-ring transition-colors font-semibold"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors font-semibold"
             aria-label="Maxsus imkoniyatlar sozlamalari (WCAG 2.1 AA, OʻRQ-641)"
           >
             <Eye className="size-3.5" aria-hidden="true" />
@@ -82,12 +82,12 @@ export function AccessibilityToolbar(): JSX.Element {
         {/* Правая группа: Быстрые переключатели параметров */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {/* Размер шрифта */}
-          <div className="flex items-center gap-1 bg-background/60 rounded p-0.5 border border-border" role="group" aria-label="Shrift oʻlchami">
+          <div className="flex items-center gap-1 bg-background/60 rounded-md p-1 border border-border" role="group" aria-label="Shrift oʻlchami">
             <span className="sr-only">Shrift oʻlchami:</span>
             <button
               type="button"
               onClick={() => setFontSize('normal')}
-              className={`px-2 py-0.5 rounded text-xs transition-colors ${fontSize === 'normal' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
+              className={`min-w-[28px] min-h-[28px] px-2 py-1 rounded text-xs flex items-center justify-center transition-colors ${fontSize === 'normal' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
               aria-pressed={fontSize === 'normal'}
               title="Standart shrift 100%"
             >
@@ -96,7 +96,7 @@ export function AccessibilityToolbar(): JSX.Element {
             <button
               type="button"
               onClick={() => setFontSize('large')}
-              className={`px-2 py-0.5 rounded text-sm transition-colors ${fontSize === 'large' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
+              className={`min-w-[28px] min-h-[28px] px-2 py-1 rounded text-sm flex items-center justify-center transition-colors ${fontSize === 'large' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
               aria-pressed={fontSize === 'large'}
               title="Katta shrift 120%"
             >
@@ -105,7 +105,7 @@ export function AccessibilityToolbar(): JSX.Element {
             <button
               type="button"
               onClick={() => setFontSize('xlarge')}
-              className={`px-2 py-0.5 rounded text-base transition-colors ${fontSize === 'xlarge' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
+              className={`min-w-[28px] min-h-[28px] px-2 py-1 rounded text-base flex items-center justify-center transition-colors ${fontSize === 'xlarge' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
               aria-pressed={fontSize === 'xlarge'}
               title="Juda katta shrift 140%"
             >
@@ -114,11 +114,11 @@ export function AccessibilityToolbar(): JSX.Element {
           </div>
 
           {/* Быстрые цветовые схемы */}
-          <div className="flex items-center gap-1 bg-background/60 rounded p-0.5 border border-border" role="group" aria-label="Rang sxemasi">
+          <div className="flex items-center gap-1 bg-background/60 rounded-md p-1 border border-border" role="group" aria-label="Rang sxemasi">
             <button
               type="button"
               onClick={() => setTheme('default')}
-              className={`px-2 py-0.5 rounded transition-colors ${theme === 'default' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
+              className={`min-w-[28px] min-h-[28px] px-2 py-1 rounded text-xs flex items-center justify-center transition-colors ${theme === 'default' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-accent'}`}
               aria-pressed={theme === 'default'}
               title="Standart rang sxemasi"
             >
@@ -127,7 +127,7 @@ export function AccessibilityToolbar(): JSX.Element {
             <button
               type="button"
               onClick={() => setTheme('contrast-bw')}
-              className={`px-2 py-0.5 rounded border border-black bg-white text-black transition-colors ${theme === 'contrast-bw' ? 'ring-2 ring-primary font-bold' : 'hover:opacity-80'}`}
+              className={`min-w-[28px] min-h-[28px] px-1.5 py-1 rounded border border-black bg-white text-black text-xs flex items-center justify-center transition-colors ${theme === 'contrast-bw' ? 'ring-2 ring-primary font-bold' : 'hover:opacity-80'}`}
               aria-pressed={theme === 'contrast-bw'}
               title="Oq fonda qora"
             >
@@ -136,7 +136,7 @@ export function AccessibilityToolbar(): JSX.Element {
             <button
               type="button"
               onClick={() => setTheme('contrast-wb')}
-              className={`px-2 py-0.5 rounded border border-white bg-black text-white transition-colors ${theme === 'contrast-wb' ? 'ring-2 ring-primary font-bold' : 'hover:opacity-80'}`}
+              className={`min-w-[28px] min-h-[28px] px-1.5 py-1 rounded border border-white bg-black text-white text-xs flex items-center justify-center transition-colors ${theme === 'contrast-wb' ? 'ring-2 ring-primary font-bold' : 'hover:opacity-80'}`}
               aria-pressed={theme === 'contrast-wb'}
               title="Qora fonda oq"
             >
@@ -145,7 +145,7 @@ export function AccessibilityToolbar(): JSX.Element {
             <button
               type="button"
               onClick={() => setTheme('contrast-blue')}
-              className={`px-2 py-0.5 rounded border border-blue-900 bg-sky-200 text-blue-950 transition-colors ${theme === 'contrast-blue' ? 'ring-2 ring-primary font-bold' : 'hover:opacity-80'}`}
+              className={`min-w-[28px] min-h-[28px] px-1.5 py-1 rounded border border-blue-900 bg-sky-200 text-blue-950 text-xs flex items-center justify-center transition-colors ${theme === 'contrast-blue' ? 'ring-2 ring-primary font-bold' : 'hover:opacity-80'}`}
               aria-pressed={theme === 'contrast-blue'}
               title="Moviy fonda toʻq koʻk"
             >
@@ -157,7 +157,7 @@ export function AccessibilityToolbar(): JSX.Element {
           <button
             type="button"
             onClick={() => setImagesMode(imagesMode === 'hide' ? 'show' : imagesMode === 'show' ? 'grayscale' : 'hide')}
-            className={`flex items-center gap-1 px-2 py-1 rounded border border-border bg-background/60 hover:bg-accent transition-colors ${imagesMode !== 'show' ? 'border-primary text-primary' : ''}`}
+            className={`min-h-[28px] flex items-center gap-1.5 px-2.5 py-1 rounded border border-border bg-background/60 hover:bg-accent transition-colors ${imagesMode !== 'show' ? 'border-primary text-primary' : ''}`}
             title={`Rasmlar tartibi: ${imagesMode === 'show' ? 'Rangli' : imagesMode === 'grayscale' ? 'Oq-qora' : 'Yashirilgan'}`}
             aria-label="Rasmlarni koʻrsatish tartibi"
           >
@@ -214,7 +214,7 @@ export function AccessibilityToolbar(): JSX.Element {
           {/* Ссылка в полные настройки */}
           <Link
             href="/settings"
-            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent focus:ring-2 focus:ring-ring transition-colors"
+            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             title="Barcha maxsus imkoniyat sozlamalari"
           >
             <Settings className="size-3.5" aria-hidden="true" />

@@ -77,7 +77,7 @@ export function ContactsFeedbackForm(): JSX.Element {
           id="feedback-contact"
           type="text"
           required
-          placeholder="+998 (90) 123-45-67 yoki email@texnikum2.uz"
+          placeholder="+998 (90) 123-45-67 yoki email@domain.uz"
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           className="text-xs"
@@ -128,7 +128,7 @@ export function CopyAddressButton({ address }: { address: string }): JSX.Element
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-medium focus:outline-none focus:ring-1 focus:ring-ring rounded"
+      className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
       aria-label="Manzilni nusxalash"
     >
       {copied ? (

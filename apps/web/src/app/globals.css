@@ -139,13 +139,76 @@
   * {
     @apply border-border;
   }
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground antialiased;
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 
-  /* Строгое соответствие a11y: видимый фокус для клавиатурной навигации */
+  /* Сброс любого контура при обычном клике мыши (pointer click) */
+  :focus:not(:focus-visible) {
+    outline: none !important;
+  }
+
+  /* Строгое соответствие a11y: видимый фокус ТОЛЬКО для клавиатурной навигации (Tab) */
   :focus-visible {
-    outline: 3px solid hsl(var(--primary)) !important;
-    outline-offset: 2px !important;
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
   }
 }
+
+/* Fluid Headings (clamp-based scale for academic typography) */
+.text-fluid-h1 {
+  font-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);
+  line-height: 1.2;
+}
+.text-fluid-h2 {
+  font-size: clamp(1.4rem, 1.1rem + 1.5vw, 2.25rem);
+  line-height: 1.25;
+}
+.text-fluid-h3 {
+  font-size: clamp(1.2rem, 1rem + 1vw, 1.75rem);
+  line-height: 1.3;
+}
+.text-fluid-h4 {
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+  line-height: 1.35;
+}
+
+/* CSS Container Query Support */
+.container-cell {
+  container-type: inline-size;
+}
+
+/* Responsive Table Region */
+.table-responsive-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Responsive visibility utilities according to RESPONSIVE_PLAN.md */
+@media (max-width: 639.98px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}
+

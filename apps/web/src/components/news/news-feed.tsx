@@ -91,7 +91,7 @@ export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Elemen
             role="tab"
             aria-selected={selectedCategory === null}
             onClick={() => setSelectedCategory(null)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               selectedCategory === null
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
@@ -106,7 +106,7 @@ export function NewsFeed({ initialNews, categories }: NewsFeedProps): JSX.Elemen
               role="tab"
               aria-selected={selectedCategory === cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 selectedCategory === cat.id
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'

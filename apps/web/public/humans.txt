@@ -8,7 +8,7 @@
 
 /* THANKS & ATTRIBUTIONS */
   Ministry of Higher Education, Science and Innovations of the Republic of Uzbekistan
-  Administration of Fargʻona 2-son texnikumi
+  Vocational Colleges and Technical Schools of the Republic of Uzbekistan
   Open-source community (Next.js, NestJS, Supabase, Tailwind, Radix UI)
 
 /* SITE & ARCHITECTURE */

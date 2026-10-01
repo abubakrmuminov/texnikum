@@ -8,13 +8,16 @@ import { CacheModule } from './modules/cache/cache.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { EventsModule } from './modules/events/events.module';
 import { HealthModule } from './modules/health/health.module';
+import { InstitutionModule } from './modules/institution/institution.module';
 import { MediaModule } from './modules/media/media.module';
+import { NavigationModule } from './modules/navigation/navigation.module';
 import { NewsModule } from './modules/news/news.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { SpecialtiesModule } from './modules/specialties/specialties.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { TeachersModule } from './modules/teachers/teachers.module';
+import { ThemeModule } from './modules/theme/theme.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -40,16 +43,19 @@ import { UsersModule } from './modules/users/users.module';
     HealthModule,
     AuthModule,
 
-    // Бизнес-модули образовательного портала СПО
+    // Бизнес-модули образовательного портала
     NewsModule,
     TeachersModule,
     SpecialtiesModule,
     EventsModule,
     ScheduleModule,
     PagesModule,
+    NavigationModule,
+    ThemeModule,
     MediaModule,
     UsersModule,
     ContactsModule,
+    InstitutionModule,
   ],
   controllers: [],
   providers: [

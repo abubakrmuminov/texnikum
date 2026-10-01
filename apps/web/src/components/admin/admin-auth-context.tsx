@@ -70,9 +70,9 @@ export function AdminAuthProvider({
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     const validAccounts: Record<string, { pass: string; userIndex: number }> = {
-      'admin@texnikum2.uz': { pass: 'admin123', userIndex: 0 },
-      'editor@texnikum2.uz': { pass: 'editor123', userIndex: 1 },
-      'moderator@texnikum2.uz': { pass: 'moderator123', userIndex: 2 },
+      'admin@texnikum.uz': { pass: 'admin123', userIndex: 0 },
+      'editor@texnikum.uz': { pass: 'editor123', userIndex: 1 },
+      'moderator@texnikum.uz': { pass: 'moderator123', userIndex: 2 },
     };
 
     const target = validAccounts[email.trim().toLowerCase()];

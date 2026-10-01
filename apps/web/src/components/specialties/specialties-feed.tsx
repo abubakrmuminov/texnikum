@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useInstitution } from '@/components/institution/institution-provider';
 
 interface SpecialtiesFeedProps {
   initialSpecialties: Specialty[];
@@ -24,6 +25,7 @@ export function SpecialtiesFeed({
 }: SpecialtiesFeedProps): JSX.Element {
   const [baseEducationFilter, setBaseEducationFilter] = useState<'all' | '9_classes' | '11_classes'>('all');
   const [calculatorScore, setCalculatorScore] = useState<string>('4.5');
+  const { name, shortName, phone, admissionPhone, email, admissionEmail, workHours } = useInstitution();
 
   const filteredSpecialties = useMemo(() => {
     return initialSpecialties.filter((s) => {
@@ -59,7 +61,7 @@ export function SpecialtiesFeed({
               role="tab"
               aria-selected={baseEducationFilter === 'all'}
               onClick={() => setBaseEducationFilter('all')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 baseEducationFilter === 'all'
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -72,7 +74,7 @@ export function SpecialtiesFeed({
               role="tab"
               aria-selected={baseEducationFilter === '9_classes'}
               onClick={() => setBaseEducationFilter('9_classes')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 baseEducationFilter === '9_classes'
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -85,7 +87,7 @@ export function SpecialtiesFeed({
               role="tab"
               aria-selected={baseEducationFilter === '11_classes'}
               onClick={() => setBaseEducationFilter('11_classes')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 baseEducationFilter === '11_classes'
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -346,7 +348,7 @@ export function SpecialtiesFeed({
 
           <div className="p-6 rounded-xl border border-border bg-card space-y-4 text-center">
             <h3 className="text-lg font-bold text-foreground">
-              Fargʻona 2-son texnikumi qabul komissiyasi
+              {shortName || name} qabul komissiyasi
             </h3>
             <p className="text-xs text-muted-foreground">
               Oʻqishga kirish boʻyicha bepul konsultatsiyalar, hujjatlarni tekshirish va my.edu.uz portali orqali ariza topshirishda amaliy koʻmak.
@@ -354,23 +356,23 @@ export function SpecialtiesFeed({
             <div className="p-4 rounded-lg bg-muted text-left text-xs space-y-1.5">
               <div>
                 <span className="text-muted-foreground">Manzil: </span>
-                <strong className="text-foreground">Bosh bino, 105-xona</strong>
+                <strong className="text-foreground">Bosh bino, Qabul xonasi</strong>
               </div>
               <div>
                 <span className="text-muted-foreground">Telefon: </span>
-                <strong className="text-foreground">+998 (73) 244-00-00</strong>
+                <strong className="text-foreground">{admissionPhone || phone || '+998'}</strong>
               </div>
               <div>
                 <span className="text-muted-foreground">Email: </span>
-                <strong className="text-foreground">priem@texnikum2.uz</strong>
+                <strong className="text-foreground">{admissionEmail || email || 'priem@edu.uz'}</strong>
               </div>
               <div>
                 <span className="text-muted-foreground">Ish tartibi: </span>
-                <strong className="text-foreground">Dush–Shanba: 08:30 – 17:30</strong>
+                <strong className="text-foreground">{workHours}</strong>
               </div>
             </div>
             <a
-              href="tel:+998732440000"
+              href={`tel:${(admissionPhone || phone || '+998712000000').replace(/[^\d+]/g, '')}`}
               className="inline-block w-full"
             >
               <Button className="w-full text-xs font-semibold">
